@@ -1,0 +1,11 @@
+Package: pubchem.bio
+Title: Download, Parse, And Organize Pubchem: Generating Biological and Taxonomically Relevent Metabolome Databases
+Version: 0.0.0.9000
+Authors@R: 
+    person("Corey", "Broeckling", , "cbroeckl@colostate.edu", role = c("aut", "cre"))
+Description: The pubchem.bio package downloads various bits and pieces of pubchem.  All compounds are downloaded, but for each compound, only partial records are used.  the data are organized into small files referenced by pubchem CID.  the package also contains functions to parse the biologically relevant compounds from all pubchem compounds, using biological database sources, pathway presence, and taxonomic relationships. Taxonomy is used to generate a lowest common ancestor taxonomy ID (NCBI) for each biological metabolite, which then enables creation of taxonomically specific metabolome databases for any taxon.
+License: GPL-3
+Encoding: UTF-8
+Imports: foreach, doParallel, R.utils, collapse, data.table, dplyr, rcdk, stringr
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
