@@ -310,6 +310,9 @@ build.pubchem.bio <- function(
     }
   }
   
+  ## create stable dopar function:
+  `%dopar%` <- foreach::`%dopar%`
+  
   ## get simple physical-chemical properties
   if(get.properties) {
     cat(" - calclulating rcdk properties",  format(Sys.time()), '\n')

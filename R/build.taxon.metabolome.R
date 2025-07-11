@@ -1,0 +1,214 @@
+#' build.taxon.metabolome
+#'
+#' utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function to filter a dataset created by 'build.pubchem.bio' function
+#' @details utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
+#' @param pc.directory directory from which to load pubchem .Rdata files
+#' @param taxid integer vector of integer NCBI taxonomy IDs.  i.e.  c(9606, 1425170 ) for Homo sapiens and Homo heidelbergensis.    
+#' @param get.properties logical. if TRUE, will return rcdk calculated properties:  XLogP, TPSA, HBondDonorCount and HBondAcceptorCount.
+#' @param full.scored logincal.  default = FALSE.  When false, only metabolites which map to the taxid(s) are returned.  When TRUE, all metabolites are returned, with scores assigned based on the distance of non-mapped metabolites to the root node.  i.e. specialized metabolites from distantly related species are going to be scored at or near zero, specialized metabolites of mores similar species higher, and more conserved metabolites will score higher than ore specialized. 
+#' @param aggregation.function function. default = max.  can use mean, median, min, etc, or a custom function.  Defines how the aggregate score will be calculated when multiple taxids are used.
+#' @param threads integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.  
+#' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
+#' @author Corey Broeckling
+#' 
+#' @export
+#' 
+build.taxon.metabolome <- function(
+    pc.directory = NULL,
+    taxid = c(),
+    get.properties = TRUE,
+    full.scored = FALSE,
+    aggregation.function = max,
+    threads = 8
+) {
+  
+  if(length(taxid) == 0) {
+    stop("please list at least one integer taxid, i.e. 'taxid = c(4071, 4081)'", '\n')
+  }
+  
+  if(file.exists(paste0(pc.directory, "/cid.lca.Rdata"))) {
+    load(paste0(pc.directory, "/cid.lca.Rdata"))
+  } else {
+    error(paste0(pc.directory, "/cid.lca.Rdata"), "does not exist", '\n')
+  }
+  
+  if(file.exists(paste0(pc.directory, "/taxid.heirarchy.Rdata"))) {
+    load(paste0(pc.directory, "/taxid.heirarchy.Rdata"))
+  } else {
+    error(paste0(pc.directory, "/taxid.heirarchy.Rdata"), "does not exist", '\n')
+  }
+  
+  if(file.exists(paste0(pc.directory, "/pc.bio.Rdata"))) {
+    load(paste0(pc.directory, "/pc.bio.Rdata"))
+  } else {
+    error(paste0(pc.directory, "/pc.bio.Rdata"), "does not exist", '\n')
+  }
+  
+  cid.lca <- cid.lca
+  taxid.heirarchy <- taxid.heirarchy
+  pc.bio <- pc.bio
+  
+  `%dopar%` <- foreach::`%dopar%`
+  
+  out <- pc.bio
+  
+  for(i in 1:length(taxid)) {
+    tax.match <- which(taxid.heirarchy == taxid[i], arr.ind = TRUE)
+    taxid.v <- as.vector(t(data.frame(taxid.heirarchy[tax.match[1,1],])))
+    metabolome <- unique(cid.lca$cid[cid.lca$lca %in% taxid.v])
+    keep <- which(metabolome %in% pc.bio$cid)
+    
+    if(full.scored) {
+      ## get taxid heirarchy. store as vector.  
+      ## compare to each out taxid vector by lca
+      cat(taxid[i], " ")
+      taxid.row <- tax.match[1,1]
+      taxid.column <- as.integer(tax.match[1,2])
+      taxid.vector <- as.vector(unlist(taxid.heirarchy[taxid.row, taxid.column:ncol(taxid.heirarchy)]))
+      
+      ## tmp is the index to the correct cid.lca row for each pubchem row
+      th.ind <- which(names(cid.lca) == "species"):ncol(cid.lca)
+      th.ind <- th.ind[taxid.column:length(th.ind)]
+      tmp <- match(pc.bio$cid, cid.lca$cid)
+      cat(" -- calculating similarities", '\n')
+      
+      do.sim <- which(!is.na(tmp))
+      
+      # doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
+      # results <- foreach::foreach(j = do.sim) %dopar% {
+      #   tryCatch(
+      #     #this is the chunk of code we want to run
+      #     {
+      #       mtch.col <- suppressWarnings(taxid.column - 1 + which(taxid.vector == cid.lca[tmp[j], th.ind])[1])
+      #       mtch.col
+      #       #when it throws an error, the following block catches the error
+      #     }, error = function(msg){
+      #       stop("error on", j, '\n')
+      #       return(NA)
+      #     }
+      #   )
+      # }
+      # results <- unlist(results)
+      # head(results)
+      # tax.lca.sim <- rep(NA, length(tmp))
+      # tax.lca.sim[do.sim] <- results
+      # tax.lca.sim <- (max(tax.lca.sim, na.rm = TRUE) - tax.lca.sim)/max(tax.lca.sim, na.rm = TRUE)
+      # tax.lca.sim[keep] <- 1
+      
+      
+      
+      # tax.lca.sim <- rep(NA, length(tmp))
+      # tmp.ind <- 1:length(tmp)
+      # tmp.chunks <- split(tmp, ceiling(seq_along(tmp.ind)/100000))
+      # out.chunks <- as.list(rep(NA, length(tmp.chunks)))
+      # for(y in 1:length(tmp.chunks)) {
+      #   for(x in 1:length(tmp.chunks[[y]])) {
+      #     out.vec <- rep(NA, length(tmp.chunks))
+      #     if(!is.na(tmp.chunks[[y]][x])) {
+      #       out.vec[x] <- tryCatch(
+      #         #this is the chunk of code we want to run
+      #         {
+      #           mtch.col <- which(taxid.vector == cid.lca[tmp.chunks[[y]][x], th.ind])[1]
+      #           mtch.col
+      #           #when it throws an error, the following block catches the error
+      #         }, error = function(msg){
+      #           stop("error on", i, '\n')
+      #           return(NA)
+      #         }
+      #       )
+      #     }
+      #   }
+      # }
+      
+      do.sim <- which(!is.na(tmp))
+      # do.sim <- do.sim[151600:length(do.sim)]
+      do.sim.sim <- sapply((do.sim), FUN = function(x) {
+      # tax.lca.sim <- sapply((800000:length(tmp)), FUN = function(x) {
+       cat(x, ' ')
+          tryCatch(
+            #this is the chunk of code we want to run
+            {
+              mtch.col <- which(taxid.vector == cid.lca[tmp[x], th.ind])[1]
+              mtch.col
+              #when it throws an error, the following block catches the error
+            }, error = function(msg){
+              stop("error on", i, '\n')
+              return(NA)
+            }
+            )
+      }
+      )
+      tax.lca.sim <- rep(NA, length(tmp))
+      tax.lca.sim[do.sim] <- do.sim.sim
+      tax.lca.sim <- (max(tax.lca.sim, na.rm = TRUE) - tax.lca.sim)/max(tax.lca.sim, na.rm = TRUE)
+      tax.lca.sim[keep] <- 1
+      
+      out[,paste0("taxonomy.lca.similarity.", taxid[i])] <- tax.lca.sim
+    }
+  }
+  
+  if(!full.scored) {
+    cat("keeping", length(keep), "metabolites", '\n')
+    out <- pc.bio[keep, ]
+    if(nrow(out) == 0) {
+      error("no metabolites found for taxid(s):", paste0(taxid, collapse = ", "))
+    }
+  } else {
+    
+    ## aggregate taxonomy.lca.similarity scores using assigned function
+    use.cols <- which(grepl("taxonomy.lca.similarity.", names(out)))
+    agg.sim <- apply(out[,use.cols, drop = FALSE], 1, suppressWarnings(aggregation.function), na.rm = TRUE, simplify = TRUE)
+    # agg.sim <- agg.sim[unique(c(which(is.infinite(agg.sim)), which(is.na(agg.sim))))] <- NA
+    out[,paste0("taxonomy.lca.similarity.", "aggregate")] <- agg.sim
+  }
+  
+  
+  
+  
+  
+  ## create stable dopar function:
+  `%dopar%` <- foreach::`%dopar%`
+  
+  if(get.properties) {
+    cat(" - calclulating rcdk properties",  format(Sys.time()), '\n')
+    cid.list <- as.list(out$cid)
+    sm.list <- as.list(out$smiles)
+    doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
+    results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
+      desc <- c(
+        "org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor",
+        "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
+        "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
+        "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"
+      )
+      mol <- rcdk::parse.smiles(sm.list[[i]])
+      
+      names(mol) <- cid.list[[i]]
+      if(is.null(mol)) {
+        descs <- rep(NA, length(desc))
+      } else {
+        descs <- rcdk::eval.desc(mol, desc)
+      }
+      
+      descs
+    }
+    
+    
+    results.df <- do.call("rbind", results)
+    out <- out[order(out$cid),]
+    results.df <- results.df[order(as.numeric(row.names(results.df))),]
+    
+    out <- data.frame(
+      out,
+      results.df
+    )
+    parallel::stopCluster(cl)
+  }
+  
+  return(out)
+  
+  save(out, file = paste0(pc.directory, "/custom.metabolome.Rdata"))
+  
+}
+
+pc.bio.sub <- build.taxon.metabolome(taxid = c(4071, 4107)[1:2], pc.directory = "C:/Temp/20250703", get.properties = FALSE, full.scored = TRUE)

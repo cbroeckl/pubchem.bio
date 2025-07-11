@@ -12,17 +12,19 @@
 #' 
 
 get.pubchem.ftp <- function(
-    pc.directory = "C:/Temp/20241212/",
+    pc.directory = NULL,
     timeout = 50000,
     rm.tmp.files = TRUE
 ) {
   
   ## setup directory structure
-  if(is.null(pc.directory)) pc.directory = utils::choose.dir(caption = "Select folder to which data will be saved")
+  if(is.null(pc.directory)) pc.directory <- paste0(getwd(), "/", format(Sys.time(), "%Y%m%d"), "/")
   pc.directory <- suppressWarnings(normalizePath(pc.directory))
   if(!dir.exists(pc.directory)) dir.create(pc.directory)
   tmp.dir <- suppressWarnings(paste0(pc.directory, "/tmp/"))
   dir.create(tmp.dir)
+  
+  cat(" -- writing data to", pc.directory, '\n')
   
   readme <- c(
     "Data collection derived from pubchem, primarily using the 'compound' FTP data.", '\n',
@@ -92,6 +94,7 @@ get.pubchem.ftp <- function(
   save(cid.parent, file = paste0(pc.directory, "/cid.parent.Rdata"))
   rm(cid.parent)
   gc()
+  Sys.sleep(2)
   
   readme <- c(
     readme,
@@ -120,12 +123,15 @@ get.pubchem.ftp <- function(
   data.table::setkey(cid.inchikey, "cid")
   save(cid.inchikey, file = paste0(pc.directory, "/cid.inchikey.Rdata"))
   rm(cid.inchikey);   gc()
+  Sys.sleep(2)
   
   cid.inchi <- d[,c(1,2)]
   data.table::setkey(cid.inchi, "cid")
   save(cid.inchi, file = paste0(pc.directory, "/cid.inchi.Rdata"))
   rm(cid.inchi); gc()
+  Sys.sleep(2)
   rm(d); gc()
+  Sys.sleep(2)
   
   readme <- c(
     readme,
@@ -153,9 +159,11 @@ get.pubchem.ftp <- function(
   }
   cid.smiles <- d
   rm(d); gc()
+  Sys.sleep(2)
   data.table::setkey(cid.smiles, "cid")
   save(cid.smiles, file = paste0(pc.directory, "/cid.smiles.Rdata"))
   rm(cid.smiles); gc()
+  Sys.sleep(2)
   
   readme <- c(
     readme,
@@ -182,9 +190,11 @@ get.pubchem.ftp <- function(
   }  
   cid.title <- d
   rm(d); gc()
+  Sys.sleep(2)
   data.table::setkey(cid.title, "cid")
   save(cid.title, file = paste0(pc.directory, "/cid.title.Rdata"))
-  rm(cid.title); gc()
+  rm(cid.title); gc
+  Sys.sleep(2)
   
   readme <- c(
     readme,
@@ -212,6 +222,7 @@ get.pubchem.ftp <- function(
   } 
   cid.pmid <- d
   rm(d); gc()
+  Sys.sleep(2)
   data.table::setkey(cid.pmid, "cid")
   save(cid.pmid, file = paste0(pc.directory, "/cid.pmid.Rdata"))
   
@@ -223,6 +234,7 @@ get.pubchem.ftp <- function(
   save(cid.pmid.ct, file = paste0(pc.directory, "/cid.pmid.ct.Rdata"))
   
   rm(cid.pmid); gc()
+  Sys.sleep(2)
   
   readme <- c(
     readme,
@@ -253,15 +265,19 @@ get.pubchem.ftp <- function(
   data.table::setkey(cid.formula, "cid")
   save(cid.formula, file = paste0(pc.directory, "/cid.formula.Rdata"))
   rm(cid.formula); gc()
+  Sys.sleep(2)
   cid.monoisotopic.mass <- d[,c(1,3)]
   data.table::setkey(cid.monoisotopic.mass, "cid")
   save(cid.monoisotopic.mass, file = paste0(pc.directory, "/cid.monoisotopic.mass.Rdata"))
   rm(cid.monoisotopic.mass); gc()
+  Sys.sleep(2)
   cid.accurate.mass <- d[,c(1,4)]
   data.table::setkey(cid.accurate.mass, "cid")
   save(cid.accurate.mass, file = paste0(pc.directory, "/cid.accurate.mass.Rdata"))
   rm(cid.accurate.mass); gc()
+  Sys.sleep(2)
   rm(d); gc()
+  Sys.sleep(2)
   
   readme <- c(
     readme,
@@ -351,11 +367,15 @@ get.pubchem.ftp <- function(
   data.table::setkey(cid.mesh.function, "cid")
   save(cid.mesh.function, file = paste0(pc.directory, "/cid.mesh.function.Rdata"))
   rm(mesh.name.mesh.function); gc()
+  Sys.sleep(2)
   rm(cid.mesh.name); gc()
+  Sys.sleep(2)
   readme <- c(
     readme,
     " - cid.mesh.function.Rdata, is a data.table of two columns, headers 'cid'and 'mesh.function', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
   )
+  Sys.sleep(2)
+  
   
   ########################
   ## TaxID to taxonomy
@@ -380,6 +400,8 @@ get.pubchem.ftp <- function(
                 "comments")
   d <- d[,c("taxid", "parent.taxid", "rank"),]
   gc()
+  Sys.sleep(2)
+  
   
   d <- data.table::as.data.table(d)
   data.table::setkey(d, "taxid")
@@ -390,7 +412,7 @@ get.pubchem.ftp <- function(
   ##  1280  1279 90964  1385 91061  1239     2     1
   ### try replacing all parent ids that are not in the rank list
   ## with their increasing parentage until you hit a rank list level
-  #
+  #  consider adding 'strain', 'isolate', 'subspecies, - 
   ranks <- c("species", "genus", "subtribe", "tribe", "subfamily", "family", "superfamily", "infraorder", "suborder", "order", "superorder", "infraclass", "subclass", "class", "superclass", "subphylum", "phylum", "subkingdom", "kingdom", "superkingdom")
   d$rank.parent.taxid <- d$rank[match(d$parent.taxid, d$taxid)]
   missing.old <- length(which(!d$rank.parent.taxid %in% ranks))
@@ -464,6 +486,7 @@ get.pubchem.ftp <- function(
   taxid.heirarchy$root <- rep(1, nrow(taxid.heirarchy))
   data.table::setkey(taxid.heirarchy, "species")
   rm(d); gc() 
+  Sys.sleep(2)
   save(taxid.heirarchy, file = paste0(pc.directory, "/taxid.heirarchy.Rdata"))
   
   readme <- c(
@@ -529,8 +552,10 @@ get.pubchem.ftp <- function(
   cid.taxid <- cid.taxid[!duplicated(cid.taxid), ]
   data.table::setkey(cid.taxid, "cid")
   rm(d); gc()
+  Sys.sleep(2)
   save(cid.taxid, file = paste0(pc.directory, "/cid.taxid.Rdata"))
   rm(cid.taxid); gc() # wait to remove cid.taxid, as we will add to it for pathway data
+  Sys.sleep(2)
   readme <- c(
     readme,
     " - cid.taxid.Rdata, is a data.table of two columns, headers 'cid'and 'taxid', each integer values. data.table is indexed by 'cid'. ", '\n', '\n'
@@ -548,14 +573,14 @@ get.pubchem.ftp <- function(
   
   download.urls <- 
     paste0("https://pubchem.ncbi.nlm.nih.gov/sdq/sdqagent.cgi?infmt=json&outfmt=csv&query={%22download%22:%22*%22,%22collection%22:%22pathway%22,%22order%22:[%22relevancescore,desc%22],%22start%22:1,%22limit%22:10000000,%22downloadfilename%22:%22PubChem_pathway_text_", 
-    gsub(" ", "%20", source.name),  #  "Plant%20Reactome", 
-    "%22,%22where%22:{%22ands%22:[{%22*%22:%22", 
-    gsub(" ", "%22},{%22*%22:%22", source.name),   #  "Plant%22},{%22*%22:%22Reactome", 
-    "%22},{%22source%22:%22", 
-    gsub(" ", "%22},{%22source%22:%22", source.name),   #  "Plant%22},{%22source%22:%22Reactome", 
-    "%22}]}}"
+           gsub(" ", "%20", source.name),  #  "Plant%20Reactome", 
+           "%22,%22where%22:{%22ands%22:[{%22*%22:%22", 
+           gsub(" ", "%22},{%22*%22:%22", source.name),   #  "Plant%22},{%22*%22:%22Reactome", 
+           "%22},{%22source%22:%22", 
+           gsub(" ", "%22},{%22source%22:%22", source.name),   #  "Plant%22},{%22source%22:%22Reactome", 
+           "%22}]}}"
     )
-
+  
   # download.urls <- c(
   #   "https://pubchem.ncbi.nlm.nih.gov/sdq/sdqagent.cgi?infmt=json&outfmt=csv&query={%22download%22:%22*%22,%22collection%22:%22pathway%22,%22order%22:[%22relevancescore,desc%22],%22start%22:1,%22limit%22:10000000,%22downloadfilename%22:%22PubChem_pathway_text_Reactome%22,%22where%22:{%22ands%22:[{%22*%22:%22Reactome%22},{%22source%22:%22Reactome%22}]}}",
   #   "https://pubchem.ncbi.nlm.nih.gov/sdq/sdqagent.cgi?infmt=json&outfmt=csv&query={%22download%22:%22*%22,%22collection%22:%22pathway%22,%22order%22:[%22relevancescore,desc%22],%22start%22:1,%22limit%22:10000000,%22downloadfilename%22:%22PubChem_pathway_text_PlantCyc%22,%22where%22:{%22ands%22:[{%22*%22:%22PlantCyc%22},{%22source%22:%22PlantCyc%22}]}}",
@@ -572,6 +597,9 @@ get.pubchem.ftp <- function(
       d <- rbind(d, data.table::fread(download.urls[i]))
     }
   }
+  
+  ## 'there something happenin' here.... 
+  ## 'what it is ain't exactly clear....
   d.2 <- lapply(1:nrow(d), FUN = function(i) {
     cids <- d$cids[i]
     cids <- as.numeric(unlist(strsplit(cids, "|", fixed = TRUE)))
@@ -579,9 +607,11 @@ get.pubchem.ftp <- function(
     tmp$cids <- cids
     tmp
   })
+  gc()
   d.2 <- dplyr::bind_rows(d.2)
   d <- d.2
   rm(d.2)
+  gc()
   d <- d[,c("pwacc", "name", "pwtype", "source", 
             "taxid", "taxname", "cids")]
   names(d) <- c("pwid", "name", "pwtype", "source", 
@@ -594,9 +624,13 @@ get.pubchem.ftp <- function(
   }
   cid.pwid <- d
   rm(d); gc()
+  Sys.sleep(2)
+  gc()
   data.table::setkey(cid.pwid, "cid")
+  gc()
   save(cid.pwid, file = paste0(pc.directory, "/cid.pwid.Rdata"))
   rm(cid.pwid)
+  gc()
   readme <- c(
     readme,
     " - cid.pwid.Rdata, is a data.table of seven columns, 'pwid' (integer), 'name' (character), 'pwtype' (character), 'source' (character), 'taxid' (ingeter), 'taxname' (character), and 'cid' (integer). data.table is indexed by 'cid'. ", '\n', '\n'
@@ -629,12 +663,17 @@ get.pubchem.ftp <- function(
   tmp.file <- paste0(tmp.dir, basename(download.url))
   utils::download.file(url = download.url, destfile = tmp.file)
   R.utils::gunzip(tmp.file, remove = FALSE)
+  gc()
+  Sys.sleep(2)
+  gc()
   
   #### sid.to.data.source.relationship
   d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)), sep="\t", fill=TRUE) 
   # dim(d)
   
   names(d) <- c("sid", "source", "source.id", "cid")
+  gc()
+  Sys.sleep(2)
   
   # bio.cid <- bio.sources %in% d[,2]
   
@@ -645,9 +684,11 @@ get.pubchem.ftp <- function(
   }
   cid.sid <- d
   rm(d); gc()
+  Sys.sleep(2)
   data.table::setkey(cid.sid, "cid")
   save(cid.sid, file = paste0(pc.directory, "/cid.sid.Rdata"))
   rm(cid.sid); gc()
+  Sys.sleep(2)
   readme <- c(
     readme,
     " - cid.sid.Rdata, is a data.table of four columns, 'sid' (integer), 'source' (character), 'source.id' (character), and 'cid' (integer). data.table is indexed by 'cid'. ", '\n', '\n'
@@ -663,7 +704,7 @@ get.pubchem.ftp <- function(
   # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
   
   #### cid.to.synonyms.relationship
-  d <- data.table::fread(gsub(".gz", "", paste0(tmp.dir, basename(tmp.file))))
+  d <- data.table::fread(gsub(".gz", "", paste0(tmp.dir, basename(tmp.file))), quote = "")
   names(d) <- c("cid", "synonym")
   cid.synonym <- as.vector(d$cid)
   cid.names <- gsub(" ", ".", d$synonym)
@@ -693,14 +734,8 @@ get.pubchem.ftp <- function(
   if(rm.tmp.files) {
     unlink(paste0(pc.directory, "tmp/"), recursive=TRUE)
   }
-
+  
   cat(' -- finished', '\n')
   
   return(readme)
 }
-
-
-
-
-
-

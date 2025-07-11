@@ -17,7 +17,7 @@
 
 
 build.cid.lca <- function(
-    pc.directory = 'R:/RSTOR-PMF/Software/db/met.db/20241216/',
+    pc.directory = NULL,
     tax.sources = "LOTUS - the natural products occurrence database",
     use.pathways = TRUE,
     use.conserved.pathways = FALSE,
@@ -47,7 +47,7 @@ build.cid.lca <- function(
     cid.taxid <- cid.taxid[cid.taxid$data.source %in% tax.sources]
   }
   cat(" -" , nrow(cid.taxid), "taxonomy-cid associations after filtering by source", '\n')
-  
+
   if(use.pathways) {
     load(paste0(pc.directory, "/cid.pwid.Rdata"))
     cid.pwid <- cid.pwid
@@ -106,7 +106,7 @@ build.cid.lca <- function(
     th.convert <- c(th.convert, rep(((i-1)*nrow(th.mat)), nrow(th.mat)))
   }
   
-  cat(" -" , "findling lowest common ancestor for each cid", '\n')
+  cat(" -" , "finding lowest common ancestor for each cid", '\n')
   
   # # for each cid find lca
   # # return cid, lca vector
@@ -141,7 +141,10 @@ build.cid.lca <- function(
   #   lca
   # )
   
-  ## create foreach loop intead
+  ## create stable dopar function:
+  `%dopar%` <- foreach::`%dopar%`
+  
+  ## create foreach loop instead
   cid.list <- as.list(cid)
   Sys.time()
   # threads = 8
@@ -178,10 +181,59 @@ build.cid.lca <- function(
   cid.lca <- cid.lca[order(cid.lca[,1]),]
   cid.lca <- data.table::data.table(cid.lca)
   data.table::setkey(cid.lca, "cid")
+  
+  ## remove any rows with lca = NA.  i think these primarily derive from taxa-lca relationships in which
+  ## the rank is not in our taxid.heirarchy levels (i.e. subspecies)
+  if(any(is.na(cid.lca$lca))) {
+    cid.lca <- cid.lca[!is.na(cid.lca$lca),]
+  }
+  
+  
+  ## and now record the column location in the taxid.heirarchy for each lca
+  ## turn taxid.heirarchy into a vector for faster matching
+  th.vec <- unlist(taxid.heirarchy)
+  
+  # position of lca in column position
+  lca <- cid.lca$lca
+  # lca[is.na(lca)] <- max(th.vec, na.rm = TRUE)+max(lca, na.rm = TRUE) + 1
+  taxid.dt <- data.table::data.table('taxid' = th.vec, 'level' = names(th.vec))
+  # data.table::setkey(taxid.dt, "taxid")
+  tmp <- match(lca, taxid.dt$taxid)
+  tmp <- names(th.vec)[tmp]
+  tmp <- gsub('[[:digit:]]+', '', tmp)
+  
+  ## at the column number of each lca.  will be used for taxon metabolomics
+  heirarchy.column <- match(tmp, names(taxid.heirarchy))
+  rm(tmp); gc()
+  cid.lca$heirarchy.column <- heirarchy.column
+  
+  ## add taxid.heirarchy to cid.lca, with values below the heirarchy column set to NA. will be used for taxon metabolome
+  tmp <- match(lca, taxid.dt$taxid)
+  tmp <- names(th.vec)[tmp]
+  tmp <- gsub('[[:alpha:]]+', '', tmp)
+  tmp <- as.numeric(tmp)
+  if(any(is.na(tmp))) {
+    tmp.rm <- which(is.na(tmp))
+    cid.lca <- cid.lca[-tmp.rm,]
+    tmp <- tmp[-tmp.rm]
+  }
+  cid.lca.h <- taxid.heirarchy[tmp,]
+  for(i in (1:nrow(cid.lca))) {
+    cid.lca.h[i, 1:max((cid.lca$heirarchy.column[i]-1),1)] <- NA
+  }
+  
+  cid.lca <- data.frame(
+    cid.lca,
+    cid.lca.h
+  )
+
+  
   save(cid.lca, file = paste0(pc.directory, "/cid.lca.Rdata"))
   
   return(cid.lca)
 }
+
+# cid.lca <- build.cid.lca(pc.directory = "C:/Temp/20250703", tax.sources =  "LOTUS - the natural products occurrence database")
 
 
 
