@@ -2,7 +2,6 @@
 
 export(build.cid.lca)
 export(build.pubchem.bio)
-export(build.taxid.lca)
+export(build.taxon.metabolome)
 export(get.pubchem.ftp)
-export(get.taxon.metabolome)
 importFrom(foreach,'%dopar%')

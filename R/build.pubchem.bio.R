@@ -13,10 +13,12 @@
 #' @param use.parent.cid logical. should CIDs be replaced with parent CIDs?  default = TRUE.
 #' @param get.properties logical. if TRUE, will return rcdk calculated properties:  XLogP, TPSA, HBondDonorCount and HBondAcceptorCount.
 #' @param threads integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.  
+#' @param rcdk.desc vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc\[4\]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.   
 #' @return a data frame containing pubchem CID, title, formula, monoisotopic molecular weight, inchikey, smiles, cas, optionally pubchem properties
 #' @author Corey Broeckling
 #' 
 #' @export 
+#' 
 #' 
 build.pubchem.bio <- function(
     pc.directory =  NULL,
@@ -35,7 +37,13 @@ build.pubchem.bio <- function(
     use.parent.cid = TRUE,
     remove.salts = TRUE,
     get.properties = TRUE,
-    threads = 8
+    threads = 8,
+    rcdk.desc = c(
+      "org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor",
+      "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
+      "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
+      "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"
+    )
 ){  
   
   cid <- vector(length = 0, mode = 'integer')
@@ -321,12 +329,7 @@ build.pubchem.bio <- function(
     doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
     results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
       i <- i
-      desc <- c(
-        "org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor",
-        "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
-        "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
-        "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"
-      )
+      desc <- rcdk.desc
       mol <- rcdk::parse.smiles(sm.list[[i]])
       
       names(mol) <- cid.list[[i]]
@@ -348,7 +351,7 @@ build.pubchem.bio <- function(
       out,
       results.df
     )
-    parallel::stopCluster(cl)
+    doParallel::stopImplicitCluster()
   }
   cat(" - rcdk properties completed", format(Sys.time()), '\n')
   pc.bio <- out

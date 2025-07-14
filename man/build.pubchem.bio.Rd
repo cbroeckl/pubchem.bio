@@ -16,7 +16,11 @@ build.pubchem.bio(
   use.parent.cid = TRUE,
   remove.salts = TRUE,
   get.properties = TRUE,
-  threads = 8
+  threads = 8,
+  rcdk.desc = c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor",
+    "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
+    "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
+    "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor")
 )
 }
 \arguments{
@@ -41,6 +45,8 @@ build.pubchem.bio(
 \item{get.properties}{logical. if TRUE, will return rcdk calculated properties:  XLogP, TPSA, HBondDonorCount and HBondAcceptorCount.}
 
 \item{threads}{integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.}
+
+\item{rcdk.desc}{vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc[4]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.}
 }
 \value{
 a data frame containing pubchem CID, title, formula, monoisotopic molecular weight, inchikey, smiles, cas, optionally pubchem properties

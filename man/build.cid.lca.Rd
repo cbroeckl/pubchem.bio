@@ -5,7 +5,7 @@
 \title{build.cid.lca}
 \usage{
 build.cid.lca(
-  pc.directory = "R:/RSTOR-PMF/Software/db/met.db/20241216/",
+  pc.directory = NULL,
   tax.sources = "LOTUS - the natural products occurrence database",
   use.pathways = TRUE,
   use.conserved.pathways = FALSE,

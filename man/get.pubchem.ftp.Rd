@@ -4,11 +4,7 @@
 \alias{get.pubchem.ftp}
 \title{get.pubchem.ftp}
 \usage{
-get.pubchem.ftp(
-  pc.directory = "C:/Temp/20241212/",
-  timeout = 50000,
-  rm.tmp.files = TRUE
-)
+get.pubchem.ftp(pc.directory = NULL, timeout = 50000, rm.tmp.files = TRUE)
 }
 \arguments{
 \item{pc.directory}{character. directory to which data will be saved}

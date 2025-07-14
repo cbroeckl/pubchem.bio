@@ -8,6 +8,8 @@
 #' @param full.scored logincal.  default = FALSE.  When false, only metabolites which map to the taxid(s) are returned.  When TRUE, all metabolites are returned, with scores assigned based on the distance of non-mapped metabolites to the root node.  i.e. specialized metabolites from distantly related species are going to be scored at or near zero, specialized metabolites of mores similar species higher, and more conserved metabolites will score higher than ore specialized. 
 #' @param aggregation.function function. default = max.  can use mean, median, min, etc, or a custom function.  Defines how the aggregate score will be calculated when multiple taxids are used.
 #' @param threads integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.  
+#' @param db.name character. what do you wish the file name for the saved version of this database to be?  default = 'custom.metabolome', but could be 'taxid.4071' or 'Streptomyces', etc.  Saved as an .Rdata file in the 'pc.directory' location. 
+#' @param rcdk.desc vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc\[4\]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.   
 #' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
 #' @author Corey Broeckling
 #' 
@@ -19,7 +21,14 @@ build.taxon.metabolome <- function(
     get.properties = TRUE,
     full.scored = FALSE,
     aggregation.function = max,
-    threads = 8
+    threads = 8,
+    db.name = "custom.metabolome", 
+    rcdk.desc = c(
+      "org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor",
+      "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
+      "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
+      "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"
+    )
 ) {
   
   if(length(taxid) == 0) {
@@ -74,26 +83,29 @@ build.taxon.metabolome <- function(
       
       do.sim <- which(!is.na(tmp))
       
-      # doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
-      # results <- foreach::foreach(j = do.sim) %dopar% {
-      #   tryCatch(
-      #     #this is the chunk of code we want to run
-      #     {
-      #       mtch.col <- suppressWarnings(taxid.column - 1 + which(taxid.vector == cid.lca[tmp[j], th.ind])[1])
-      #       mtch.col
-      #       #when it throws an error, the following block catches the error
-      #     }, error = function(msg){
-      #       stop("error on", j, '\n')
-      #       return(NA)
-      #     }
-      #   )
-      # }
-      # results <- unlist(results)
-      # head(results)
-      # tax.lca.sim <- rep(NA, length(tmp))
-      # tax.lca.sim[do.sim] <- results
-      # tax.lca.sim <- (max(tax.lca.sim, na.rm = TRUE) - tax.lca.sim)/max(tax.lca.sim, na.rm = TRUE)
-      # tax.lca.sim[keep] <- 1
+      error <- NA
+      j <- 1
+      
+      doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
+      results <- foreach::foreach(j = do.sim) %dopar% {
+        tryCatch(
+          #this is the chunk of code we want to run
+          {
+            mtch.col <- suppressWarnings(taxid.column - 1 + which(taxid.vector == cid.lca[tmp[j], th.ind])[1])
+            mtch.col
+            #when it throws an error, the following block catches the error
+          }, error = function(msg){
+            stop("error on", j, '\n')
+            return(NA)
+          }
+        )
+      }
+      doParallel::stopImplicitCluster()
+      results <- unlist(results)
+      tax.lca.sim <- rep(NA, length(tmp))
+      tax.lca.sim[do.sim] <- results
+      tax.lca.sim <- (max(tax.lca.sim, na.rm = TRUE) - tax.lca.sim)/max(tax.lca.sim, na.rm = TRUE)
+      tax.lca.sim[keep] <- 1
       
       
       
@@ -120,28 +132,28 @@ build.taxon.metabolome <- function(
       #   }
       # }
       
-      do.sim <- which(!is.na(tmp))
-      # do.sim <- do.sim[151600:length(do.sim)]
-      do.sim.sim <- sapply((do.sim), FUN = function(x) {
-      # tax.lca.sim <- sapply((800000:length(tmp)), FUN = function(x) {
-       cat(x, ' ')
-          tryCatch(
-            #this is the chunk of code we want to run
-            {
-              mtch.col <- which(taxid.vector == cid.lca[tmp[x], th.ind])[1]
-              mtch.col
-              #when it throws an error, the following block catches the error
-            }, error = function(msg){
-              stop("error on", i, '\n')
-              return(NA)
-            }
-            )
-      }
-      )
-      tax.lca.sim <- rep(NA, length(tmp))
-      tax.lca.sim[do.sim] <- do.sim.sim
-      tax.lca.sim <- (max(tax.lca.sim, na.rm = TRUE) - tax.lca.sim)/max(tax.lca.sim, na.rm = TRUE)
-      tax.lca.sim[keep] <- 1
+      # do.sim <- which(!is.na(tmp))
+      # # do.sim <- do.sim[151600:length(do.sim)]
+      # do.sim.sim <- sapply((do.sim), FUN = function(x) {
+      # # tax.lca.sim <- sapply((800000:length(tmp)), FUN = function(x) {
+      #  cat(x, ' ')
+      #     tryCatch(
+      #       #this is the chunk of code we want to run
+      #       {
+      #         mtch.col <- which(taxid.vector == cid.lca[tmp[x], th.ind])[1]
+      #         mtch.col
+      #         #when it throws an error, the following block catches the error
+      #       }, error = function(msg){
+      #         stop("error on", i, '\n')
+      #         return(NA)
+      #       }
+      #       )
+      # }
+      # )
+      # tax.lca.sim <- rep(NA, length(tmp))
+      # tax.lca.sim[do.sim] <- do.sim.sim
+      # tax.lca.sim <- (max(tax.lca.sim, na.rm = TRUE) - tax.lca.sim)/max(tax.lca.sim, na.rm = TRUE)
+      # tax.lca.sim[keep] <- 1
       
       out[,paste0("taxonomy.lca.similarity.", taxid[i])] <- tax.lca.sim
     }
@@ -157,17 +169,10 @@ build.taxon.metabolome <- function(
     
     ## aggregate taxonomy.lca.similarity scores using assigned function
     use.cols <- which(grepl("taxonomy.lca.similarity.", names(out)))
-    agg.sim <- apply(out[,use.cols, drop = FALSE], 1, suppressWarnings(aggregation.function), na.rm = TRUE, simplify = TRUE)
+    suppressWarnings(agg.sim <- apply(out[,use.cols, drop = FALSE], 1, aggregation.function, na.rm = TRUE, simplify = TRUE))
     # agg.sim <- agg.sim[unique(c(which(is.infinite(agg.sim)), which(is.na(agg.sim))))] <- NA
     out[,paste0("taxonomy.lca.similarity.", "aggregate")] <- agg.sim
   }
-  
-  
-  
-  
-  
-  ## create stable dopar function:
-  `%dopar%` <- foreach::`%dopar%`
   
   if(get.properties) {
     cat(" - calclulating rcdk properties",  format(Sys.time()), '\n')
@@ -175,12 +180,7 @@ build.taxon.metabolome <- function(
     sm.list <- as.list(out$smiles)
     doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
     results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
-      desc <- c(
-        "org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor",
-        "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
-        "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
-        "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"
-      )
+      desc <- rcdk.desc
       mol <- rcdk::parse.smiles(sm.list[[i]])
       
       names(mol) <- cid.list[[i]]
@@ -192,6 +192,7 @@ build.taxon.metabolome <- function(
       
       descs
     }
+    doParallel::stopImplicitCluster()
     
     
     results.df <- do.call("rbind", results)
@@ -207,8 +208,7 @@ build.taxon.metabolome <- function(
   
   return(out)
   
-  save(out, file = paste0(pc.directory, "/custom.metabolome.Rdata"))
-  
+  save(out, file = paste0(pc.directory, "/", db.name, "Rdata"))
 }
 
-pc.bio.sub <- build.taxon.metabolome(taxid = c(4071, 4107)[1:2], pc.directory = "C:/Temp/20250703", get.properties = FALSE, full.scored = TRUE)
+# pc.bio.sub <- build.taxon.metabolome(taxid = c(4071, 4107)[1:2], pc.directory = "C:/Temp/20250703", get.properties = FALSE, full.scored = TRUE)
