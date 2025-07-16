@@ -5,9 +5,9 @@ date: "`r Sys.Date()`"
 version: 0.9.0.0
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteEngine{knitr::knitr}
-  %\VignetteIndexEntry{pubchem.bio.vignette}
-  %\usepackage[UTF-8]{inputenc}
+  %\VignetteIndexEntry{The import package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
@@ -42,7 +42,7 @@ Running the program on a windows 11 PC, with 64 GB RAM, a local SSD hard drive, 
 This isn't a complex package, there are relatively few functions.  All functions start with 'get', 'build', or 'export'.  'get' functions download data to your local drive, 'build' functions parse and organize the downloaded data to turn it into something more useful for metabolomic scientists, and 'export' functions write these metabolome datasets to file for use in other programs.  
 
 
-__ -*- I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.__
+__--- I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.__
 
 ### Downloading all the PubChem we need
 First thing we need to do is get PubChem data local to your computer.  
