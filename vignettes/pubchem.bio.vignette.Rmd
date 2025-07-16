@@ -12,6 +12,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(base)
 ```
 
 ## Background
@@ -27,7 +28,7 @@ This pubchem.bio package enables researchers to bring PubChem onto their local c
 ##  Installation
 ```{r installation, eval=FALSE}
 install.packages(pubchem.bio, dependencies = TRUE)
-load(pubchem.bio)
+library(pubchem.bio)
 ```
 
 ## System requirements
@@ -37,13 +38,11 @@ It is recommended that you perform these functions on a computer with at least 2
 
 Running the program on a windows 11 PC, with 64 GB RAM, a local SSD hard drive, and setting threads = 8 in all functions, the full processing time for all steps scripted below was about ________.  
 
-## Practical note on Rsession crash observations, before we continue: 
-The functions in this package do relatively big things - lots of data handling, reshuffling, etc.  While the package code is stable most of the time, in Rstudio GUI, have experienced some instability: when running some functions some of the time in Rstudio GUI i have seen Rsession crashes.  I beleive it has something to do with issues described here: 'https://github.com/rstudio/rstudio/issues/15330'.  When running the code below from a script using the R Rscript.exe program, the functions are stable.  When running these in the native Rgui.exe program, the functions are stable.  I have seen the functions stable on some versions of R/Rstudio/Windows combinations in the Rstudio GUI.  So if you see instability, please first try saving your code in an R script, and running it from your command line - something like 'C:/Programs/R.../Rscript.exe' 'my.pubchem.bio.Rscript.R'.  You can also try running this as a background job in Rstudio - this is actually recommended for large complex code sets.  
-
 ## Running the code
 This isn't a complex package, there are relatively few functions.  All functions start with 'get', 'build', or 'export'.  'get' functions download data to your local drive, 'build' functions parse and organize the downloaded data to turn it into something more useful for metabolomic scientists, and 'export' functions write these metabolome datasets to file for use in other programs.  
 
-_I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL HELP YOU APPLY THE pubchem.bio PACKAGE TO YOUR NEEDS._ 
+
+__ -*- I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.__
 
 ### Downloading all the PubChem we need
 First thing we need to do is get PubChem data local to your computer.  
@@ -73,7 +72,12 @@ This function is not building your taxonomy specific database, it is assigning a
 
 Below is a subset of the taxid.hierarchy file.  This gives you an idea of how the LCA's are assigned.  
 ```{r lca.demo, eval = TRUE}
-load(paste0(path.package('pubchem.bio'), "/data/sub.taxid.hierarchy.Rdata"))
+# data(sub.taxid.hierarchy, package = "pubchem.bio")
+library(pubchem.bio)
+# load(paste0(path.package('pubchem.bio'), "/data/sub.taxid.hierarchy.Rda"))
+sub.taxid.hierarchy.file <- system.file("extdata","sub.taxid.hierarchy.Rda", package = "pubchem.bio")
+load(file = sub.taxid.hierarchy.file)
+is.data.frame(sub.taxid.hierarchy)
 sub.taxid.hierarchy
 ``` 
 We have five taxa represented here: species 1173 = _Mycobacterium tuberculosis_ (Tuberculosis bacterium), 4072 = _Capsicum annuum_ (pepper), 4081 = _Solanum lycopersicum_ (tomato), 4232 = _Helianthus annuus_ (sunflower), 4932 = _Saccharomyces cerevisiae_ (brewers yeast). Tomato and Pepper are the two most closely related species, and you can see this in the table above by looking for the left-most common value in those two rows - while 'species', 'genus', and 'tribe' are different, they share the same 'family' - taxid [4070](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=4070).  Sunflower, also a vascular plant, but more distantly related, does not share a taxid with tomato/pepper until 'class'.  Mycobacterium and yeast do not match until 'root.'  Taxonomy is therefore hierarchical, and we can map our CID - LCA relationships onto it.
@@ -122,8 +126,9 @@ When we created the pc.bio object above, we also saved a version of it to the pc
 
 Let's spend a bit of time looking at a small subset of the ouptut of our salsa meta-metabolome.  
 
-```{r lca.demo2, eval = TRUE}
-load(paste0(path.package('pubchem.bio'), "/data/pc.bio.tax.scored.subset.Rdata"))
+```{r lca.demo2, eval = FALSE}
+# load(paste0(path.package('pubchem.bio'), "/data/pc.bio.tax.scored.subset.Rdata"))
+load(system.file("extdata", "pc.bio.tax.scored.subset.Rda", package = "pubchem.bio"))
 pc.bio.subset[,c("cid", "name", "taxonomy.lca.similarity.4072", "taxonomy.lca.similarity.4107", "taxonomy.lca.similarity.4047", "taxonomy.lca.similarity.aggregate")]
 ``` 
 We defined our target taxa as pepper (species), the tomato genus, and the cilantro species.  Each taxon is assigned its own similarity score (with the taxid appended to 'taxonomy.lca.similarity').  For citric acid, a highly conserved metabolite, all taxa are assigned a similarity score of 1.  Also enabled is an aggregation function - the default being 'max'.   Citric acid's aggregate taxonomy.lca.similarlity score is also 1.  Capsaicin is specific to peppers.  We can see that the assigned similarity score for peppers is 1 for taxid 4072 (peppers), 0.76 for 4107 (tomato genus), and 0.33 for 4047 (cilantro).  Since cilantro is more distantly related to pepper than tomato, which occupies the same solanceous clade, it is much less likely that capsaicin would be produced by cilantro - this is reflected in the scoring.   Daptomycin is produced by _Streptomyces filamentosus_ and Saccharamonopyrone C by brewers yeast, _Saccharomyces cerevisiae_ - these lowest common ancestor between pepper (or tomato, or cilantro) to these species is 'root', since they are fungal species.  As such, it is extremly unlikely that these compounds, which are only known to occur from one species (in PubChem, at least), are going to be found in our salsa - the scores are assigned as 0. Atropine is found in a few different solanaceous species (i.e. _Duboisia spp_, _Atropa spp_, _Datura spp_, etc).  It is not reported in tomato or pepper, but since its LCA is assigned as 4070 - [Solanaceae](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=4070&lvl=3&lin=f&keep=1&srchmode=1&unlock), atropine is considered to plausibly be found in all _Solanaceae_ species, and assigned scores of 1 for each of 4072 and 4107.  This example demonstrates both the benefit of the LCA approach - Citric acid and all other highly conserved metabolites are mapped to every species - but also demonstrates a cautionary tale - atropine is mapped to all solanaceous species, even though there is no evidence that it is likely to be found in peppers and tomatoes, or our salsa.  
