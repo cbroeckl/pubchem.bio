@@ -54,8 +54,11 @@ build.taxon.metabolome <- function(
   }
   
   cid.lca <- cid.lca
-  taxid.hierarchy <- taxid.hierarchy
-  # taxid.hierarchy <- taxid.heirarchy
+  if(any(ls()== "taxid.hierarchy")) {
+    taxid.hierarchy <- taxid.hierarchy
+  } else {
+    taxid.hierarchy <- taxid.heirarchy
+  }
   pc.bio <- pc.bio
   
   `%dopar%` <- foreach::`%dopar%`
@@ -219,12 +222,13 @@ build.taxon.metabolome <- function(
 }
 
 # pc.bio.sub <- build.taxon.metabolome(taxid = c(4072, 4107, 4047), pc.directory = "C:/Temp/20250703", get.properties = FALSE, full.scored = TRUE)
-# pc.bio.sub[pc.bio.sub$cid %in% c(311, 174174, 1548943, 21585658, 139590519), 
-#            c("cid", "name", "taxonomy.lca.similarity.4072", "taxonomy.lca.similarity.4107", "taxonomy.lca.similarity.aggregate")] 
+# pc.bio.sub[pc.bio.sub$cid %in% c(311, 174174, 1548943, 21585658, 139590519),
+#            c("cid", "name", "taxonomy.lca.similarity.4072", "taxonomy.lca.similarity.4107", "taxonomy.lca.similarity.aggregate")]
 #           ##  citric acid, atropine, capsaicin, daptomycin, saccharomonopyrone C
 # load("C:/Temp/20250703/cid.lca.Rdata")
 # cid.lca[cid.lca$cid %in% 1548943,]
 # load("C:/Temp/20250703/taxid.hierarchy.Rdata")
-# taxid.heirarchy[taxid.heirarchy$species %in% 4072,]
+# sub.taxid.hierarchy <- taxid.heirarchy[taxid.heirarchy$species %in% c(1173, 4072, 4081, 4232, 4932)]
+# save(sub.taxid.hierarchy, file = "//csunts.acns.colostate.edu/arc/cbroeckl/Documents/GitHub/pubchem.bio/inst/extdata/sub.taxid.hierarchy.Rda")
 # pc.bio.subset <- pc.bio.sub[pc.bio.sub$cid %in% c(311, 174174, 1548943, 21585658, 139590519),]
-# save(pc.bio.subset, file = "//csunts.acns.colostate.edu/arc/cbroeckl/Documents/GitHub/pubchem.bio/data/pc.bio.tax.scored.subset.Rdata")
+# save(pc.bio.subset, file = "//csunts.acns.colostate.edu/arc/cbroeckl/Documents/GitHub/pubchem.bio/inst/extdata/pc.bio.tax.scored.subset.Rda")
