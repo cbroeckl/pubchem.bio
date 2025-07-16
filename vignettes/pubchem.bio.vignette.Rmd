@@ -73,12 +73,8 @@ This function is not building your taxonomy specific database, it is assigning a
 Below is a subset of the taxid.hierarchy file.  This gives you an idea of how the LCA's are assigned.  
 ```{r lca.demo, eval = TRUE}
 # data(sub.taxid.hierarchy, package = "pubchem.bio")
-library(pubchem.bio)
-# load(paste0(path.package('pubchem.bio'), "/data/sub.taxid.hierarchy.Rda"))
-sub.taxid.hierarchy.file <- system.file("extdata","sub.taxid.hierarchy.Rda", package = "pubchem.bio")
-load(file = sub.taxid.hierarchy.file)
-is.data.frame(sub.taxid.hierarchy)
-sub.taxid.hierarchy
+load(system.file("extdata","sub.taxid.hierarchy.Rda", package = "pubchem.bio"))
+knitr::kable(sub.taxid.hierarchy, row.names = FALSE)
 ``` 
 We have five taxa represented here: species 1173 = _Mycobacterium tuberculosis_ (Tuberculosis bacterium), 4072 = _Capsicum annuum_ (pepper), 4081 = _Solanum lycopersicum_ (tomato), 4232 = _Helianthus annuus_ (sunflower), 4932 = _Saccharomyces cerevisiae_ (brewers yeast). Tomato and Pepper are the two most closely related species, and you can see this in the table above by looking for the left-most common value in those two rows - while 'species', 'genus', and 'tribe' are different, they share the same 'family' - taxid [4070](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=4070).  Sunflower, also a vascular plant, but more distantly related, does not share a taxid with tomato/pepper until 'class'.  Mycobacterium and yeast do not match until 'root.'  Taxonomy is therefore hierarchical, and we can map our CID - LCA relationships onto it.
 
@@ -126,10 +122,10 @@ When we created the pc.bio object above, we also saved a version of it to the pc
 
 Let's spend a bit of time looking at a small subset of the ouptut of our salsa meta-metabolome.  
 
-```{r lca.demo2, eval = FALSE}
+```{r lca.demo2, eval = TRUE}
 # load(paste0(path.package('pubchem.bio'), "/data/pc.bio.tax.scored.subset.Rdata"))
 load(system.file("extdata", "pc.bio.tax.scored.subset.Rda", package = "pubchem.bio"))
-pc.bio.subset[,c("cid", "name", "taxonomy.lca.similarity.4072", "taxonomy.lca.similarity.4107", "taxonomy.lca.similarity.4047", "taxonomy.lca.similarity.aggregate")]
+knitr::kable(pc.bio.subset[,c("cid", "name", "taxonomy.lca.similarity.4072", "taxonomy.lca.similarity.4107", "taxonomy.lca.similarity.4047", "taxonomy.lca.similarity.aggregate")], row.names = FALSE)
 ``` 
 We defined our target taxa as pepper (species), the tomato genus, and the cilantro species.  Each taxon is assigned its own similarity score (with the taxid appended to 'taxonomy.lca.similarity').  For citric acid, a highly conserved metabolite, all taxa are assigned a similarity score of 1.  Also enabled is an aggregation function - the default being 'max'.   Citric acid's aggregate taxonomy.lca.similarlity score is also 1.  Capsaicin is specific to peppers.  We can see that the assigned similarity score for peppers is 1 for taxid 4072 (peppers), 0.76 for 4107 (tomato genus), and 0.33 for 4047 (cilantro).  Since cilantro is more distantly related to pepper than tomato, which occupies the same solanceous clade, it is much less likely that capsaicin would be produced by cilantro - this is reflected in the scoring.   Daptomycin is produced by _Streptomyces filamentosus_ and Saccharamonopyrone C by brewers yeast, _Saccharomyces cerevisiae_ - these lowest common ancestor between pepper (or tomato, or cilantro) to these species is 'root', since they are fungal species.  As such, it is extremly unlikely that these compounds, which are only known to occur from one species (in PubChem, at least), are going to be found in our salsa - the scores are assigned as 0. Atropine is found in a few different solanaceous species (i.e. _Duboisia spp_, _Atropa spp_, _Datura spp_, etc).  It is not reported in tomato or pepper, but since its LCA is assigned as 4070 - [Solanaceae](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=4070&lvl=3&lin=f&keep=1&srchmode=1&unlock), atropine is considered to plausibly be found in all _Solanaceae_ species, and assigned scores of 1 for each of 4072 and 4107.  This example demonstrates both the benefit of the LCA approach - Citric acid and all other highly conserved metabolites are mapped to every species - but also demonstrates a cautionary tale - atropine is mapped to all solanaceous species, even though there is no evidence that it is likely to be found in peppers and tomatoes, or our salsa.  
 

@@ -481,23 +481,172 @@ the search space.</p>
 <p>Below is a subset of the taxid.hierarchy file. This gives you an idea
 of how the LCA’s are assigned.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># data(sub.taxid.hierarchy, package = &quot;pubchem.bio&quot;)</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">library</span>(pubchem.bio)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># load(paste0(path.package(&#39;pubchem.bio&#39;), &quot;/data/sub.taxid.hierarchy.Rda&quot;))</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>sub.taxid.hierarchy <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>,<span class="st">&quot;sub.taxid.hierarchy.Rda&quot;</span>, <span class="at">package =</span> <span class="st">&quot;pubchem.bio&quot;</span>)</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">load</span>(sub.taxid.hierarchy)</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(sub.taxid.hierarchy)</span></code></pre></div>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>,<span class="st">&quot;sub.taxid.hierarchy.Rda&quot;</span>, <span class="at">package =</span> <span class="st">&quot;pubchem.bio&quot;</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(sub.taxid.hierarchy, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <table>
 <colgroup>
-<col width="100%" />
+<col width="4%" />
+<col width="3%" />
+<col width="4%" />
+<col width="3%" />
+<col width="5%" />
+<col width="3%" />
+<col width="6%" />
+<col width="5%" />
+<col width="4%" />
+<col width="3%" />
+<col width="5%" />
+<col width="5%" />
+<col width="4%" />
+<col width="4%" />
+<col width="5%" />
+<col width="5%" />
+<col width="3%" />
+<col width="5%" />
+<col width="4%" />
+<col width="6%" />
+<col width="2%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th align="left">x</th>
+<th align="right">species</th>
+<th align="right">genus</th>
+<th align="right">subtribe</th>
+<th align="right">tribe</th>
+<th align="right">subfamily</th>
+<th align="right">family</th>
+<th align="right">superfamily</th>
+<th align="right">infraorder</th>
+<th align="right">suborder</th>
+<th align="right">order</th>
+<th align="right">superorder</th>
+<th align="right">infraclass</th>
+<th align="right">subclass</th>
+<th align="right">class</th>
+<th align="right">superclass</th>
+<th align="right">subphylum</th>
+<th align="right">phylum</th>
+<th align="right">subkingdom</th>
+<th align="right">kingdom</th>
+<th align="right">superkingdom</th>
+<th align="right">root</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">C:/Users/cbroeckl/AppData/Local/R/win-library/4.5/pubchem.bio/extdata/sub.taxid.hierarchy.Rda</td>
+<td align="right">1173</td>
+<td align="right">1163</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">1162</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">1161</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">3028117</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">1117</td>
+<td align="right">NA</td>
+<td align="right">1783272</td>
+<td align="right">NA</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">4072</td>
+<td align="right">4071</td>
+<td align="right">NA</td>
+<td align="right">424564</td>
+<td align="right">424551</td>
+<td align="right">4070</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">4069</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">3398</td>
+<td align="right">NA</td>
+<td align="right">131221</td>
+<td align="right">35493</td>
+<td align="right">NA</td>
+<td align="right">33090</td>
+<td align="right">NA</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">4081</td>
+<td align="right">4107</td>
+<td align="right">NA</td>
+<td align="right">424574</td>
+<td align="right">424551</td>
+<td align="right">4070</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">4069</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">3398</td>
+<td align="right">NA</td>
+<td align="right">131221</td>
+<td align="right">35493</td>
+<td align="right">NA</td>
+<td align="right">33090</td>
+<td align="right">NA</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">4232</td>
+<td align="right">4231</td>
+<td align="right">NA</td>
+<td align="right">102814</td>
+<td align="right">102804</td>
+<td align="right">4210</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">4209</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">3398</td>
+<td align="right">NA</td>
+<td align="right">131221</td>
+<td align="right">35493</td>
+<td align="right">NA</td>
+<td align="right">33090</td>
+<td align="right">NA</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">4932</td>
+<td align="right">4930</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">4893</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">4892</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">4891</td>
+<td align="right">NA</td>
+<td align="right">147537</td>
+<td align="right">4890</td>
+<td align="right">451864</td>
+<td align="right">4751</td>
+<td align="right">NA</td>
+<td align="right">1</td>
 </tr>
 </tbody>
 </table>
@@ -678,7 +827,69 @@ than, 1.</p>
 our salsa meta-metabolome.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># load(paste0(path.package(&#39;pubchem.bio&#39;), &quot;/data/pc.bio.tax.scored.subset.Rdata&quot;))</span></span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;pc.bio.tax.scored.subset.Rda&quot;</span>, <span class="at">package =</span> <span class="st">&quot;pubchem.bio&quot;</span>))</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>pc.bio.subset[,<span class="fu">c</span>(<span class="st">&quot;cid&quot;</span>, <span class="st">&quot;name&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4072&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4107&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4047&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.aggregate&quot;</span>)]</span></code></pre></div>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(pc.bio.subset[,<span class="fu">c</span>(<span class="st">&quot;cid&quot;</span>, <span class="st">&quot;name&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4072&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4107&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4047&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.aggregate&quot;</span>)], <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<table>
+<colgroup>
+<col width="6%" />
+<col width="13%" />
+<col width="19%" />
+<col width="19%" />
+<col width="19%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">cid</th>
+<th align="left">name</th>
+<th align="right">taxonomy.lca.similarity.4072</th>
+<th align="right">taxonomy.lca.similarity.4107</th>
+<th align="right">taxonomy.lca.similarity.4047</th>
+<th align="right">taxonomy.lca.similarity.aggregate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">311</td>
+<td align="left">Citric Acid</td>
+<td align="right">1</td>
+<td align="right">1.0000</td>
+<td align="right">1.0000</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">174174</td>
+<td align="left">Atropine</td>
+<td align="right">1</td>
+<td align="right">1.0000</td>
+<td align="right">0.3333</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">1548943</td>
+<td align="left">Capsaicin</td>
+<td align="right">1</td>
+<td align="right">0.7619</td>
+<td align="right">0.3333</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">21585658</td>
+<td align="left">Daptomycin</td>
+<td align="right">0</td>
+<td align="right">0.0000</td>
+<td align="right">0.0000</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">139590519</td>
+<td align="left">Saccharomonopyrone C</td>
+<td align="right">0</td>
+<td align="right">0.0000</td>
+<td align="right">0.0000</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
 <p>We defined our target taxa as pepper (species), the tomato genus, and
 the cilantro species. Each taxon is assigned its own similarity score
 (with the taxid appended to ‘taxonomy.lca.similarity’). For citric acid,
