@@ -38,23 +38,24 @@ build.taxon.metabolome <- function(
   if(file.exists(paste0(pc.directory, "/cid.lca.Rdata"))) {
     load(paste0(pc.directory, "/cid.lca.Rdata"))
   } else {
-    error(paste0(pc.directory, "/cid.lca.Rdata"), "does not exist", '\n')
+    stop(paste0(pc.directory, "/cid.lca.Rdata"), "does not exist", '\n')
   }
   
-  if(file.exists(paste0(pc.directory, "/taxid.heirarchy.Rdata"))) {
-    load(paste0(pc.directory, "/taxid.heirarchy.Rdata"))
+  if(file.exists(paste0(pc.directory, "/taxid.hierarchy.Rdata"))) {
+    load(paste0(pc.directory, "/taxid.hierarchy.Rdata"))
   } else {
-    error(paste0(pc.directory, "/taxid.heirarchy.Rdata"), "does not exist", '\n')
+    stop(paste0(pc.directory, "/taxid.hierarchy.Rdata"), "does not exist", '\n')
   }
   
   if(file.exists(paste0(pc.directory, "/pc.bio.Rdata"))) {
     load(paste0(pc.directory, "/pc.bio.Rdata"))
   } else {
-    error(paste0(pc.directory, "/pc.bio.Rdata"), "does not exist", '\n')
+    stop(paste0(pc.directory, "/pc.bio.Rdata"), "does not exist", '\n')
   }
   
   cid.lca <- cid.lca
-  taxid.heirarchy <- taxid.heirarchy
+  taxid.hierarchy <- taxid.hierarchy
+  # taxid.hierarchy <- taxid.heirarchy
   pc.bio <- pc.bio
   
   `%dopar%` <- foreach::`%dopar%`
@@ -62,22 +63,25 @@ build.taxon.metabolome <- function(
   out <- pc.bio
   
   for(i in 1:length(taxid)) {
-    tax.match <- which(taxid.heirarchy == taxid[i], arr.ind = TRUE)
-    taxid.v <- as.vector(t(data.frame(taxid.heirarchy[tax.match[1,1],])))
+    tax.match <- which(taxid.hierarchy == taxid[i], arr.ind = TRUE)
+    taxid.v <- as.vector(t(data.frame(taxid.hierarchy[tax.match[1,1],])))
     metabolome <- unique(cid.lca$cid[cid.lca$lca %in% taxid.v])
     keep <- which(metabolome %in% pc.bio$cid)
+    metabolome <- metabolome[keep]
+    ## metabolome <- metabolome[keep]
+    ## which(metabolome == 1548943)
     
     if(full.scored) {
-      ## get taxid heirarchy. store as vector.  
+      ## get taxid hierarchy. store as vector.  
       ## compare to each out taxid vector by lca
-      cat(taxid[i], " ")
+      cat(taxid[i], " ", length(keep), 'mapped metabolites')
       taxid.row <- tax.match[1,1]
       taxid.column <- as.integer(tax.match[1,2])
-      taxid.vector <- as.vector(unlist(taxid.heirarchy[taxid.row, taxid.column:ncol(taxid.heirarchy)]))
+      taxid.vector <- as.vector(unlist(taxid.hierarchy[taxid.row, 1:ncol(taxid.hierarchy)]))
       
       ## tmp is the index to the correct cid.lca row for each pubchem row
       th.ind <- which(names(cid.lca) == "species"):ncol(cid.lca)
-      th.ind <- th.ind[taxid.column:length(th.ind)]
+      # th.ind <- th.ind[taxid.column:length(th.ind)]
       tmp <- match(pc.bio$cid, cid.lca$cid)
       cat(" -- calculating similarities", '\n')
       
@@ -91,7 +95,7 @@ build.taxon.metabolome <- function(
         tryCatch(
           #this is the chunk of code we want to run
           {
-            mtch.col <- suppressWarnings(taxid.column - 1 + which(taxid.vector == cid.lca[tmp[j], th.ind])[1])
+            mtch.col <- suppressWarnings((which(taxid.vector == cid.lca[tmp[j], th.ind])[1]) - taxid.column + 1)
             mtch.col
             #when it throws an error, the following block catches the error
           }, error = function(msg){
@@ -100,12 +104,12 @@ build.taxon.metabolome <- function(
           }
         )
       }
-      doParallel::stopImplicitCluster()
+      
       results <- unlist(results)
       tax.lca.sim <- rep(NA, length(tmp))
       tax.lca.sim[do.sim] <- results
-      tax.lca.sim <- (max(tax.lca.sim, na.rm = TRUE) - tax.lca.sim)/max(tax.lca.sim, na.rm = TRUE)
-      tax.lca.sim[keep] <- 1
+      tax.lca.sim <- round((max(tax.lca.sim, na.rm = TRUE) - tax.lca.sim)/length(th.ind), 4)
+      tax.lca.sim[pc.bio$cid %in% metabolome] <- 1
       
       
       
@@ -156,6 +160,8 @@ build.taxon.metabolome <- function(
       # tax.lca.sim[keep] <- 1
       
       out[,paste0("taxonomy.lca.similarity.", taxid[i])] <- tax.lca.sim
+      
+      doParallel::stopImplicitCluster()
     }
   }
   
@@ -170,6 +176,7 @@ build.taxon.metabolome <- function(
     ## aggregate taxonomy.lca.similarity scores using assigned function
     use.cols <- which(grepl("taxonomy.lca.similarity.", names(out)))
     suppressWarnings(agg.sim <- apply(out[,use.cols, drop = FALSE], 1, aggregation.function, na.rm = TRUE, simplify = TRUE))
+    agg.sim[is.infinite(agg.sim)] <- NA
     # agg.sim <- agg.sim[unique(c(which(is.infinite(agg.sim)), which(is.na(agg.sim))))] <- NA
     out[,paste0("taxonomy.lca.similarity.", "aggregate")] <- agg.sim
   }
@@ -203,12 +210,21 @@ build.taxon.metabolome <- function(
       out,
       results.df
     )
-    parallel::stopCluster(cl)
+    doParallel::stopImplicitCluster()
   }
   
   return(out)
-  
+  doParallel::stopImplicitCluster()
   save(out, file = paste0(pc.directory, "/", db.name, "Rdata"))
 }
 
-# pc.bio.sub <- build.taxon.metabolome(taxid = c(4071, 4107)[1:2], pc.directory = "C:/Temp/20250703", get.properties = FALSE, full.scored = TRUE)
+# pc.bio.sub <- build.taxon.metabolome(taxid = c(4072, 4107, 4047), pc.directory = "C:/Temp/20250703", get.properties = FALSE, full.scored = TRUE)
+# pc.bio.sub[pc.bio.sub$cid %in% c(311, 174174, 1548943, 21585658, 139590519), 
+#            c("cid", "name", "taxonomy.lca.similarity.4072", "taxonomy.lca.similarity.4107", "taxonomy.lca.similarity.aggregate")] 
+#           ##  citric acid, atropine, capsaicin, daptomycin, saccharomonopyrone C
+# load("C:/Temp/20250703/cid.lca.Rdata")
+# cid.lca[cid.lca$cid %in% 1548943,]
+# load("C:/Temp/20250703/taxid.hierarchy.Rdata")
+# taxid.heirarchy[taxid.heirarchy$species %in% 4072,]
+# pc.bio.subset <- pc.bio.sub[pc.bio.sub$cid %in% c(311, 174174, 1548943, 21585658, 139590519),]
+# save(pc.bio.subset, file = "//csunts.acns.colostate.edu/arc/cbroeckl/Documents/GitHub/pubchem.bio/data/pc.bio.tax.scored.subset.Rdata")

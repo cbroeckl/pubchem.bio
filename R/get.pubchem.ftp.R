@@ -433,16 +433,16 @@ get.pubchem.ftp <- function(
   }
   # d.orig <- d
   ## now each taxid to parent relationship is defined with only specified ranks allowed
-  ## need to reorganize into full heirarchy table now, or create network
+  ## need to reorganize into full hierarchy table now, or create network
   
   ## data.frame
   ## for each level of rank, find parent id and parent taxid rank
   #### for each level of parent taxid rank, 
   #### insert the parent taxid in appropriate column
   tar.rank <- which(d$rank == "species")
-  taxid.heirarchy <- matrix(nrow = length(tar.rank), ncol = length(ranks)) 
-  dimnames(taxid.heirarchy)[[2]] <- ranks
-  taxid.heirarchy[,"species"] <- as.numeric(as.vector(d$taxid[tar.rank]))
+  taxid.hierarchy <- matrix(nrow = length(tar.rank), ncol = length(ranks)) 
+  dimnames(taxid.hierarchy)[[2]] <- ranks
+  taxid.hierarchy[,"species"] <- as.numeric(as.vector(d$taxid[tar.rank]))
   child.taxid <- as.numeric(d$taxid)
   child.taxid.rank <- d$rank
   child.taxid.ind <- match(child.taxid.rank, ranks)
@@ -451,22 +451,22 @@ get.pubchem.ftp <- function(
   parent.taxid.ind <- match(parent.taxid.rank, ranks)
   tab <- data.frame(child.taxid, child.taxid.rank, child.taxid.ind, parent.taxid, parent.taxid.rank, parent.taxid.ind)
   # head(tab[do.d,], 10)
-  for(i in 1:ncol(taxid.heirarchy)) {
-    for(j in 2:ncol(taxid.heirarchy)) {
+  for(i in 1:ncol(taxid.hierarchy)) {
+    for(j in 2:ncol(taxid.hierarchy)) {
       do.d <- which(child.taxid.ind == i & parent.taxid.ind == j)
-      do.th.row <- which(taxid.heirarchy[,i] %in% child.taxid[do.d])
-      child.vals <- match(taxid.heirarchy[do.th.row,i], child.taxid)
+      do.th.row <- which(taxid.hierarchy[,i] %in% child.taxid[do.d])
+      child.vals <- match(taxid.hierarchy[do.th.row,i], child.taxid)
       parent.vals <- parent.taxid[child.vals]
       # length(do.th.row); length(child.vals); length(parent.vals); length(child.taxid); length(parent.taxid)
       # if(length(rm.na) > 0) {
       #   do.d <- do.d[-rm.na]
       #   do.th.row <- do.th.row[-rm.na]
       # }
-      taxid.heirarchy[do.th.row,j] <- parent.vals  # match(as.numeric(parent.taxid[do.d]), taxid.heirarchy[,i])
+      taxid.hierarchy[do.th.row,j] <- parent.vals  # match(as.numeric(parent.taxid[do.d]), taxid.hierarchy[,i])
     }
   }
   
-  ## tried this option for display of heirarchy as a network, where NA values were causing trouble
+  ## tried this option for display of hierarchy as a network, where NA values were causing trouble
   ## but abandoned that - didn't seem worth the extra effort.  
   ## now replace all empty level values (NA) with a placeholder value to build a network in which 
   ## there is a constant number of levels. 
@@ -474,24 +474,24 @@ get.pubchem.ftp <- function(
   
   ## need to replace NAs one column at a time
   ## for each column, NA value should be identical if preceding value is identical
-  # for(i in 2:ncol(taxid.heirarchy)) {
-  #   nas <- which(is.na(taxid.heirarchy[, i]))
+  # for(i in 2:ncol(taxid.hierarchy)) {
+  #   nas <- which(is.na(taxid.hierarchy[, i]))
   #   if(length(nas) == 0) next
-  #   to.replace <- taxid.heirarchy[, (i-1)][nas]
-  #   replace.with <- max(max(taxid.heirarchy, na.rm = TRUE), 900000000) + as.integer(as.factor(as.character(to.replace)))
-  #   taxid.heirarchy[nas, i] <- replace.with
+  #   to.replace <- taxid.hierarchy[, (i-1)][nas]
+  #   replace.with <- max(max(taxid.hierarchy, na.rm = TRUE), 900000000) + as.integer(as.factor(as.character(to.replace)))
+  #   taxid.hierarchy[nas, i] <- replace.with
   # }
   
-  taxid.heirarchy <- data.table::as.data.table(taxid.heirarchy)
-  taxid.heirarchy$root <- rep(1, nrow(taxid.heirarchy))
-  data.table::setkey(taxid.heirarchy, "species")
+  taxid.hierarchy <- data.table::as.data.table(taxid.hierarchy)
+  taxid.hierarchy$root <- rep(1, nrow(taxid.hierarchy))
+  data.table::setkey(taxid.hierarchy, "species")
   rm(d); gc() 
   Sys.sleep(2)
-  save(taxid.heirarchy, file = paste0(pc.directory, "/taxid.heirarchy.Rdata"))
+  save(taxid.hierarchy, file = paste0(pc.directory, "/taxid.hierarchy.Rdata"))
   
   readme <- c(
     readme,
-    " - taxid.heirarchy.Rdata, is a data.table of 21 columns, each representing a taxonomic level.  Each cell contains an integer taxid value from the NCBI taxonomy database. If heirarchy isn't defined, cell will contain NA. ",
+    " - taxid.hierarchy.Rdata, is a data.table of 21 columns, each representing a taxonomic level.  Each cell contains an integer taxid value from the NCBI taxonomy database. If hierarchy isn't defined, cell will contain NA. ",
     '\n', "  species",
     '\n', "  genus",
     '\n', "  subtribe",

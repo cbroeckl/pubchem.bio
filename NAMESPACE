@@ -3,5 +3,8 @@
 export(build.cid.lca)
 export(build.pubchem.bio)
 export(build.taxon.metabolome)
+export(export.msfinder)
+export(export.pubchem.bio)
+export(export.sirius)
 export(get.pubchem.ftp)
 importFrom(foreach,'%dopar%')

@@ -27,8 +27,8 @@ build.cid.lca <- function(
   ## load necessary files
   load(paste0(pc.directory, "/cid.taxid.Rdata"))
   data.table::setkey(cid.taxid, "cid")
-  load(paste0(pc.directory, "/taxid.heirarchy.Rdata"))
-  taxid.heirarchy <- taxid.heirarchy
+  load(paste0(pc.directory, "/taxid.hierarchy.Rdata"))
+  taxid.hierarchy <- taxid.hierarchy
   cat(" -" , nrow(cid.taxid), "taxonomy-cid associations from cid.taxid.Rdata file", '\n')
   
   # load(paste0(pc.directory, "/cid.pwid.Rdata"))
@@ -96,7 +96,7 @@ build.cid.lca <- function(
   n.tax <- as.vector(cid)
   cid <- as.numeric(names(cid))
   lca <-  vector(mode = 'integer', length(cid))
-  th.mat <- as.matrix(taxid.heirarchy)
+  th.mat <- as.matrix(taxid.hierarchy)
   th.vec <- as.vector(th.mat)
   th.vec <- data.table::data.table(
     "taxid" = as.integer(th.vec)
@@ -124,13 +124,13 @@ build.cid.lca <- function(
   #   ## back convert to row numbers of original matrix
   #   tar.rows <- mtch - th.convert[mtch]
   #   
-  #   sub.taxid.heirarchy <- taxid.heirarchy[sort(unique(tar.rows)),]
-  #   sub.taxid.heirarchy <- data.frame(sub.taxid.heirarchy)
-  #   for(j in 1:ncol(sub.taxid.heirarchy)) {
-  #     taxids <- (unique(sub.taxid.heirarchy[,j]))
+  #   sub.taxid.hierarchy <- taxid.hierarchy[sort(unique(tar.rows)),]
+  #   sub.taxid.hierarchy <- data.frame(sub.taxid.hierarchy)
+  #   for(j in 1:ncol(sub.taxid.hierarchy)) {
+  #     taxids <- (unique(sub.taxid.hierarchy[,j]))
   #     if(length(taxids) == 1) {
   #       if(is.na(taxids[1])) {next}
-  #       lca[i] <- sub.taxid.heirarchy[1,j]
+  #       lca[i] <- sub.taxid.hierarchy[1,j]
   #       break
   #     }
   #   }
@@ -161,13 +161,13 @@ build.cid.lca <- function(
       ## back convert to row numbers of original matrix
       tar.rows <- mtch - th.convert[mtch]
       
-      sub.taxid.heirarchy <- taxid.heirarchy[sort(unique(tar.rows)),]
-      sub.taxid.heirarchy <- data.frame(sub.taxid.heirarchy)
-      for(j in 1:ncol(sub.taxid.heirarchy)) {
-        taxids <- (unique(sub.taxid.heirarchy[,j]))
+      sub.taxid.hierarchy <- taxid.hierarchy[sort(unique(tar.rows)),]
+      sub.taxid.hierarchy <- data.frame(sub.taxid.hierarchy)
+      for(j in 1:ncol(sub.taxid.hierarchy)) {
+        taxids <- (unique(sub.taxid.hierarchy[,j]))
         if(length(taxids) == 1) {
           if(is.na(taxids[1])) {next}
-          out[2] <- sub.taxid.heirarchy[1,j]
+          out[2] <- sub.taxid.hierarchy[1,j]
           break
         }
       }
@@ -183,15 +183,15 @@ build.cid.lca <- function(
   data.table::setkey(cid.lca, "cid")
   
   ## remove any rows with lca = NA.  i think these primarily derive from taxa-lca relationships in which
-  ## the rank is not in our taxid.heirarchy levels (i.e. subspecies)
+  ## the rank is not in our taxid.hierarchy levels (i.e. subspecies)
   if(any(is.na(cid.lca$lca))) {
     cid.lca <- cid.lca[!is.na(cid.lca$lca),]
   }
   
   
-  ## and now record the column location in the taxid.heirarchy for each lca
-  ## turn taxid.heirarchy into a vector for faster matching
-  th.vec <- unlist(taxid.heirarchy)
+  ## and now record the column location in the taxid.hierarchy for each lca
+  ## turn taxid.hierarchy into a vector for faster matching
+  th.vec <- unlist(taxid.hierarchy)
   
   # position of lca in column position
   lca <- cid.lca$lca
@@ -203,11 +203,11 @@ build.cid.lca <- function(
   tmp <- gsub('[[:digit:]]+', '', tmp)
   
   ## at the column number of each lca.  will be used for taxon metabolomics
-  heirarchy.column <- match(tmp, names(taxid.heirarchy))
+  hierarchy.column <- match(tmp, names(taxid.hierarchy))
   rm(tmp); gc()
-  cid.lca$heirarchy.column <- heirarchy.column
+  cid.lca$hierarchy.column <- hierarchy.column
   
-  ## add taxid.heirarchy to cid.lca, with values below the heirarchy column set to NA. will be used for taxon metabolome
+  ## add taxid.hierarchy to cid.lca, with values below the hierarchy column set to NA. will be used for taxon metabolome
   tmp <- match(lca, taxid.dt$taxid)
   tmp <- names(th.vec)[tmp]
   tmp <- gsub('[[:alpha:]]+', '', tmp)
@@ -217,9 +217,9 @@ build.cid.lca <- function(
     cid.lca <- cid.lca[-tmp.rm,]
     tmp <- tmp[-tmp.rm]
   }
-  cid.lca.h <- taxid.heirarchy[tmp,]
+  cid.lca.h <- taxid.hierarchy[tmp,]
   for(i in (1:nrow(cid.lca))) {
-    cid.lca.h[i, 1:max((cid.lca$heirarchy.column[i]-1),1)] <- NA
+    cid.lca.h[i, 1:max((cid.lca$hierarchy.column[i]-1),1)] <- NA
   }
   
   cid.lca <- data.frame(
