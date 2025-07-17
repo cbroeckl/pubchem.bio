@@ -1,5 +1,5 @@
 ---
-title: "pubchem.bio.vignette"
+title: "pubchem.bio"
 author: "Corey Broeckling"
 date: "`r Sys.Date()`"
 version: 0.9.0.0
@@ -17,13 +17,17 @@ library(base)
 
 ## Background
 
-Metabolomics approaches utilize analytical instrumentation to detect and quantify small molecules.  The chemical space covered by metabolomics is pontentially massive, with more than 100 million structures in Pubchem.  Efforts to curate custom metabolome databases, such as the Human Metabolome Database (https://www.hmdb.ca/) are incredibly valuable, enabling annotation efforts to focus on only those chemicals most likely to be found in the samples being analyzed.  Metabolomics, however, is well suited the analysis of metabolomes from any species, and there are few taxonomically informed databases available.  
+Metabolomics approaches utilize analytical instrumentation to detect and quantify small molecules.  The chemical space covered by metabolomics is pontentially massive, with more than 100 million structures in Pubchem.  Efforts to curate custom metabolome databases, such as the [Human Metabolome Database](https://www.hmdb.ca/) are incredibly valuable, enabling annotation efforts to focus on only those chemicals most likely to be found in the samples being analyzed.  Metabolomics, however, is well suited the analysis of metabolomes from _any_ species, and there are very few taxonomically informed databases available.  
 
-Pubchem, which is a massive repository of chemical structures, is also extremely rich in chemical metadata.  Several biologicallly-focused metabolomic databases have deposited their structures data in Pubchem, thousands of metabolic pathways are present, and there are rich taxonomic-structure pairs through taxonomy-informed natural products database efforts.  
+Pubchem, which is a massive repository of chemical structures, is also extremely rich in chemical metadata.  Several biologicallly-focused metabolomic databases have deposited their structures data into PubChem, thousands of metabolic pathways are present, and there are rich taxonomic-structure pairs through taxonomy-informed natural products database efforts.  
 
-This pubchem.bio package enables researchers to bring PubChem onto their local computer, and parse it to develop
-1. a metabolomic structure database of all biological compounds in PubChem and
-2. custom metabolomic structure databases using selected or all available taxonomic data in PubChem. 
+The pubchem.bio package enables researchers to 
+1. Bring a metabolomcs-focused subset PubChem onto their local computer
+2. Build a metabolomic structure database of all biological compounds in PubChem
+3. Define a core biological metabolome, comprising metabolites plausibly found in any species
+4. Develop custom metabolomic structure databases using selected or all available taxonomic data in PubChem.
+
+As such, this package will help to streamline metabolomic database creation, increase the accuracy of annotation efforts by 
 
 ##  Installation
 ```{r installation, eval=FALSE}
@@ -34,15 +38,18 @@ library(pubchem.bio)
 ## System requirements
 PubChem is a very large database. The pubchem.bio package does not download _ALL_ of PubChem.  It does however download every structure, inchikey, smiles, and several other basic descriptors.  As such, while the package is designed to minimize computational overhead, you will still want to have sufficient disk space and RAM to ensure that processing doesn't bog down during parsing and organizing files.  
 
-It is recommended that you perform these functions on a computer with at least 200 GB local SSD disk space, since a great deal of reading and writing of data will be occurring.  Further, during processing, there will be large files that are being handled in memory, so it is recommended that you utilize a computer with at least 64 GB of RAM.  Parallel processing is enabled through the doParallel and foreach packages, which will speed up processing time, but this will still take several hours.  Do note that parallel processing results in increased RAM consumption.  If your run out of RAM, the process will become extremely slow and could crash R/Rstudio.  If you are RAM limited, you are probably going to have more success using fewer threads.  The download process performance is also going to be dependent on network stability and speed.  
+It is recommended that you perform these functions on a computer with at least __200 GB local SSD__ disk space, since a great deal of reading and writing of data will be occurring.  Further, during processing, there will be large files that are being handled in memory, so it is recommended that you utilize a computer with at least __64 GB of RAM__.  Parallel processing is enabled through the doParallel and foreach packages, which will speed up processing time, but the  will still take several hours.  Do note that parallel processing results in increased RAM consumption.  If your run out of RAM, the process will become extremely slow and could crash R/Rstudio.  If you are RAM limited, you are probably going to have more success using fewer threads.  The download process performance is also going to be dependent on network stability and speed.  
 
-Running the program on a windows 11 PC, with 64 GB RAM, a local SSD hard drive, and setting threads = 8 in all functions, the full processing time for all steps scripted below was about ________.  
+Running the program on a windows 11 PC, with 64 GB RAM, a local SSD hard drive, and setting threads = 8 in all functions, tyou can expect download, organization, and metabolome generation to take about 4 hours of computer time on a modern laptop/desktop.  _Once you have everything set up, each new metabolome generated can be created in minutes._   
 
 ## Running the code
 This isn't a complex package, there are relatively few functions.  All functions start with 'get', 'build', or 'export'.  'get' functions download data to your local drive, 'build' functions parse and organize the downloaded data to turn it into something more useful for metabolomic scientists, and 'export' functions write these metabolome datasets to file for use in other programs.  
 
+<center>
 
-__--- I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.__
+__I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.__
+
+</center>
 
 ### Downloading all the PubChem we need
 First thing we need to do is get PubChem data local to your computer.  
