@@ -5,14 +5,12 @@ date: "`r Sys.Date()`"
 version: 0.9.0.0
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{The import package}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{pubchem.bio}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(base)
+library(pubchem.bio)
 ```
 
 ## Background
@@ -22,10 +20,11 @@ Metabolomics approaches utilize analytical instrumentation to detect and quantif
 Pubchem, which is a massive repository of chemical structures, is also extremely rich in chemical metadata.  Several biologicallly-focused metabolomic databases have deposited their structures data into PubChem, thousands of metabolic pathways are present, and there are rich taxonomic-structure pairs through taxonomy-informed natural products database efforts.  
 
 The pubchem.bio package enables researchers to 
-1. Bring a metabolomcs-focused subset PubChem onto their local computer
-2. Build a metabolomic structure database of all biological compounds in PubChem
-3. Define a core biological metabolome, comprising metabolites plausibly found in any species
-4. Develop custom metabolomic structure databases using selected or all available taxonomic data in PubChem.
+
+* Download metabolomics-centric subset of PubChem onto their local computer
+* Build a metabolomic structured database (data.frame) of all biological compounds in PubChem
+* Define a core biological metabolome, comprising metabolites plausibly found in any species
+* Develop custom metabolomic structure databases using selected or all available taxonomic data in PubChem.
 
 As such, this package will help to streamline metabolomic database creation, increase the accuracy of annotation efforts by 
 
@@ -45,6 +44,7 @@ Running the program on a windows 11 PC, with 64 GB RAM, a local SSD hard drive, 
 ## Running the code
 This isn't a complex package, there are relatively few functions.  All functions start with 'get', 'build', or 'export'.  'get' functions download data to your local drive, 'build' functions parse and organize the downloaded data to turn it into something more useful for metabolomic scientists, and 'export' functions write these metabolome datasets to file for use in other programs.  
 
+
 <center>
 
 __I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.__
@@ -54,7 +54,7 @@ __I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL HELP YOU APPLY T
 ### Downloading all the PubChem we need
 First thing we need to do is get PubChem data local to your computer.  
 
-#### note that running this line of code may occupy your R session for 2-3 few hours
+##### note that running this line of code may occupy your R session for 2-3 few hours
 
 ```{r get.pubchem, eval=FALSE}
 pubchem.bio::get.pubchem.ftp(pc.directory ="C:/Temp/20250703")
@@ -68,7 +68,7 @@ Our next step needs to be further organization of taxonomy data.  This function 
 
 To build the cid.lca relationships, we need to define which 'sources' of taxonomy information we wish to use.  for this example, we will just use LOTUS, but there are many options.  I will discuss the importance of this below, but for now, here is the code we can use to infer LCA for each CID.  
 
-#### note that running this line of code may will take about an hour of computer time, with 8 threads, 64 GB RAM
+##### note that running this line of code may will take about an hour of computer time, with 8 threads, 64 GB RAM
 ```{r build.cid.lca, eval=FALSE}
 build.cid.lca(pc.directory = "C:/Temp/20250703", tax.sources =  "LOTUS - the natural products occurrence database")
 ```
@@ -94,7 +94,7 @@ As an example of why this all matters:  If you set 'tax.sources = c("LOTUS - the
 ### Creating PubChem BIO metabolome database.  
 We can now build a database of biological compounds as a subset of PubChem data.  We base this on (1) BIO databases as a source (2) pathway data and (3) taxonomy data.   If you would like to see the full list of all data sources, please go to PubChem: https://pubchem.ncbi.nlm.nih.gov/sources/.  Currently, the default uses bio.sources = c("Metabolomics Workbench","Human Metabolome Database (HMDB)", "ChEBI", "LIPID MAPS", "MassBank of North America (MoNA)").  All pathway metabolites are added, as are all metabolites from the taxonomy dataset.  You can specify to only include certain sources for each of pathways and taxonomy as well.  Generally, when compiling metabolomics databases, we want to remove salts as they are not detected in salt form by LC- or GC-MS, so that is done by default. We also can optionally calculate some basic physicochemical properties using the 'rcdk' package.  While some of these physicochemical properties are also available via PubChem, i have found it much faster to calculate them locally than to retrieve them from PubChem, and building the rcdk property calculation into the function at this stage makes the package output more versatile, as there are _many_ rcdk properties which are not available via PubChem.  Let me know if you feel it important to change this behavior and actually use PubChem predicted properties instead. 
 
-#### note that running this line of code may will take about 1.5 hours of computer time, with 8 threads, 64 GB RAM
+##### note that running this line of code may will take about 1.5 hours of computer time, with 8 threads, 64 GB RAM
  
 ```{r build.pubchem.bio, eval=FALSE}
 pc.bio <- build.pubchem.bio(pc.directory = "C:/Temp/20250703")
@@ -107,7 +107,7 @@ By organizing taxonomy-metabolite data within the taxonomic hierarchy in CID - L
 
 This ultimately enables us to build a metabolome database for _Capsicum cornutum_ even if PubChem had no information on _Capsicum cornutum_ metabolites, since we have defined many metabolites which associate with the _Capsicum_ genus, as well as with higher taxonomic levels. 
 
-#### running this line of code may will take about a minute of computer time, with 8 threads, 64 GB RAM
+##### running this line of code may will take about a minute of computer time, with 8 threads, 64 GB RAM
  
 ```{r build.taxon.metabolome, eval=FALSE}
 pc.bio.sub <- build.taxon.metabolome(taxid = 1710960, pc.directory = "C:/Temp/20250703", get.properties = FALSE)
@@ -124,7 +124,7 @@ pc.bio.sub <- build.taxon.metabolome(taxid = c(4072, 4107, 4047), pc.directory =
 
 In this example, I used _Capsicum annuum_ (pepper, 4072), the genus _Solanum_ (tomato, 4107), and _Coriandrum sativum_ (cilantro/coriander, 4047) as the taxa used to construct this meta-metabolome.  Note that i used _Solanum_ - a genus - rather than _Solanum lycopersicon_ - a species.   THis is fine.  you can always do this.  You can use any taxonomic level in building your metabolome (or meta-metabolome).   While it may not make perfect sense to do so, I wanted to demonstrate that you can.  
 
-### Taxon-scored metabolite database structure
+#### Taxon-scored metabolite database structure
 When we created the pc.bio object above, we also saved a version of it to the pc.directory specified.  We load this into memory, and then use the mapped CID - LCA data, the taxonomy hierarchy, to (1) determine all metabolites whose LCA maps to any taxonomic level in the taxa we ask and (2) assign a taxonomy-LCA score to all metabolite CIDs which have any taxonomy data.   All CIDs which map to the taxa listed are assinged a taxonomy.lca.similarity score of 1.  All metabolites with taxonomy data but are not mapped to the selected taxon are assigned a value greater than or equal to zero and less than one.  The closer the taxonomic level of the CID's LCA is to the lowest common ancestor of the mapping taxon, the higher the similarity score.  There are 21 levels to the taxonomic hierarchy.  If a CID maps to species A only, and we ask for species B's metabolome, and A and B are member of the same genus, then there is one taxonomic level between the two levels, so the CID is assigned a taxonomy.lca.similarity of (1 - 1/21) = 0.9523.  A value near, but less than, 1. 
 
 Let's spend a bit of time looking at a small subset of the ouptut of our salsa meta-metabolome.  
@@ -151,13 +151,13 @@ export.pubchem.bio(pc.bio.object = pc.bio.sub, export.file.name = "C:/Temp/20250
 
 
 
-### all functions, to run the full workflow locally
+### For your convenience:  All functions, to run the full workflow locally
 
 Just make sure to set the pc.directory to something that makes sense for your system.
 
 ```{r all.steps, eval=FALSE}
 install.packages(pubchem.bio, dependencies = TRUE)
-local.pubchem.directory <- "C:/Temp/20250703"
+local.pubchem.directory <- "C:/Temp/20250703"  ## i suggest this naming scheme, but feel free to chose your own.
 pubchem.bio::get.pubchem.ftp(pc.directory = local.pubchem.directory)
 build.cid.lca(pc.directory = local.pubchem.directory, tax.sources =  "LOTUS - the natural products occurrence database")
 pc.bio <- build.pubchem.bio(pc.directory = local.pubchem.directory)

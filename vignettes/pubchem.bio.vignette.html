@@ -12,9 +12,9 @@
 
 <meta name="author" content="Corey Broeckling" />
 
-<meta name="date" content="2025-07-16" />
+<meta name="date" content="2025-07-17" />
 
-<title>pubchem.bio.vignette</title>
+<title>pubchem.bio</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -338,9 +338,9 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">pubchem.bio.vignette</h1>
+<h1 class="title toc-ignore">pubchem.bio</h1>
 <h4 class="author">Corey Broeckling</h4>
-<h4 class="date">2025-07-16</h4>
+<h4 class="date">2025-07-17</h4>
 
 
 
@@ -349,23 +349,31 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>Metabolomics approaches utilize analytical instrumentation to detect
 and quantify small molecules. The chemical space covered by metabolomics
 is pontentially massive, with more than 100 million structures in
-Pubchem. Efforts to curate custom metabolome databases, such as the
-Human Metabolome Database (<a href="https://www.hmdb.ca/" class="uri">https://www.hmdb.ca/</a>) are incredibly valuable, enabling
-annotation efforts to focus on only those chemicals most likely to be
-found in the samples being analyzed. Metabolomics, however, is well
-suited the analysis of metabolomes from any species, and there are few
-taxonomically informed databases available.</p>
+Pubchem. Efforts to curate custom metabolome databases, such as the <a href="https://www.hmdb.ca/">Human Metabolome Database</a> are incredibly
+valuable, enabling annotation efforts to focus on only those chemicals
+most likely to be found in the samples being analyzed. Metabolomics,
+however, is well suited the analysis of metabolomes from <em>any</em>
+species, and there are very few taxonomically informed databases
+available.</p>
 <p>Pubchem, which is a massive repository of chemical structures, is
 also extremely rich in chemical metadata. Several biologicallly-focused
-metabolomic databases have deposited their structures data in Pubchem,
+metabolomic databases have deposited their structures data into PubChem,
 thousands of metabolic pathways are present, and there are rich
 taxonomic-structure pairs through taxonomy-informed natural products
 database efforts.</p>
-<p>This pubchem.bio package enables researchers to bring PubChem onto
-their local computer, and parse it to develop 1. a metabolomic structure
-database of all biological compounds in PubChem and 2. custom
-metabolomic structure databases using selected or all available
-taxonomic data in PubChem.</p>
+<p>The pubchem.bio package enables researchers to</p>
+<ul>
+<li>Download metabolomics-centric subset of PubChem onto their local
+computer</li>
+<li>Build a metabolomic structured database (data.frame) of all
+biological compounds in PubChem</li>
+<li>Define a core biological metabolome, comprising metabolites
+plausibly found in any species</li>
+<li>Develop custom metabolomic structure databases using selected or all
+available taxonomic data in PubChem.</li>
+</ul>
+<p>As such, this package will help to streamline metabolomic database
+creation, increase the accuracy of annotation efforts by</p>
 </div>
 <div id="installation" class="section level2">
 <h2>Installation</h2>
@@ -381,21 +389,24 @@ such, while the package is designed to minimize computational overhead,
 you will still want to have sufficient disk space and RAM to ensure that
 processing doesn’t bog down during parsing and organizing files.</p>
 <p>It is recommended that you perform these functions on a computer with
-at least 200 GB local SSD disk space, since a great deal of reading and
-writing of data will be occurring. Further, during processing, there
-will be large files that are being handled in memory, so it is
-recommended that you utilize a computer with at least 64 GB of RAM.
-Parallel processing is enabled through the doParallel and foreach
-packages, which will speed up processing time, but this will still take
-several hours. Do note that parallel processing results in increased RAM
-consumption. If your run out of RAM, the process will become extremely
-slow and could crash R/Rstudio. If you are RAM limited, you are probably
-going to have more success using fewer threads. The download process
-performance is also going to be dependent on network stability and
-speed.</p>
+at least <strong>200 GB local SSD</strong> disk space, since a great
+deal of reading and writing of data will be occurring. Further, during
+processing, there will be large files that are being handled in memory,
+so it is recommended that you utilize a computer with at least
+<strong>64 GB of RAM</strong>. Parallel processing is enabled through
+the doParallel and foreach packages, which will speed up processing
+time, but the will still take several hours. Do note that parallel
+processing results in increased RAM consumption. If your run out of RAM,
+the process will become extremely slow and could crash R/Rstudio. If you
+are RAM limited, you are probably going to have more success using fewer
+threads. The download process performance is also going to be dependent
+on network stability and speed.</p>
 <p>Running the program on a windows 11 PC, with 64 GB RAM, a local SSD
-hard drive, and setting threads = 8 in all functions, the full
-processing time for all steps scripted below was about ________.</p>
+hard drive, and setting threads = 8 in all functions, tyou can expect
+download, organization, and metabolome generation to take about 4 hours
+of computer time on a modern laptop/desktop. <em>Once you have
+everything set up, each new metabolome generated can be created in
+minutes.</em></p>
 </div>
 <div id="running-the-code" class="section level2">
 <h2>Running the code</h2>
@@ -405,15 +416,17 @@ download data to your local drive, ‘build’ functions parse and organize
 the downloaded data to turn it into something more useful for
 metabolomic scientists, and ‘export’ functions write these metabolome
 datasets to file for use in other programs.</p>
-<p>__ -*- I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL
-HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.__</p>
+<center>
+<p><strong>I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL
+HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.</strong></p>
+</center>
 <div id="downloading-all-the-pubchem-we-need" class="section level3">
 <h3>Downloading all the PubChem we need</h3>
 <p>First thing we need to do is get PubChem data local to your
 computer.</p>
-<div id="note-that-running-this-line-of-code-may-occupy-your-r-session-for-2-3-few-hours" class="section level4">
-<h4>note that running this line of code may occupy your R session for
-2-3 few hours</h4>
+<div id="note-that-running-this-line-of-code-may-occupy-your-r-session-for-2-3-few-hours" class="section level5">
+<h5>note that running this line of code may occupy your R session for
+2-3 few hours</h5>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>pubchem.bio<span class="sc">::</span><span class="fu">get.pubchem.ftp</span>(<span class="at">pc.directory =</span><span class="st">&quot;C:/Temp/20250703&quot;</span>)</span></code></pre></div>
 <p>What just happened? We have downloaded a bunch of data, mostly from
 the PubChem FTP site. These downloaded compressed files were
@@ -452,9 +465,9 @@ of taxonomy information we wish to use. for this example, we will just
 use LOTUS, but there are many options. I will discuss the importance of
 this below, but for now, here is the code we can use to infer LCA for
 each CID.</p>
-<div id="note-that-running-this-line-of-code-may-will-take-about-an-hour-of-computer-time-with-8-threads-64-gb-ram" class="section level4">
-<h4>note that running this line of code may will take about an hour of
-computer time, with 8 threads, 64 GB RAM</h4>
+<div id="note-that-running-this-line-of-code-may-will-take-about-an-hour-of-computer-time-with-8-threads-64-gb-ram" class="section level5">
+<h5>note that running this line of code may will take about an hour of
+computer time, with 8 threads, 64 GB RAM</h5>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">build.cid.lca</span>(<span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>, <span class="at">tax.sources =</span>  <span class="st">&quot;LOTUS - the natural products occurrence database&quot;</span>)</span></code></pre></div>
 <p>This function builds the CID - LCA relationship for all compounds
 with taxonomy data. Note that you can optionally use pathway information
@@ -720,9 +733,9 @@ makes the package output more versatile, as there are <em>many</em> rcdk
 properties which are not available via PubChem. Let me know if you feel
 it important to change this behavior and actually use PubChem predicted
 properties instead.</p>
-<div id="note-that-running-this-line-of-code-may-will-take-about-1.5-hours-of-computer-time-with-8-threads-64-gb-ram" class="section level4">
-<h4>note that running this line of code may will take about 1.5 hours of
-computer time, with 8 threads, 64 GB RAM</h4>
+<div id="note-that-running-this-line-of-code-may-will-take-about-1.5-hours-of-computer-time-with-8-threads-64-gb-ram" class="section level5">
+<h5>note that running this line of code may will take about 1.5 hours of
+computer time, with 8 threads, 64 GB RAM</h5>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>pc.bio <span class="ot">&lt;-</span> <span class="fu">build.pubchem.bio</span>(<span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>)</span></code></pre></div>
 <p>This ‘pc.bio’ object contains &gt; 1M metabolites (using default
 settings), and has columns with names, structures, and properties. It
@@ -776,9 +789,9 @@ metabolites will also therefore be expected to be part of the
 <em>Capsicum cornutum</em> metabolites, since we have defined many
 metabolites which associate with the <em>Capsicum</em> genus, as well as
 with higher taxonomic levels.</p>
-<div id="running-this-line-of-code-may-will-take-about-a-minute-of-computer-time-with-8-threads-64-gb-ram" class="section level4">
-<h4>running this line of code may will take about a minute of computer
-time, with 8 threads, 64 GB RAM</h4>
+<div id="running-this-line-of-code-may-will-take-about-a-minute-of-computer-time-with-8-threads-64-gb-ram" class="section level5">
+<h5>running this line of code may will take about a minute of computer
+time, with 8 threads, 64 GB RAM</h5>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>pc.bio.sub <span class="ot">&lt;-</span> <span class="fu">build.taxon.metabolome</span>(<span class="at">taxid =</span> <span class="dv">1710960</span>, <span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>, <span class="at">get.properties =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 </div>
 <div id="meta-metabolomes" class="section level4">
@@ -804,9 +817,8 @@ always do this. You can use any taxonomic level in building your
 metabolome (or meta-metabolome). While it may not make perfect sense to
 do so, I wanted to demonstrate that you can.</p>
 </div>
-</div>
-<div id="taxon-scored-metabolite-database-structure" class="section level3">
-<h3>Taxon-scored metabolite database structure</h3>
+<div id="taxon-scored-metabolite-database-structure" class="section level4">
+<h4>Taxon-scored metabolite database structure</h4>
 <p>When we created the pc.bio object above, we also saved a version of
 it to the pc.directory specified. We load this into memory, and then use
 the mapped CID - LCA data, the taxonomy hierarchy, to (1) determine all
@@ -937,6 +949,7 @@ CIDs have associated taxonomy information. Any CID which has no taxonomy
 information (using your chosen CID - LCA parameters) will have a score
 of NA. It will be up to you to determine how you want to handle
 these.</p>
+</div>
 </div>
 <div id="exporting-your-custom-database" class="section level3">
 <h3>Exporting your custom database</h3>
