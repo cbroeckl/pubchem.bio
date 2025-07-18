@@ -53,12 +53,8 @@ build.taxon.metabolome <- function(
     stop(paste0(pc.directory, "/pc.bio.Rdata"), "does not exist", '\n')
   }
   
+  taxid.hierarchy <- taxid.hierarchy
   cid.lca <- cid.lca
-  if(any(ls()== "taxid.hierarchy")) {
-    taxid.hierarchy <- taxid.hierarchy
-  } else {
-    taxid.hierarchy <- taxid.heirarchy
-  }
   pc.bio <- pc.bio
   
   `%dopar%` <- foreach::`%dopar%`

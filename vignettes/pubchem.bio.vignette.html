@@ -12,7 +12,7 @@
 
 <meta name="author" content="Corey Broeckling" />
 
-<meta name="date" content="2025-07-17" />
+<meta name="date" content="2025-07-18" />
 
 <title>pubchem.bio</title>
 
@@ -340,12 +340,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">pubchem.bio</h1>
 <h4 class="author">Corey Broeckling</h4>
-<h4 class="date">2025-07-17</h4>
+<h4 class="date">2025-07-18</h4>
 
 
 
-<div id="background" class="section level2">
-<h2>Background</h2>
+<div id="background" class="section level1">
+<h1>Background</h1>
 <p>Metabolomics approaches utilize analytical instrumentation to detect
 and quantify small molecules. The chemical space covered by metabolomics
 is pontentially massive, with more than 100 million structures in
@@ -375,13 +375,13 @@ available taxonomic data in PubChem.</li>
 <p>As such, this package will help to streamline metabolomic database
 creation, increase the accuracy of annotation efforts by</p>
 </div>
-<div id="installation" class="section level2">
-<h2>Installation</h2>
+<div id="installation" class="section level1">
+<h1>Installation</h1>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(pubchem.bio, <span class="at">dependencies =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(pubchem.bio)</span></code></pre></div>
 </div>
-<div id="system-requirements" class="section level2">
-<h2>System requirements</h2>
+<div id="system-requirements" class="section level1">
+<h1>System requirements</h1>
 <p>PubChem is a very large database. The pubchem.bio package does not
 download <em>ALL</em> of PubChem. It does however download every
 structure, inchikey, smiles, and several other basic descriptors. As
@@ -408,8 +408,8 @@ of computer time on a modern laptop/desktop. <em>Once you have
 everything set up, each new metabolome generated can be created in
 minutes.</em></p>
 </div>
-<div id="running-the-code" class="section level2">
-<h2>Running the code</h2>
+<div id="running-the-code" class="section level1">
+<h1>Running the code</h1>
 <p>This isn’t a complex package, there are relatively few functions. All
 functions start with ‘get’, ‘build’, or ‘export’. ‘get’ functions
 download data to your local drive, ‘build’ functions parse and organize
@@ -417,16 +417,16 @@ the downloaded data to turn it into something more useful for
 metabolomic scientists, and ‘export’ functions write these metabolome
 datasets to file for use in other programs.</p>
 <center>
-<p><strong>I AM GOING TO BE WORDY HERE, BUT PLEASE READ THIS, AS IT WILL
+<p><strong>I AM GOING TO BE WORDY HERE, BUT PLEASE READ ON, AS IT WILL
 HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.</strong></p>
 </center>
-<div id="downloading-all-the-pubchem-we-need" class="section level3">
-<h3>Downloading all the PubChem we need</h3>
+<div id="downloading-all-the-pubchem-we-need" class="section level2">
+<h2>Downloading all the PubChem we need</h2>
 <p>First thing we need to do is get PubChem data local to your
 computer.</p>
-<div id="note-that-running-this-line-of-code-may-occupy-your-r-session-for-2-3-few-hours" class="section level5">
-<h5>note that running this line of code may occupy your R session for
-2-3 few hours</h5>
+<div id="note-that-running-this-line-of-code-may-occupy-your-r-session-for-2-3-few-hours" class="section level6">
+<h6>note that running this line of code may occupy your R session for
+2-3 few hours</h6>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>pubchem.bio<span class="sc">::</span><span class="fu">get.pubchem.ftp</span>(<span class="at">pc.directory =</span><span class="st">&quot;C:/Temp/20250703&quot;</span>)</span></code></pre></div>
 <p>What just happened? We have downloaded a bunch of data, mostly from
 the PubChem FTP site. These downloaded compressed files were
@@ -438,9 +438,9 @@ the data we want from remote to local, and discarded data we have no
 need for to keep from cluttering up our hard drive and RAM.</p>
 </div>
 </div>
-<div id="building-metabolite-cid---lowest-common-ancestor-lca-relationships" class="section level3">
-<h3>Building metabolite (CID) - lowest common ancestor (LCA)
-relationships</h3>
+<div id="building-metabolite-cid---lowest-common-ancestor-lca-relationships" class="section level2">
+<h2>Building metabolite (CID) - lowest common ancestor (LCA)
+relationships</h2>
 <p>Our next step needs to be further organization of taxonomy data. This
 function is separated out as it is relatively computationally intensive,
 taking a good deal of time. This will be done using the ‘build.cid.lca’
@@ -465,9 +465,9 @@ of taxonomy information we wish to use. for this example, we will just
 use LOTUS, but there are many options. I will discuss the importance of
 this below, but for now, here is the code we can use to infer LCA for
 each CID.</p>
-<div id="note-that-running-this-line-of-code-may-will-take-about-an-hour-of-computer-time-with-8-threads-64-gb-ram" class="section level5">
-<h5>note that running this line of code may will take about an hour of
-computer time, with 8 threads, 64 GB RAM</h5>
+<div id="note-that-running-this-line-of-code-may-will-take-about-an-hour-of-computer-time-with-8-threads-64-gb-ram" class="section level6">
+<h6>note that running this line of code may will take about an hour of
+computer time, with 8 threads, 64 GB RAM</h6>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">build.cid.lca</span>(<span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>, <span class="at">tax.sources =</span>  <span class="st">&quot;LOTUS - the natural products occurrence database&quot;</span>)</span></code></pre></div>
 <p>This function builds the CID - LCA relationship for all compounds
 with taxonomy data. Note that you can optionally use pathway information
@@ -493,176 +493,26 @@ defining chemical search space. As such, I tend to approach this in an
 the search space.</p>
 <p>Below is a subset of the taxid.hierarchy file. This gives you an idea
 of how the LCA’s are assigned.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># data(sub.taxid.hierarchy, package = &quot;pubchem.bio&quot;)</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>,<span class="st">&quot;sub.taxid.hierarchy.Rda&quot;</span>, <span class="at">package =</span> <span class="st">&quot;pubchem.bio&quot;</span>))</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(sub.taxid.hierarchy, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
-<table>
-<colgroup>
-<col width="4%" />
-<col width="3%" />
-<col width="4%" />
-<col width="3%" />
-<col width="5%" />
-<col width="3%" />
-<col width="6%" />
-<col width="5%" />
-<col width="4%" />
-<col width="3%" />
-<col width="5%" />
-<col width="5%" />
-<col width="4%" />
-<col width="4%" />
-<col width="5%" />
-<col width="5%" />
-<col width="3%" />
-<col width="5%" />
-<col width="4%" />
-<col width="6%" />
-<col width="2%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="right">species</th>
-<th align="right">genus</th>
-<th align="right">subtribe</th>
-<th align="right">tribe</th>
-<th align="right">subfamily</th>
-<th align="right">family</th>
-<th align="right">superfamily</th>
-<th align="right">infraorder</th>
-<th align="right">suborder</th>
-<th align="right">order</th>
-<th align="right">superorder</th>
-<th align="right">infraclass</th>
-<th align="right">subclass</th>
-<th align="right">class</th>
-<th align="right">superclass</th>
-<th align="right">subphylum</th>
-<th align="right">phylum</th>
-<th align="right">subkingdom</th>
-<th align="right">kingdom</th>
-<th align="right">superkingdom</th>
-<th align="right">root</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">1173</td>
-<td align="right">1163</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">1162</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">1161</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">3028117</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">1117</td>
-<td align="right">NA</td>
-<td align="right">1783272</td>
-<td align="right">NA</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">4072</td>
-<td align="right">4071</td>
-<td align="right">NA</td>
-<td align="right">424564</td>
-<td align="right">424551</td>
-<td align="right">4070</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">4069</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">3398</td>
-<td align="right">NA</td>
-<td align="right">131221</td>
-<td align="right">35493</td>
-<td align="right">NA</td>
-<td align="right">33090</td>
-<td align="right">NA</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">4081</td>
-<td align="right">4107</td>
-<td align="right">NA</td>
-<td align="right">424574</td>
-<td align="right">424551</td>
-<td align="right">4070</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">4069</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">3398</td>
-<td align="right">NA</td>
-<td align="right">131221</td>
-<td align="right">35493</td>
-<td align="right">NA</td>
-<td align="right">33090</td>
-<td align="right">NA</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">4232</td>
-<td align="right">4231</td>
-<td align="right">NA</td>
-<td align="right">102814</td>
-<td align="right">102804</td>
-<td align="right">4210</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">4209</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">3398</td>
-<td align="right">NA</td>
-<td align="right">131221</td>
-<td align="right">35493</td>
-<td align="right">NA</td>
-<td align="right">33090</td>
-<td align="right">NA</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">4932</td>
-<td align="right">4930</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">4893</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">4892</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">4891</td>
-<td align="right">NA</td>
-<td align="right">147537</td>
-<td align="right">4890</td>
-<td align="right">451864</td>
-<td align="right">4751</td>
-<td align="right">NA</td>
-<td align="right">1</td>
-</tr>
-</tbody>
-</table>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">data</span>(sub.taxid.hierarchy, <span class="at">package =</span> <span class="st">&#39;pubchem.bio&#39;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>sub.taxid.hierarchy</span></code></pre></div>
+<pre><code>##   species genus subtribe  tribe subfamily family superfamily infraorder
+## 1    1173  1163       NA     NA        NA   1162          NA         NA
+## 2    4072  4071       NA 424564    424551   4070          NA         NA
+## 3    4081  4107       NA 424574    424551   4070          NA         NA
+## 4    4232  4231       NA 102814    102804   4210          NA         NA
+## 5    4932  4930       NA     NA        NA   4893          NA         NA
+##   suborder order superorder infraclass subclass   class superclass subphylum
+## 1       NA  1161         NA         NA       NA 3028117         NA        NA
+## 2       NA  4069         NA         NA       NA    3398         NA    131221
+## 3       NA  4069         NA         NA       NA    3398         NA    131221
+## 4       NA  4209         NA         NA       NA    3398         NA    131221
+## 5       NA  4892         NA         NA       NA    4891         NA    147537
+##   phylum subkingdom kingdom superkingdom root
+## 1   1117         NA 1783272           NA    1
+## 2  35493         NA   33090           NA    1
+## 3  35493         NA   33090           NA    1
+## 4  35493         NA   33090           NA    1
+## 5   4890     451864    4751           NA    1</code></pre>
 <p>We have five taxa represented here: species 1173 = <em>Mycobacterium
 tuberculosis</em> (Tuberculosis bacterium), 4072 = <em>Capsicum
 annuum</em> (pepper), 4081 = <em>Solanum lycopersicum</em> (tomato),
@@ -711,8 +561,8 @@ it falls within the taxonomy structure headed by the LCA Pentapetalae:
 Pentapetalae/rosids/fabids/Fabales/Fabaceae/Papilionoideae/Phaseoleae/Glycine/max.</p>
 </div>
 </div>
-<div id="creating-pubchem-bio-metabolome-database." class="section level3">
-<h3>Creating PubChem BIO metabolome database.</h3>
+<div id="creating-pubchem-bio-metabolome-database." class="section level2">
+<h2>Creating PubChem BIO metabolome database.</h2>
 <p>We can now build a database of biological compounds as a subset of
 PubChem data. We base this on (1) BIO databases as a source (2) pathway
 data and (3) taxonomy data. If you would like to see the full list of
@@ -733,10 +583,10 @@ makes the package output more versatile, as there are <em>many</em> rcdk
 properties which are not available via PubChem. Let me know if you feel
 it important to change this behavior and actually use PubChem predicted
 properties instead.</p>
-<div id="note-that-running-this-line-of-code-may-will-take-about-1.5-hours-of-computer-time-with-8-threads-64-gb-ram" class="section level5">
-<h5>note that running this line of code may will take about 1.5 hours of
-computer time, with 8 threads, 64 GB RAM</h5>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>pc.bio <span class="ot">&lt;-</span> <span class="fu">build.pubchem.bio</span>(<span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>)</span></code></pre></div>
+<div id="note-that-running-this-line-of-code-may-will-take-about-1.5-hours-of-computer-time-with-8-threads-64-gb-ram" class="section level6">
+<h6>note that running this line of code may will take about 1.5 hours of
+computer time, with 8 threads, 64 GB RAM</h6>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>pc.bio <span class="ot">&lt;-</span> <span class="fu">build.pubchem.bio</span>(<span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>)</span></code></pre></div>
 <p>This ‘pc.bio’ object contains &gt; 1M metabolites (using default
 settings), and has columns with names, structures, and properties. It
 can be used directly as a source dataset for export to spreadsheet
@@ -758,8 +608,8 @@ molecular size. Such properties can be valuable in predicting retention
 time, CCS, adduct affinity, etc.</p>
 </div>
 </div>
-<div id="creating-taxon-specific-metabolite-databases" class="section level3">
-<h3>Creating taxon-specific metabolite databases</h3>
+<div id="creating-taxon-specific-metabolite-databases" class="section level2">
+<h2>Creating taxon-specific metabolite databases</h2>
 <p>By organizing taxonomy-metabolite data within the taxonomic hierarchy
 in CID - LCA pairs (above), we can use some logical/reasoned steps to
 ensure that our taxonomy-specific metabolome database is as
@@ -789,13 +639,14 @@ metabolites will also therefore be expected to be part of the
 <em>Capsicum cornutum</em> metabolites, since we have defined many
 metabolites which associate with the <em>Capsicum</em> genus, as well as
 with higher taxonomic levels.</p>
-<div id="running-this-line-of-code-may-will-take-about-a-minute-of-computer-time-with-8-threads-64-gb-ram" class="section level5">
-<h5>running this line of code may will take about a minute of computer
-time, with 8 threads, 64 GB RAM</h5>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>pc.bio.sub <span class="ot">&lt;-</span> <span class="fu">build.taxon.metabolome</span>(<span class="at">taxid =</span> <span class="dv">1710960</span>, <span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>, <span class="at">get.properties =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div id="running-this-line-of-code-may-will-take-about-a-minute-of-computer-time-with-8-threads-64-gb-ram" class="section level6">
+<h6>running this line of code may will take about a minute of computer
+time, with 8 threads, 64 GB RAM</h6>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>pc.bio.sub <span class="ot">&lt;-</span> <span class="fu">build.taxon.metabolome</span>(<span class="at">taxid =</span> <span class="dv">1710960</span>, <span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>, <span class="at">get.properties =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 </div>
-<div id="meta-metabolomes" class="section level4">
-<h4>Meta-metabolomes</h4>
+</div>
+<div id="meta-metabolomes" class="section level2">
+<h2>Meta-metabolomes</h2>
 <p>This function can also take a list of taxids. Imagine you are
 analyzing stool samples from a gut microbiome study under controlled
 diet conditions. You can include human (9606), <em>Prevotella</em>
@@ -807,18 +658,18 @@ as <a href="https://biotransformer.ca/">BioTransformer</a>.</p>
 <p>Let’s consider a meta-metabolome that is a bit more fun. Salsa. We
 can simplify the ingredient list a bit. lets consider peppers, tomatoes,
 and cilantro.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>pc.bio.sub <span class="ot">&lt;-</span> <span class="fu">build.taxon.metabolome</span>(<span class="at">taxid =</span> <span class="fu">c</span>(<span class="dv">4072</span>, <span class="dv">4107</span>, <span class="dv">4047</span>), <span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>, <span class="at">get.properties =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>pc.bio.sub <span class="ot">&lt;-</span> <span class="fu">build.taxon.metabolome</span>(<span class="at">taxid =</span> <span class="fu">c</span>(<span class="dv">4072</span>, <span class="dv">4107</span>, <span class="dv">4047</span>), <span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>, <span class="at">get.properties =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <p>In this example, I used <em>Capsicum annuum</em> (pepper, 4072), the
 genus <em>Solanum</em> (tomato, 4107), and <em>Coriandrum sativum</em>
 (cilantro/coriander, 4047) as the taxa used to construct this
 meta-metabolome. Note that i used <em>Solanum</em> - a genus - rather
-than <em>Solanum lycopersicon</em> - a species. THis is fine. you can
+than <em>Solanum lycopersicon</em> - a species. This is fine. you can
 always do this. You can use any taxonomic level in building your
 metabolome (or meta-metabolome). While it may not make perfect sense to
 do so, I wanted to demonstrate that you can.</p>
 </div>
-<div id="taxon-scored-metabolite-database-structure" class="section level4">
-<h4>Taxon-scored metabolite database structure</h4>
+<div id="taxon-scored-metabolite-database-structure" class="section level2">
+<h2>Taxon-scored metabolite database structure</h2>
 <p>When we created the pc.bio object above, we also saved a version of
 it to the pc.directory specified. We load this into memory, and then use
 the mapped CID - LCA data, the taxonomy hierarchy, to (1) determine all
@@ -837,71 +688,26 @@ taxonomy.lca.similarity of (1 - 1/21) = 0.9523. A value near, but less
 than, 1.</p>
 <p>Let’s spend a bit of time looking at a small subset of the ouptut of
 our salsa meta-metabolome.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># load(paste0(path.package(&#39;pubchem.bio&#39;), &quot;/data/pc.bio.tax.scored.subset.Rdata&quot;))</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;pc.bio.tax.scored.subset.Rda&quot;</span>, <span class="at">package =</span> <span class="st">&quot;pubchem.bio&quot;</span>))</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(pc.bio.subset[,<span class="fu">c</span>(<span class="st">&quot;cid&quot;</span>, <span class="st">&quot;name&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4072&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4107&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4047&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.aggregate&quot;</span>)], <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
-<table>
-<colgroup>
-<col width="6%" />
-<col width="13%" />
-<col width="19%" />
-<col width="19%" />
-<col width="19%" />
-<col width="22%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="right">cid</th>
-<th align="left">name</th>
-<th align="right">taxonomy.lca.similarity.4072</th>
-<th align="right">taxonomy.lca.similarity.4107</th>
-<th align="right">taxonomy.lca.similarity.4047</th>
-<th align="right">taxonomy.lca.similarity.aggregate</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">311</td>
-<td align="left">Citric Acid</td>
-<td align="right">1</td>
-<td align="right">1.0000</td>
-<td align="right">1.0000</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">174174</td>
-<td align="left">Atropine</td>
-<td align="right">1</td>
-<td align="right">1.0000</td>
-<td align="right">0.3333</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">1548943</td>
-<td align="left">Capsaicin</td>
-<td align="right">1</td>
-<td align="right">0.7619</td>
-<td align="right">0.3333</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">21585658</td>
-<td align="left">Daptomycin</td>
-<td align="right">0</td>
-<td align="right">0.0000</td>
-<td align="right">0.0000</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">139590519</td>
-<td align="left">Saccharomonopyrone C</td>
-<td align="right">0</td>
-<td align="right">0.0000</td>
-<td align="right">0.0000</td>
-<td align="right">0</td>
-</tr>
-</tbody>
-</table>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">data</span>(pc.bio.subset, <span class="at">package =</span> <span class="st">&#39;pubchem.bio&#39;</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>pc.bio.subset[,<span class="fu">c</span>(<span class="st">&quot;cid&quot;</span>, <span class="st">&quot;name&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4072&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4107&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.4047&quot;</span>, <span class="st">&quot;taxonomy.lca.similarity.aggregate&quot;</span>)]</span></code></pre></div>
+<pre><code>##                 cid                 name taxonomy.lca.similarity.4072
+## 311             311          Citric Acid                            1
+## 174174       174174             Atropine                            1
+## 1548943     1548943            Capsaicin                            1
+## 21585658   21585658           Daptomycin                            0
+## 139590519 139590519 Saccharomonopyrone C                            0
+##           taxonomy.lca.similarity.4107 taxonomy.lca.similarity.4047
+## 311                             1.0000                       1.0000
+## 174174                          1.0000                       0.3333
+## 1548943                         0.7619                       0.3333
+## 21585658                        0.0000                       0.0000
+## 139590519                       0.0000                       0.0000
+##           taxonomy.lca.similarity.aggregate
+## 311                                       1
+## 174174                                    1
+## 1548943                                   1
+## 21585658                                  0
+## 139590519                                 0</code></pre>
 <p>We defined our target taxa as pepper (species), the tomato genus, and
 the cilantro species. Each taxon is assigned its own similarity score
 (with the taxid appended to ‘taxonomy.lca.similarity’). For citric acid,
@@ -929,20 +735,29 @@ species, and assigned scores of 1 for each of 4072 and 4107. This
 example demonstrates both the benefit of the LCA approach - Citric acid
 and all other highly conserved metabolites are mapped to every species -
 but also demonstrates a cautionary tale - atropine is mapped to all
-solanaceous species, even though there is no evidence that it is likely
-to be found in peppers and tomatoes, or our salsa.</p>
-<p>If you wished to create a metabolome <em>ONLY</em> with metabolites
+Solanaceous species, even though there is no evidence that it is likely
+to be found in peppers and tomatoes, or our salsa. You should be trying
+to think about this in evolutionary terms, and there are two
+explanations: (1) Atropine synthesis capacity arose randomly a few
+genera, all of which happen to be in the <em>Solanacea</em> or (2) The
+common ancestor to all <em>Solanacea</em> had genetic traits which
+predisposes all of the progeny to develop the ability to synthesize
+atropine. We can’t tell the difference, but we are using taxonomy to
+infer phylogeny, and in this case, the impact of phylogeny on inferred
+metabolic traits.</p>
+<p>If you wish to create a metabolome <em>ONLY</em> with metabolites
 which are plausible, you can subset the data to keep only those
-metabolite CIDs with a similarilty score == 1. Alternatively, you can
-use the assigned scores to rank/rescore search results from NIST
-MSsearch, Sirius, or any other search tool, so long as you can map the
-data using CID, Smiles, InChIKey, etc. Note also that we used ‘max’ as
-our aggregation function. You could alternatively use ‘mean’ or ‘min’ or
-any other function - even custom functions - to aggregate this data.
-pubchem.bio is designed to do a good deal of the basic data wrangling,
-using all available sources, but users of pubchem.bio are going to be
-doing a good deal of the thinking as to how best to use this
-resource.</p>
+metabolite CIDs with a similarilty score == 1. Something like:</p>
+<p><code>my.metabolome &lt;- pc.bio.subset[which(pc.bio.subset$taxonomy.lca.similarity.4072 == 1),]</code></p>
+<p>Alternatively, you can use the assigned scores to rank/rescore search
+results from NIST MSsearch, Sirius, or any other search tool, so long as
+you can map the data using CID, Smiles, InChIKey, etc. Note also that we
+used ‘max’ as our aggregation function. You could alternatively use
+‘mean’ or ‘min’ or any other function - even custom functions - to
+aggregate this data. pubchem.bio is designed to do a good deal of the
+basic data wrangling, using all available sources, but users of
+pubchem.bio are going to be doing a good deal of the thinking as to how
+best to use this resource.</p>
 <p>One final note on taxonomy scoring: all CIDs from the pc.bio object
 are included by default in the taxonomy scoring output. However, not all
 CIDs have associated taxonomy information. Any CID which has no taxonomy
@@ -950,9 +765,8 @@ information (using your chosen CID - LCA parameters) will have a score
 of NA. It will be up to you to determine how you want to handle
 these.</p>
 </div>
-</div>
-<div id="exporting-your-custom-database" class="section level3">
-<h3>Exporting your custom database</h3>
+<div id="exporting-your-custom-database" class="section level2">
+<h2>Exporting your custom database</h2>
 <p>We provide two export options. In each case, we take as input the
 pc.bio object or the related taxonomy-scored pc.bio object. At this
 point, taxonomy scoring isn’t feasible in these programs - we are
@@ -961,24 +775,24 @@ is not one of them. We use the CID as the database ID in each case - no
 point in creating another database ID when we have a perfectly good one
 from PubChem. There is also a convenience wrapper to export the full
 pubchem.bio table to .tsv format - export.pubchem.bio().</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">export.msfinder</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="st">&quot;C:/Temp/20250703/pc.bio.msfinder.tsv&quot;</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">export.sirius</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="st">&quot;C:/Temp/20250703/pc.bio.sirius.tsv&quot;</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">export.pubchem.bio</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="st">&quot;C:/Temp/20250703/pc.bio.full.pubchem.bio.tsv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">export.msfinder</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="st">&quot;C:/Temp/20250703/pc.bio.msfinder.tsv&quot;</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">export.sirius</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="st">&quot;C:/Temp/20250703/pc.bio.sirius.tsv&quot;</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">export.pubchem.bio</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="st">&quot;C:/Temp/20250703/pc.bio.full.pubchem.bio.tsv&quot;</span>)</span></code></pre></div>
 </div>
-<div id="all-functions-to-run-the-full-workflow-locally" class="section level3">
-<h3>all functions, to run the full workflow locally</h3>
-<p>Just make sure to set the pc.directory to something that makes sense
-for your system.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">install.packages</span>(pubchem.bio, <span class="at">dependencies =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>local.pubchem.directory <span class="ot">&lt;-</span> <span class="st">&quot;C:/Temp/20250703&quot;</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>pubchem.bio<span class="sc">::</span><span class="fu">get.pubchem.ftp</span>(<span class="at">pc.directory =</span> local.pubchem.directory)</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="fu">build.cid.lca</span>(<span class="at">pc.directory =</span> local.pubchem.directory, <span class="at">tax.sources =</span>  <span class="st">&quot;LOTUS - the natural products occurrence database&quot;</span>)</span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>pc.bio <span class="ot">&lt;-</span> <span class="fu">build.pubchem.bio</span>(<span class="at">pc.directory =</span> local.pubchem.directory)</span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>pc.bio.sub <span class="ot">&lt;-</span> <span class="fu">build.taxon.metabolome</span>(<span class="at">taxid =</span> <span class="fu">c</span>(<span class="dv">4072</span>, <span class="dv">4107</span>, <span class="dv">4047</span>), <span class="at">pc.directory =</span> local.pubchem.directory, <span class="at">get.properties =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="fu">export.msfinder</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="fu">paste0</span>(local.pubchem.directory, <span class="st">&quot;/pc.bio.msfinder.tsv&quot;</span>))</span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="fu">export.sirius</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="fu">paste0</span>(local.pubchem.directory, <span class="st">&quot;/pc.bio.sirius.tsv&quot;</span>))</span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="fu">export.pubchem.bio</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="fu">paste0</span>(local.pubchem.directory, <span class="st">&quot;/pc.bio.full.pubchem.bio.tsv&quot;</span>))</span></code></pre></div>
 </div>
+<div id="workflow-in-brief" class="section level1">
+<h1>Workflow in brief</h1>
+<p>Just make sure to set the local.pubchem.directory to something that
+makes sense for your system.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">install.packages</span>(pubchem.bio, <span class="at">dependencies =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>local.pubchem.directory <span class="ot">&lt;-</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>  <span class="do">## i suggest this naming scheme, but feel free to chose your own.</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>pubchem.bio<span class="sc">::</span><span class="fu">get.pubchem.ftp</span>(<span class="at">pc.directory =</span> local.pubchem.directory)</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="fu">build.cid.lca</span>(<span class="at">pc.directory =</span> local.pubchem.directory, <span class="at">tax.sources =</span>  <span class="st">&quot;LOTUS - the natural products occurrence database&quot;</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>pc.bio <span class="ot">&lt;-</span> <span class="fu">build.pubchem.bio</span>(<span class="at">pc.directory =</span> local.pubchem.directory)</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>pc.bio.sub <span class="ot">&lt;-</span> <span class="fu">build.taxon.metabolome</span>(<span class="at">taxid =</span> <span class="fu">c</span>(<span class="dv">4072</span>, <span class="dv">4107</span>, <span class="dv">4047</span>), <span class="at">pc.directory =</span> local.pubchem.directory, <span class="at">get.properties =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="fu">export.msfinder</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="fu">paste0</span>(local.pubchem.directory, <span class="st">&quot;/pc.bio.msfinder.tsv&quot;</span>))</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="fu">export.sirius</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="fu">paste0</span>(local.pubchem.directory, <span class="st">&quot;/pc.bio.sirius.tsv&quot;</span>))</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="fu">export.pubchem.bio</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="fu">paste0</span>(local.pubchem.directory, <span class="st">&quot;/pc.bio.full.pubchem.bio.tsv&quot;</span>))</span></code></pre></div>
 </div>
 
 

@@ -1,3 +1,10 @@
+# pubchem.bio 1.0.0
+
+## release description
+- Fixed CRAN compliance issues, added vignette, export functions 
+
+
+
 # pubchem.bio 0.9.0
 
 ## release description

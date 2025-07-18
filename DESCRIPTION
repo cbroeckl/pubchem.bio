@@ -1,12 +1,15 @@
 Package: pubchem.bio
 Title: Download, Parse, and Organize 'PubChem': Generating Biological and Taxonomically Relevant Metabolome Databases
-Version: 0.9.0
+Version: 1.0.0
 Authors@R: 
     person("Corey", "Broeckling", , "cbroeckl@colostate.edu", role = c("aut", "cre"))
-Description: The pubchem.bio package downloads various bits and pieces of 'PubChem'.  All compounds are downloaded, but for each compound, only partial records are used.  The data are organized into small files referenced by pubchem CID.  This package also contains functions to parse the biologically relevant compounds from all 'PubChem' compounds, using biological database sources, pathway presence, and taxonomic relationships. Taxonomy is used to generate a lowest common ancestor taxonomy ID (NCBI) for each biological metabolite, which then enables creation of taxonomically specific metabolome databases for any taxon.
+Description: The pubchem.bio package downloads various bits and pieces of 'PubChem'.  All compounds are downloaded, but for each compound, only partial records are used.  The data are organized into small files referenced by 'PubChem' CID.  This package also contains functions to parse the biologically relevant compounds from all 'PubChem' compounds, using biological database sources, pathway presence, and taxonomic relationships. Taxonomy is used to generate a lowest common ancestor taxonomy ID (NCBI) for each biological metabolite, which then enables creation of taxonomically specific metabolome databases for any taxon.
 License: GPL-3
 Encoding: UTF-8
-Imports: foreach, doParallel, R.utils, data.table, dplyr, rcdk, stringr
-Suggests: utils
+Imports: foreach, doParallel, R.utils, data.table, dplyr, rcdk, stringr 
+Depends: R (>= 3.5.0)
+LazyData: true
+Suggests: utils, knitr, rmarkdown, formatR
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+VignetteBuilder: knitr
