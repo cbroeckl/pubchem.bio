@@ -9,7 +9,8 @@ build.cid.lca(
   tax.sources = "LOTUS - the natural products occurrence database",
   use.pathways = TRUE,
   use.conserved.pathways = FALSE,
-  threads = 8
+  threads = 8,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ build.cid.lca(
 \item{use.conserved.pathways}{logical. default = FALSE, should 'conserved' pathways be used?  when false, only pathways with an assigned taxonomy are used.}
 
 \item{threads}{integer.  number of threads to use when finding lowest common ancestor.  parallel processing via DoParallel and foreach packages.}
+
+\item{verbose}{logical. if TRUE, print summary progress to console.}
 }
 \value{
 a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
