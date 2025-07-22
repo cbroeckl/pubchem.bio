@@ -7,7 +7,6 @@
 #' @param use.pathways logical.  default = TRUE, should pathway data be used in building lowest common ancestor, when taxonomy is associated with a pathway?
 #' @param use.conserved.pathways logical. default = FALSE, should 'conserved' pathways be used?  when false, only pathways with an assigned taxonomy are used. 
 #' @param threads integer.  number of threads to use when finding lowest common ancestor.  parallel processing via DoParallel and foreach packages.   
-#' @param verbose logical. if TRUE, print summary progress to console.  
 #' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
 #' @author Corey Broeckling
 #' 
@@ -22,8 +21,7 @@ build.cid.lca <- function(
     tax.sources = "LOTUS - the natural products occurrence database",
     use.pathways = TRUE,
     use.conserved.pathways = FALSE,
-    threads = 8, 
-    verbose = FALSE
+    threads = 8
 ) {
   
   ## load necessary files
@@ -34,7 +32,7 @@ build.cid.lca <- function(
   load(paste0(pc.directory, "/taxid.hierarchy.Rdata"))
   taxid.hierarchy <- taxid.hierarchy
 
-  if(verbose) message(" -" , nrow(cid.taxid), " taxonomy-cid associations from cid.taxid.Rdata file", '\n')
+  message(" -" , nrow(cid.taxid), " taxonomy-cid associations from cid.taxid.Rdata file", '\n')
   
   if(!base::is.null(tax.sources)) {
     
@@ -42,7 +40,7 @@ build.cid.lca <- function(
       source <- unique(cid.taxid$data.source)
       source.number <- 1:length(source)
       for(i in 1:length(source)) {
-        if(verbose)  message(paste(source.number[i], source[i], '\n'))
+         message(paste(source.number[i], source[i], '\n'))
       }
       use <- readline("enter source.number values for all sources, separated by a space:  ")
       use <- sort(as.numeric(unlist(strsplit(use, " "))))
@@ -53,7 +51,7 @@ build.cid.lca <- function(
   }
 
   
-  cat(" -" , nrow(cid.taxid), "taxonomy-cid associations after filtering by source", '\n')
+  message(" -" , nrow(cid.taxid), "taxonomy-cid associations after filtering by source", '\n')
 
   
   if(use.pathways) {
@@ -97,7 +95,7 @@ build.cid.lca <- function(
     
     dups <- duplicated(cid.taxid[,1:2])
     cid.taxid <- cid.taxid[!duplicated(cid.taxid), ]
-    if(verbose) cat(" -" , nrow(cid.taxid), "taxonomy-cid associations after adding pathway data", '\n')
+    message(" -" , nrow(cid.taxid), "taxonomy-cid associations after adding pathway data", '\n')
   }
   
   cid <- table(cid.taxid$cid)
@@ -114,7 +112,7 @@ build.cid.lca <- function(
     th.convert <- c(th.convert, rep(((i-1)*nrow(th.mat)), nrow(th.mat)))
   }
   
-  if(verbose) cat(" -" , "finding lowest common ancestor for each cid", '\n')
+  message(" -" , "finding lowest common ancestor for each cid", '\n')
   
   # # for each cid find lca
   # # return cid, lca vector

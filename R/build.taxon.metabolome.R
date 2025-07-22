@@ -15,6 +15,7 @@
 #' 
 #' @export
 #' 
+#' 
 build.taxon.metabolome <- function(
     pc.directory = NULL,
     taxid = c(),
@@ -73,7 +74,7 @@ build.taxon.metabolome <- function(
     if(full.scored) {
       ## get taxid hierarchy. store as vector.  
       ## compare to each out taxid vector by lca
-      cat(taxid[i], " ", length(keep), 'mapped metabolites')
+      message(taxid[i], " ", length(keep), 'mapped metabolites')
       taxid.row <- tax.match[1,1]
       taxid.column <- as.integer(tax.match[1,2])
       taxid.vector <- as.vector(unlist(taxid.hierarchy[taxid.row, 1:ncol(taxid.hierarchy)]))
@@ -82,7 +83,7 @@ build.taxon.metabolome <- function(
       th.ind <- which(names(cid.lca) == "species"):ncol(cid.lca)
       # th.ind <- th.ind[taxid.column:length(th.ind)]
       tmp <- match(pc.bio$cid, cid.lca$cid)
-      cat(" -- calculating similarities", '\n')
+      message(" -- calculating similarities", '\n')
       
       do.sim <- which(!is.na(tmp))
       
@@ -139,7 +140,7 @@ build.taxon.metabolome <- function(
       # # do.sim <- do.sim[151600:length(do.sim)]
       # do.sim.sim <- sapply((do.sim), FUN = function(x) {
       # # tax.lca.sim <- sapply((800000:length(tmp)), FUN = function(x) {
-      #  cat(x, ' ')
+      #  message(x, ' ')
       #     tryCatch(
       #       #this is the chunk of code we want to run
       #       {
@@ -165,7 +166,7 @@ build.taxon.metabolome <- function(
   }
   
   if(!full.scored) {
-    cat("keeping", length(keep), "metabolites", '\n')
+    message("keeping", length(keep), "metabolites", '\n')
     out <- pc.bio[keep, ]
     if(nrow(out) == 0) {
       error("no metabolites found for taxid(s):", paste0(taxid, collapse = ", "))
@@ -181,7 +182,7 @@ build.taxon.metabolome <- function(
   }
   
   if(get.properties) {
-    cat(" - calclulating rcdk properties",  format(Sys.time()), '\n')
+    message(" - calclulating rcdk properties",  format(Sys.time()), '\n')
     cid.list <- as.list(out$cid)
     sm.list <- as.list(out$smiles)
     doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))

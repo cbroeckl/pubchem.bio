@@ -24,7 +24,7 @@ get.pubchem.ftp <- function(
   tmp.dir <- suppressWarnings(paste0(pc.directory, "/tmp/"))
   dir.create(tmp.dir)
   
-  cat(" -- writing data to", pc.directory, '\n')
+  message(" -- writing data to", pc.directory, '\n')
   
   readme <- c(
     "Data collection derived from pubchem, primarily using the 'compound' FTP data.", '\n',
@@ -428,7 +428,7 @@ get.pubchem.ftp <- function(
     d$rank.parent.taxid[do] <- new.parent.rank
     parent.rank <- d$rank[match(d$parent.taxid, d$taxid)]
     missing.new <- length(which(!parent.rank %in% ranks))
-    # cat(missing.new, '\n')
+    # message(missing.new, '\n')
     # d[d$taxid %in% check.lineage,]
   }
   # d.orig <- d
@@ -728,14 +728,14 @@ get.pubchem.ftp <- function(
   )
   
   sink(paste0(pc.directory, '/readme.txt'))
-  cat(readme)
+  message(readme)
   sink()
   
   if(rm.tmp.files) {
     unlink(paste0(pc.directory, "tmp/"), recursive=TRUE)
   }
   
-  cat(' -- finished', '\n')
+  message(' -- finished', '\n')
   
   return(readme)
 }
