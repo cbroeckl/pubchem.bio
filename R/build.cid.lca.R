@@ -29,32 +29,33 @@ build.cid.lca <- function(
   ## load necessary files
   load(paste0(pc.directory, "/cid.taxid.Rdata"))
   data.table::setkey(cid.taxid, "cid")
+  cid.taxid <- cid.taxid
+  
   load(paste0(pc.directory, "/taxid.hierarchy.Rdata"))
   taxid.hierarchy <- taxid.hierarchy
+
+  if(verbose) message(" -" , nrow(cid.taxid), " taxonomy-cid associations from cid.taxid.Rdata file", '\n')
   
-  cid.taxid <- cid.taxid
-  taxid.hierarchy <- taxid.hierarchy
-  
-  if(verbose) cat(" -" , nrow(cid.taxid), "taxonomy-cid associations from cid.taxid.Rdata file", '\n')
-  
-  # load(paste0(pc.directory, "/cid.pwid.Rdata"))
-  
-  if(!is.null(tax.sources)) {
+  if(!base::is.null(tax.sources)) {
+    
     if(tax.sources[1] == "interactive") {
       source <- unique(cid.taxid$data.source)
       source.number <- 1:length(source)
       for(i in 1:length(source)) {
-        if(verbose)  cat(paste(source.number[i], source[i], '\n'))
+        if(verbose)  message(paste(source.number[i], source[i], '\n'))
       }
       use <- readline("enter source.number values for all sources, separated by a space:  ")
       use <- sort(as.numeric(unlist(strsplit(use, " "))))
       tax.sources <- source[use]
-    } 
-    cid.taxid <- cid.taxid[cid.taxid$data.source %in% tax.sources]
+    }
+    keep <- cid.taxid$data.source %in% tax.sources
+    cid.taxid <- cid.taxid[keep,]
   }
-  
-  if(verbose) cat(" -" , nrow(cid.taxid), "taxonomy-cid associations after filtering by source", '\n')
 
+  
+  cat(" -" , nrow(cid.taxid), "taxonomy-cid associations after filtering by source", '\n')
+
+  
   if(use.pathways) {
     load(paste0(pc.directory, "/cid.pwid.Rdata"))
     cid.pwid <- cid.pwid
