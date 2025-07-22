@@ -44,9 +44,10 @@ build.cid.lca <- function(
       }
       use <- readline("enter source.number values for all sources, separated by a space:  ")
       use <- sort(as.numeric(unlist(strsplit(use, " "))))
-      tax.sources <- source[use]
+      tax.sources.internal <- source[use]
     }
-    keep <- cid.taxid$data.source %in% tax.sources
+    tax.sources.internal <- tax.sources
+    keep <- cid.taxid$data.source %in% tax.sources.internal
     cid.taxid <- cid.taxid[keep,]
   }
 
