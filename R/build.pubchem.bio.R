@@ -2,7 +2,7 @@
 #'
 #' utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
 #' @details utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
-#' @param pc.directory directory from which to load pubchem .Rdata files
+#' @param pc.directory directory from which to load pubchem .Rdata files.  alternatively, provide  R data.tables for ALL cid._property_.object options defined below.  
 #' @param use.bio.sources logical.  If TRUE (default) use the bio.source vector of sources, incorporating all CIDs from those bio databases.
 #' @param bio.sources vector of source names from which to extract pubchem CIDs.  all can be found here: https://pubchem.ncbi.nlm.nih.gov/sources/.  deafults to c("Metabolomics Workbench", "Human Metabolome Database (HMDB)", "ChEBI", "LIPID MAPS",  "MassBank of North America (MoNA)")
 #' @param use.pathways logical.  should all CIDs from any biological pathway data be incorporated into database? 
@@ -14,8 +14,37 @@
 #' @param get.properties logical. if TRUE, will return rcdk calculated properties:  XLogP, TPSA, HBondDonorCount and HBondAcceptorCount.
 #' @param threads integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.  
 #' @param rcdk.desc vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc\[4\]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.   
-#' @return a data frame containing pubchem CID, title, formula, monoisotopic molecular weight, inchikey, smiles, cas, optionally pubchem properties
+#' @param cid.sid.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.pwid.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.parent.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.taxid.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.formula.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.smiles.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.inchikey.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.monoisotopic.mass.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.title.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.cas.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.pmid.ct.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @return a data frame containing pubchem CID, title, formula, monoisotopic molecular weight, inchikey, smiles, cas, optionally rcdk properties
 #' @author Corey Broeckling
+#' 
+#' @examples
+#' data('cid.sid', package = "pubchem.bio")
+#' data('cid.pwid', package = "pubchem.bio")
+#' data('cid.parent', package = "pubchem.bio")
+#' data('cid.taxid', package = "pubchem.bio")
+#' data('cid.formula', package = "pubchem.bio")
+#' data('cid.smiles, package = "pubchem.bio")
+#' data('cid.inchikey', package = "pubchem.bio")
+#' data('cid.monoisotopic.mass', package = "pubchem.bio")
+#' data('cid.title', package = "pubchem.bio")
+#' data('cid.cas', package = "pubchem.bio")
+#' data(cid.pmid.ct', package = "pubchem.bio")
+#' pc.bio.out <- build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE, get.properties = FALSE, threads = 1,
+#' cid.sid.object = cid.sid, cid.pwid.object = cid.pwid, cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
+#' cid.formula.object = cid.formula, cid.smiles.object = cid.smiles, cid.inchikey.object = cid.inchikey, cid.monoisotopic.mass.object = cid.monoisotopic.mass,
+#' cid.title.object = cid.title, cid.cas.object = cid.cas, cid.pmid.ct.object = cid.pmid.ct)
+#' head(pc.bio.out)
 #' 
 #' @export 
 #' 
@@ -43,21 +72,42 @@ build.pubchem.bio <- function(
       "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
       "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
       "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"
-    )
+    ),
+    cid.sid.object = NULL,
+    cid.pwid.object = NULL,
+    cid.parent.object = NULL,
+    cid.taxid.object = NULL,
+    cid.formula.object = NULL,
+    cid.smiles.object = NULL,
+    cid.inchikey.object = NULL,
+    cid.monoisotopic.mass.object = NULL,
+    cid.title.object = NULL,
+    cid.cas.object = NULL,
+    cid.pmid.ct.object = NULL
 ){  
   
   cid <- vector(length = 0, mode = 'integer')
   
   if(use.parent.cid) {
-    load(paste0(pc.directory, "/cid.parent.Rdata"))
-    cid.parent <- cid.parent
+    if(is.null(cid.parent.object)) {
+      load(paste0(pc.directory, "/cid.parent.Rdata"))
+      cid.parent <- cid.parent
+    } else {
+      cid.parent <- cid.parent.object
+    }
+    
   }
   
   ## get CIDs by data source first
   if(use.bio.sources) {
     if(!is.null(bio.sources)) {
-      load(paste0(pc.directory, "/cid.sid.Rdata"))
-      cid.sid <- cid.sid
+      if(is.null(cid.sid.object)) {
+        load(paste0(pc.directory, "/cid.sid.Rdata"))
+        cid.sid <- cid.sid
+      } else {
+        cid.sid <- cid.sid.object
+      }
+
       data.table::setkey(cid.sid, "cid")
       keep <- cid.sid$source %in% bio.sources
       source.cid <- cid.sid$cid[keep]
@@ -82,8 +132,13 @@ build.pubchem.bio <- function(
   }
   
   if(use.pathways) {
-    load(paste0(pc.directory, "/cid.pwid.Rdata"))
-    cid.pwid <- cid.pwid
+    if(is.null(cid.pwid.object)) {
+      load(paste0(pc.directory, "/cid.pwid.Rdata"))
+      cid.pwid <- cid.pwid
+    } else {
+      cid.pwid <- cid.pwid.object
+    }
+
     data.table::setkey(cid.pwid, "cid")
     if(!is.null(pathway.sources)) {
       keep <- cid.pwid$source %in% pathway.sources
@@ -95,7 +150,6 @@ build.pubchem.bio <- function(
       path.cid <- path.cid[-which(is.na(path.cid))]
     }
     if(use.parent.cid) {
-      data.table::setkey(cid.parent, "cid")
       m <- match(path.cid, cid.parent$cid)
       parent.cid <- cid.parent$parent.cid[m]
       parent.cid[which(is.na(parent.cid))] <- path.cid[which(is.na(parent.cid))]
@@ -111,8 +165,13 @@ build.pubchem.bio <- function(
   }
   
   if(use.taxid) {
-    load(paste0(pc.directory, "/cid.taxid.Rdata"))
-    cid.taxid <- cid.taxid
+    if(is.null(cid.taxid.object)) {
+      load(paste0(pc.directory, "/cid.taxid.Rdata"))
+      cid.taxid <- cid.taxid
+    } else {
+      cid.taxid <- cid.taxid.object
+    }
+
     data.table::setkey(cid.taxid, "cid")
     if(!is.null(taxonomy.sources)) {
       keep <- cid.taxid$source %in% taxonomy.sources
@@ -150,8 +209,13 @@ build.pubchem.bio <- function(
   
   ## formula
   message(" ---- formula" ,  format(Sys.time()), '\n')
-  load(paste0(pc.directory, "/cid.formula.Rdata"))
-  cid.formula <- cid.formula
+  if(is.null(cid.formula.object)) {
+    load(paste0(pc.directory, "/cid.formula.Rdata"))
+    cid.formula <- cid.formula
+  } else {
+    cid.formula <- cid.formula.object
+  }
+
   data.table::setkey(cid.formula, "cid")
   m <- match(cid, cid.formula$cid)
   formula <- cid.formula$formula[m]
@@ -161,8 +225,13 @@ build.pubchem.bio <- function(
   
   ## smiles
   message(" ---- smiles" ,  format(Sys.time()), '\n')
-  load(paste0(pc.directory, "/cid.smiles.Rdata"))
-  cid.smiles <- cid.smiles
+  if(is.null(cid.smiles)) {
+    load(paste0(pc.directory, "/cid.smiles.Rdata"))
+    cid.smiles <- cid.smiles
+  } else {
+    cid.smiles <- cid.smiles.object
+  }
+
   data.table::setkey(cid.smiles, "cid")
   m <- match(cid, cid.smiles$cid)
   smiles <- cid.smiles$smiles[m]
@@ -190,8 +259,13 @@ build.pubchem.bio <- function(
   
   ## monoisotopic mass
   message(" ---- monoisotopic mass" ,  format(Sys.time()), '\n')
-  load(paste0(pc.directory, "/cid.monoisotopic.mass.Rdata"))
-  cid.monoisotopic.mass <- cid.monoisotopic.mass
+  if(is.null(cid.monoisotopic.mass.object)) {
+    load(paste0(pc.directory, "/cid.monoisotopic.mass.Rdata"))
+    cid.monoisotopic.mass <- cid.monoisotopic.mass
+  } else {
+    cid.monoisotopic.mass <- cid.monoisotopic.mass.object
+  }
+
   data.table::setkey(cid.monoisotopic.mass, "cid")
   m <- match(cid, cid.monoisotopic.mass$cid)
   monoisotopic.mass <- cid.monoisotopic.mass$monoisotopic.mass[m]
@@ -199,8 +273,13 @@ build.pubchem.bio <- function(
   
   ## inchikey
   message(" ---- inchikey" ,  format(Sys.time()), '\n')
-  load(paste0(pc.directory, "/cid.inchikey.Rdata"))
-  cid.inchikey <- cid.inchikey
+  if(is.null(cid.inchikey.object)) {
+    load(paste0(pc.directory, "/cid.inchikey.Rdata"))
+    cid.inchikey <- cid.inchikey
+  } else {
+    cid.inchikey <- cid.inchikey.object
+  }
+
   data.table::setkey(cid.inchikey, "cid")
   m <- match(cid, cid.inchikey$cid)
   inchikey <- cid.inchikey$inchikey[m]
@@ -208,8 +287,13 @@ build.pubchem.bio <- function(
   
   ## title
   message(" ---- compound name" ,  format(Sys.time()), '\n')
-  load(paste0(pc.directory, "/cid.title.Rdata"))
-  cid.title <- cid.title
+  if(is.null(cid.title.object)) {
+    load(paste0(pc.directory, "/cid.title.Rdata"))
+    cid.title <- cid.title
+  } else {
+    cid.title <- cid.title.object
+  }
+
   data.table::setkey(cid.title, "cid")
   m <- match(cid, cid.title$cid)
   name <- cid.title$title[m]
@@ -217,8 +301,13 @@ build.pubchem.bio <- function(
   
   ## cas
   message(" ---- cas number" ,  format(Sys.time()), '\n')
-  load(paste0(pc.directory, "/cid.cas.Rdata"))
-  cid.cas <- cid.cas
+  if(is.null(cid.cas.object)) {
+    load(paste0(pc.directory, "/cid.cas.Rdata"))
+    cid.cas <- cid.cas
+  } else {
+    cid.cas <- cid.cas.object
+  }
+
   data.table::setkey(cid.cas, "cid")
   m <- match(cid, cid.cas$cid)
   cas <- cid.cas$cas[m]
@@ -226,8 +315,13 @@ build.pubchem.bio <- function(
   
   ## pmid count
   message(" ---- pubmed count" ,  format(Sys.time()), '\n')
-  load(paste0(pc.directory, "/cid.pmid.ct.Rdata"))
-  cid.pmid.ct <- cid.pmid.ct
+  if(is.null(cid.pmid.ct.object)) {
+    load(paste0(pc.directory, "/cid.pmid.ct.Rdata"))
+    cid.pmid.ct <- cid.pmid.ct
+  } else {
+    cid.pmid.ct <- cid.pmid.ct.object
+  }
+
   data.table::setkey(cid.pmid.ct, "cid")
   m <- match(cid, cid.pmid.ct$cid)
   pmid.ct <- cid.pmid.ct$pmid.ct[m]

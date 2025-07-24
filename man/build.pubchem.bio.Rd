@@ -20,11 +20,22 @@ build.pubchem.bio(
   rcdk.desc = c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor",
     "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
     "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
-    "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor")
+    "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"),
+  cid.sid.object = NULL,
+  cid.pwid.object = NULL,
+  cid.parent.object = NULL,
+  cid.taxid.object = NULL,
+  cid.formula.object = NULL,
+  cid.smiles.object = NULL,
+  cid.inchikey.object = NULL,
+  cid.monoisotopic.mass.object = NULL,
+  cid.title.object = NULL,
+  cid.cas.object = NULL,
+  cid.pmid.ct.object = NULL
 )
 }
 \arguments{
-\item{pc.directory}{directory from which to load pubchem .Rdata files}
+\item{pc.directory}{directory from which to load pubchem .Rdata files.  alternatively, provide  R data.tables for ALL cid.\emph{property}.object options defined below.}
 
 \item{use.bio.sources}{logical.  If TRUE (default) use the bio.source vector of sources, incorporating all CIDs from those bio databases.}
 
@@ -47,15 +58,56 @@ build.pubchem.bio(
 \item{threads}{integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.}
 
 \item{rcdk.desc}{vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc[4]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.}
+
+\item{cid.sid.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.pwid.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.parent.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.taxid.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.formula.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.smiles.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.inchikey.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.monoisotopic.mass.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.title.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.cas.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.pmid.ct.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
 }
 \value{
-a data frame containing pubchem CID, title, formula, monoisotopic molecular weight, inchikey, smiles, cas, optionally pubchem properties
+a data frame containing pubchem CID, title, formula, monoisotopic molecular weight, inchikey, smiles, cas, optionally rcdk properties
 }
 \description{
 utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
 }
 \details{
 utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
+}
+\examples{
+data('cid.sid', package = "pubchem.bio")
+data('cid.pwid', package = "pubchem.bio")
+data('cid.parent', package = "pubchem.bio")
+data('cid.taxid', package = "pubchem.bio")
+data('cid.formula', package = "pubchem.bio")
+data('cid.smiles, package = "pubchem.bio")
+data('cid.inchikey', package = "pubchem.bio")
+data('cid.monoisotopic.mass', package = "pubchem.bio")
+data('cid.title', package = "pubchem.bio")
+data('cid.cas', package = "pubchem.bio")
+data(cid.pmid.ct', package = "pubchem.bio")
+pc.bio.out <- build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE, get.properties = FALSE, threads = 1,
+cid.sid.object = cid.sid, cid.pwid.object = cid.pwid, cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
+cid.formula.object = cid.formula, cid.smiles.object = cid.smiles, cid.inchikey.object = cid.inchikey, cid.monoisotopic.mass.object = cid.monoisotopic.mass,
+cid.title.object = cid.title, cid.cas.object = cid.cas, cid.pmid.ct.object = cid.pmid.ct)
+head(pc.bio.out)
+
 }
 \author{
 Corey Broeckling
