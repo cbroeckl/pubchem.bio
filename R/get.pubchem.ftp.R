@@ -8,6 +8,16 @@
 #' @return nothing.  all data are saved to disk for later loading
 #' @author Corey Broeckling
 #' 
+#' @examples
+#' /donttest{
+#' my.dir <- paste0(getwd(), "/", format(Sys.Date(), "%Y%m%d"))
+#' get.pubchem.ftp(
+#'     pc.directory = my.dir,
+#'     timeout = 50000,
+#'     rm.tmp.files = TRUE
+#' )
+#' }
+#' 
 #' @export 
 #' 
 
@@ -31,8 +41,11 @@ get.pubchem.ftp <- function(
     "generation date:", date(), '\n')
   
   ## set download timeout to prevent errors
+  oldpar <- par(no.readonly = TRUE) 
+  on.exit(par(oldpar)) 
   options(timeout=timeout)
-  
+
+
   
   
   ## data are imported, generally, as a data.table using fread
@@ -739,3 +752,5 @@ get.pubchem.ftp <- function(
   
   return(readme)
 }
+
+
