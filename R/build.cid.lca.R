@@ -2,18 +2,25 @@
 #'
 #' utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' as input to generate a relationship between pubchem CID and the lowest common ancestor NCBI taxid
 #' @details utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
-#' @param pc.directory directory from which to load pubchem .Rdata files
-#' @param tax.sources character vector.  containing taxonmy source values (from NCBI taxonomy database). i.e. c("LOTUS - the natural products occurrence database", "The Natural Products Atlas").  if NULL (default), use all values.  
+#' @param pc.directory directory from which to load pubchem .Rdata files. alternatively provide cid.taxid.object, taxid.hierarchy.object, and cid.pwid.object as data.table R objects. 
+#' @param tax.sources vector. which taxonomy sources should be used?  defaults to c("LOTUS - the natural products occurrence database", "The Natural Products Atlas", "KNApSAcK Species-Metabolite Database", "Natural Product Activity and Species Source (NPASS)").
 #' @param use.pathways logical.  default = TRUE, should pathway data be used in building lowest common ancestor, when taxonomy is associated with a pathway?
 #' @param use.conserved.pathways logical. default = FALSE, should 'conserved' pathways be used?  when false, only pathways with an assigned taxonomy are used. 
 #' @param threads integer.  number of threads to use when finding lowest common ancestor.  parallel processing via DoParallel and foreach packages.   
+#' @param cid.taxid.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param taxid.hierarchy.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param cid.pwid.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
 #' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
 #' @author Corey Broeckling
 #' 
+#' @examples
+#' data('cid.taxid', package = "pubchem.bio")
+#' data('taxid.hierarchy', package = "pubchem.bio")
+#' cid.lca.out <- build.cid.lca(tax.sources =  "LOTUS - the natural products occurrence database", use.pathways = FALSE, threads = 1, cid.taxid.object = cid.taxid, taxid.hierarchy.object = taxid.hierarchy)
+#' head(cid.lca.out)
 #' @export 
 #' @importFrom foreach '%dopar%'
 #' 
-#' @param tax.sources vector. which taxonomy sources should be used?  defaults to c("LOTUS - the natural products occurrence database", "The Natural Products Atlas", "KNApSAcK Species-Metabolite Database", "Natural Product Activity and Species Source (NPASS)").
 
 
 build.cid.lca <- function(
@@ -21,18 +28,51 @@ build.cid.lca <- function(
     tax.sources = "LOTUS - the natural products occurrence database",
     use.pathways = TRUE,
     use.conserved.pathways = FALSE,
-    threads = 8
+    threads = 8,
+    cid.taxid.object = NULL,
+    taxid.hierarchy.object = NULL,
+    cid.pwid.object = NULL,
+    output.directory = NULL
 ) {
   
   ## load necessary files
-  load(paste0(pc.directory, "/cid.taxid.Rdata"))
-  data.table::setkey(cid.taxid, "cid")
-  cid.taxid <- cid.taxid
   
-  load(paste0(pc.directory, "/taxid.hierarchy.Rdata"))
-  taxid.hierarchy <- taxid.hierarchy
-
-  message(" -" , nrow(cid.taxid), " taxonomy-cid associations from cid.taxid.Rdata file", '\n')
+  if(!is.null(pc.directory)) {
+    
+    load(paste0(pc.directory, "/cid.taxid.Rdata"))
+    data.table::setkey(cid.taxid, "cid")
+    cid.taxid <- cid.taxid
+    
+    load(paste0(pc.directory, "/taxid.hierarchy.Rdata"))
+    taxid.hierarchy <- taxid.hierarchy
+    
+    if(use.pathways) {
+      load(paste0(pc.directory, "/cid.pwid.Rdata"))
+      cid.pwid <- cid.pwid
+      data.table::setkey(cid.pwid, "cid")
+    }
+    
+    if(!is.null(output.directory)) {
+      out.dir <- output.directory
+    } else {
+      out.dir <- pc.directory
+    }
+  } else {
+    cid.taxid = cid.taxid.object
+    taxid.hierarchy = taxid.hierarchy.object
+    if(use.pathways) {
+      cid.pwid = cid.pwid.object
+    }
+    
+    if(!is.null(output.directory)) {
+      out.dir <- output.directory
+    } else {
+      out.dir <- getwd()
+    }
+    
+  }
+  
+  message(" - " , nrow(cid.taxid), " taxonomy-cid associations from cid.taxid.Rdata file", '\n')
   
   if(!base::is.null(tax.sources)) {
     
@@ -52,7 +92,7 @@ build.cid.lca <- function(
   }
 
   
-  message(" -" , nrow(cid.taxid), "taxonomy-cid associations after filtering by source", '\n')
+  message(" - " , nrow(cid.taxid), " taxonomy-cid associations after filtering by source", '\n')
 
   
   if(use.pathways) {
@@ -96,7 +136,7 @@ build.cid.lca <- function(
     
     dups <- duplicated(cid.taxid[,1:2])
     cid.taxid <- cid.taxid[!duplicated(cid.taxid), ]
-    message(" -" , nrow(cid.taxid), "taxonomy-cid associations after adding pathway data", '\n')
+    message(" - " , nrow(cid.taxid), " taxonomy-cid associations after adding pathway data", '\n')
   }
   
   cid <- table(cid.taxid$cid)
@@ -113,7 +153,7 @@ build.cid.lca <- function(
     th.convert <- c(th.convert, rep(((i-1)*nrow(th.mat)), nrow(th.mat)))
   }
   
-  message(" -" , "finding lowest common ancestor for each cid", '\n')
+  message(" - " , "finding lowest common ancestor for each cid", '\n')
   
   # # for each cid find lca
   # # return cid, lca vector
@@ -235,12 +275,11 @@ build.cid.lca <- function(
   )
 
   
-  save(cid.lca, file = paste0(pc.directory, "/cid.lca.Rdata"))
+  save(cid.lca, file = paste0(out.dir, "/cid.lca.Rdata"))
   
   return(cid.lca)
 }
 
-# cid.lca <- build.cid.lca(pc.directory = "C:/Temp/20250703", tax.sources =  "LOTUS - the natural products occurrence database")
 
 
 

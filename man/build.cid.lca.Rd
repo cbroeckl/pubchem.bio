@@ -9,11 +9,15 @@ build.cid.lca(
   tax.sources = "LOTUS - the natural products occurrence database",
   use.pathways = TRUE,
   use.conserved.pathways = FALSE,
-  threads = 8
+  threads = 8,
+  cid.taxid.object = NULL,
+  taxid.hierarchy.object = NULL,
+  cid.pwid.object = NULL,
+  output.directory = NULL
 )
 }
 \arguments{
-\item{pc.directory}{directory from which to load pubchem .Rdata files}
+\item{pc.directory}{directory from which to load pubchem .Rdata files. alternatively provide cid.taxid.object, taxid.hierarchy.object, and cid.pwid.object as data.table R objects.}
 
 \item{tax.sources}{vector. which taxonomy sources should be used?  defaults to c("LOTUS - the natural products occurrence database", "The Natural Products Atlas", "KNApSAcK Species-Metabolite Database", "Natural Product Activity and Species Source (NPASS)").}
 
@@ -22,6 +26,12 @@ build.cid.lca(
 \item{use.conserved.pathways}{logical. default = FALSE, should 'conserved' pathways be used?  when false, only pathways with an assigned taxonomy are used.}
 
 \item{threads}{integer.  number of threads to use when finding lowest common ancestor.  parallel processing via DoParallel and foreach packages.}
+
+\item{cid.taxid.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{taxid.hierarchy.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{cid.pwid.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
 }
 \value{
 a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
@@ -31,6 +41,12 @@ utilizes downloaded and properly formatted local pubchem data created by 'get.pu
 }
 \details{
 utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
+}
+\examples{
+data('cid.taxid', package = "pubchem.bio")
+data('taxid.hierarchy', package = "pubchem.bio")
+cid.lca.out <- build.cid.lca(tax.sources =  "LOTUS - the natural products occurrence database", use.pathways = FALSE, threads = 1, cid.taxid.object = cid.taxid, taxid.hierarchy.object = taxid.hierarchy)
+head(cid.lca.out)
 }
 \author{
 Corey Broeckling
