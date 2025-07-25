@@ -41,8 +41,8 @@ get.pubchem.ftp <- function(
     "generation date:", date(), '\n')
   
   ## set download timeout to prevent errors
-  oldpar <- par(no.readonly = TRUE) 
-  on.exit(par(oldpar)) 
+  oldpar <- graphics::par(no.readonly = TRUE) 
+  on.exit(graphics::par(oldpar)) 
   options(timeout=timeout)
 
 

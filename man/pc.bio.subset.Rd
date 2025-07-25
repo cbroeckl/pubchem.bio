@@ -7,7 +7,7 @@
 data.table, stored in .rda format
 }
 \source{
-pubchem.bio data.table output derived from PubChem data
+pubchem.bio data.table output derived from build.pubchem.bio function
 }
 \description{
 A small dataset of a pubchem.bio metabolome scored by taxon, for inclusion in vignette

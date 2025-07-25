@@ -32,6 +32,8 @@ build.cid.lca(
 \item{taxid.hierarchy.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
 
 \item{cid.pwid.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{output.directory}{directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided). If both directories are NULL, not saved, only returned as in memory}
 }
 \value{
 a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
@@ -45,7 +47,10 @@ utilizes downloaded and properly formatted local pubchem data created by 'get.pu
 \examples{
 data('cid.taxid', package = "pubchem.bio")
 data('taxid.hierarchy', package = "pubchem.bio")
-cid.lca.out <- build.cid.lca(tax.sources =  "LOTUS - the natural products occurrence database", use.pathways = FALSE, threads = 1, cid.taxid.object = cid.taxid, taxid.hierarchy.object = taxid.hierarchy)
+cid.lca.out <- build.cid.lca(tax.sources =  "LOTUS - the natural products occurrence database", 
+use.pathways = FALSE, 
+threads = 1, cid.taxid.object = cid.taxid, 
+taxid.hierarchy.object = taxid.hierarchy)
 head(cid.lca.out)
 }
 \author{

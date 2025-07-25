@@ -31,7 +31,8 @@ build.pubchem.bio(
   cid.monoisotopic.mass.object = NULL,
   cid.title.object = NULL,
   cid.cas.object = NULL,
-  cid.pmid.ct.object = NULL
+  cid.pmid.ct.object = NULL,
+  output.directory = NULL
 )
 }
 \arguments{
@@ -80,6 +81,8 @@ build.pubchem.bio(
 \item{cid.cas.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
 
 \item{cid.pmid.ct.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{output.directory}{directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved.}
 }
 \value{
 a data frame containing pubchem CID, title, formula, monoisotopic molecular weight, inchikey, smiles, cas, optionally rcdk properties
@@ -96,16 +99,21 @@ data('cid.pwid', package = "pubchem.bio")
 data('cid.parent', package = "pubchem.bio")
 data('cid.taxid', package = "pubchem.bio")
 data('cid.formula', package = "pubchem.bio")
-data('cid.smiles, package = "pubchem.bio")
+data('cid.smiles', package = "pubchem.bio")
 data('cid.inchikey', package = "pubchem.bio")
 data('cid.monoisotopic.mass', package = "pubchem.bio")
 data('cid.title', package = "pubchem.bio")
 data('cid.cas', package = "pubchem.bio")
-data(cid.pmid.ct', package = "pubchem.bio")
-pc.bio.out <- build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE, get.properties = FALSE, threads = 1,
-cid.sid.object = cid.sid, cid.pwid.object = cid.pwid, cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
-cid.formula.object = cid.formula, cid.smiles.object = cid.smiles, cid.inchikey.object = cid.inchikey, cid.monoisotopic.mass.object = cid.monoisotopic.mass,
-cid.title.object = cid.title, cid.cas.object = cid.cas, cid.pmid.ct.object = cid.pmid.ct)
+data('cid.pmid.ct', package = "pubchem.bio")
+pc.bio.out <- build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE, 
+get.properties = FALSE, threads = 1,
+cid.sid.object = cid.sid, cid.pwid.object = cid.pwid, 
+cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
+cid.formula.object = cid.formula, cid.smiles.object = cid.smiles, 
+cid.inchikey.object = cid.inchikey, 
+cid.monoisotopic.mass.object = cid.monoisotopic.mass, 
+cid.title.object = cid.title, cid.cas.object = cid.cas, 
+cid.pmid.ct.object = cid.pmid.ct)
 head(pc.bio.out)
 
 }

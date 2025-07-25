@@ -10,7 +10,19 @@
 #' @param threads integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.  
 #' @param db.name character. what do you wish the file name for the saved version of this database to be?  default = 'custom.metabolome', but could be 'taxid.4071' or 'Streptomyces', etc.  Saved as an .Rdata file in the 'pc.directory' location. 
 #' @param rcdk.desc vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc\[4\]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.   
+#' @param pubchem.bio.object R data.table, generally produced by build.pubchem.bio; alternatively, define pc.directory
+#' @param cid.lca.object R data.table, generally produced by build.cid.lca; alternatively, define pc.directory
+#' @param taxid.hierarchy.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param output.directory directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved. 
 #' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
+#' @examples
+#' data('cid.lca', package = "pubchem.bio")
+#' data('pubchem.bio', package = "pubchem.bio")
+#' data('taxid.hierarchy', package = "pubchem.bio")
+#' my.taxon.db <- build.taxon.metabolome(pc.bio.out = pubchem.bio, cid.lca.object = cid.lca, 
+#' taxid.hierarchy.object = taxid.hierarchy, get.properties = FALSE, threads = 1)
+#' head(my.taxon.db)
+#' 
 #' @author Corey Broeckling
 #' 
 #' @export
@@ -20,7 +32,7 @@ build.taxon.metabolome <- function(
     pc.directory = NULL,
     taxid = c(),
     get.properties = TRUE,
-    full.scored = FALSE,
+    full.scored = TRUE,
     aggregation.function = max,
     threads = 8,
     db.name = "custom.metabolome", 
@@ -29,8 +41,19 @@ build.taxon.metabolome <- function(
       "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
       "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
       "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"
-    )
+    ),
+    pubchem.bio.object = NULL,
+    cid.lca.object = NULL, 
+    taxid.hierarchy.object = NULL,
+    output.directory = NULL
 ) {
+  
+  out.dir <- pc.directory
+  if(is.null(out.dir)) out.dir <- output.directory
+  
+  if(is.null(pc.directory) & is.null(cid.lca.object)) {
+    stop("if you opt to note define the pc.directory, you must provide ALL of 'cid.lca.object', 'taxid.hierarchy.object', 'pubchem.bio.object' variables", '\n')
+  }
   
   if(length(taxid) == 0) {
     stop("please list at least one integer taxid, i.e. 'taxid = c(4071, 4081)'", '\n')
@@ -215,7 +238,11 @@ build.taxon.metabolome <- function(
   
   return(out)
   doParallel::stopImplicitCluster()
-  save(out, file = paste0(pc.directory, "/", db.name, "Rdata"))
+  
+  if(!is.null(out.dir)) {
+    save(out, file = paste0(out.dir, "/", db.name, ".Rdata"))
+  }
+  
 }
 
 # pc.bio.sub <- build.taxon.metabolome(taxid = c(4072, 4107, 4047), pc.directory = "C:/Temp/20250703", get.properties = FALSE, full.scored = TRUE)

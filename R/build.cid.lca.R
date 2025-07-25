@@ -10,13 +10,17 @@
 #' @param cid.taxid.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
 #' @param taxid.hierarchy.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
 #' @param cid.pwid.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param output.directory directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided). If both directories are NULL, not saved, only returned as in memory 
 #' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
 #' @author Corey Broeckling
 #' 
 #' @examples
 #' data('cid.taxid', package = "pubchem.bio")
 #' data('taxid.hierarchy', package = "pubchem.bio")
-#' cid.lca.out <- build.cid.lca(tax.sources =  "LOTUS - the natural products occurrence database", use.pathways = FALSE, threads = 1, cid.taxid.object = cid.taxid, taxid.hierarchy.object = taxid.hierarchy)
+#' cid.lca.out <- build.cid.lca(tax.sources =  "LOTUS - the natural products occurrence database", 
+#' use.pathways = FALSE, 
+#' threads = 1, cid.taxid.object = cid.taxid, 
+#' taxid.hierarchy.object = taxid.hierarchy)
 #' head(cid.lca.out)
 #' @export 
 #' @importFrom foreach '%dopar%'
@@ -35,6 +39,13 @@ build.cid.lca <- function(
     output.directory = NULL
 ) {
   
+  out.dir <- pc.directory
+  if(is.null(out.dir)) out.dir <- output.directory
+  
+  if(is.null(pc.directory) & is.null(cid.taxid.object)) {
+    stop("if you opt to note define the pc.directory, you must provide ALL of 'cid.taxid.object', 'taxid.hierarchy.object', 'cid.pwid.object' variables", '\n')
+  }
+  
   ## load necessary files
   
   if(!is.null(pc.directory)) {
@@ -52,22 +63,11 @@ build.cid.lca <- function(
       data.table::setkey(cid.pwid, "cid")
     }
     
-    if(!is.null(output.directory)) {
-      out.dir <- output.directory
-    } else {
-      out.dir <- pc.directory
-    }
   } else {
     cid.taxid = cid.taxid.object
     taxid.hierarchy = taxid.hierarchy.object
     if(use.pathways) {
       cid.pwid = cid.pwid.object
-    }
-    
-    if(!is.null(output.directory)) {
-      out.dir <- output.directory
-    } else {
-      out.dir <- getwd()
     }
     
   }
@@ -275,7 +275,10 @@ build.cid.lca <- function(
   )
 
   
-  save(cid.lca, file = paste0(out.dir, "/cid.lca.Rdata"))
+  if(!is.null(out.dir)) {
+    save(cid.lca, file = paste0(out.dir, "/cid.lca.Rdata"))
+  }
+  
   
   return(cid.lca)
 }

@@ -3,6 +3,7 @@
 #' utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
 #' @details utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
 #' @param pc.directory directory from which to load pubchem .Rdata files.  alternatively, provide  R data.tables for ALL cid._property_.object options defined below.  
+#' @param output.directory directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved. 
 #' @param use.bio.sources logical.  If TRUE (default) use the bio.source vector of sources, incorporating all CIDs from those bio databases.
 #' @param bio.sources vector of source names from which to extract pubchem CIDs.  all can be found here: https://pubchem.ncbi.nlm.nih.gov/sources/.  deafults to c("Metabolomics Workbench", "Human Metabolome Database (HMDB)", "ChEBI", "LIPID MAPS",  "MassBank of North America (MoNA)")
 #' @param use.pathways logical.  should all CIDs from any biological pathway data be incorporated into database? 
@@ -34,16 +35,21 @@
 #' data('cid.parent', package = "pubchem.bio")
 #' data('cid.taxid', package = "pubchem.bio")
 #' data('cid.formula', package = "pubchem.bio")
-#' data('cid.smiles, package = "pubchem.bio")
+#' data('cid.smiles', package = "pubchem.bio")
 #' data('cid.inchikey', package = "pubchem.bio")
 #' data('cid.monoisotopic.mass', package = "pubchem.bio")
 #' data('cid.title', package = "pubchem.bio")
 #' data('cid.cas', package = "pubchem.bio")
-#' data(cid.pmid.ct', package = "pubchem.bio")
-#' pc.bio.out <- build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE, get.properties = FALSE, threads = 1,
-#' cid.sid.object = cid.sid, cid.pwid.object = cid.pwid, cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
-#' cid.formula.object = cid.formula, cid.smiles.object = cid.smiles, cid.inchikey.object = cid.inchikey, cid.monoisotopic.mass.object = cid.monoisotopic.mass,
-#' cid.title.object = cid.title, cid.cas.object = cid.cas, cid.pmid.ct.object = cid.pmid.ct)
+#' data('cid.pmid.ct', package = "pubchem.bio")
+#' pc.bio.out <- build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE, 
+#' get.properties = FALSE, threads = 1,
+#' cid.sid.object = cid.sid, cid.pwid.object = cid.pwid, 
+#' cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
+#' cid.formula.object = cid.formula, cid.smiles.object = cid.smiles, 
+#' cid.inchikey.object = cid.inchikey, 
+#' cid.monoisotopic.mass.object = cid.monoisotopic.mass, 
+#' cid.title.object = cid.title, cid.cas.object = cid.cas, 
+#' cid.pmid.ct.object = cid.pmid.ct)
 #' head(pc.bio.out)
 #' 
 #' @export 
@@ -83,8 +89,16 @@ build.pubchem.bio <- function(
     cid.monoisotopic.mass.object = NULL,
     cid.title.object = NULL,
     cid.cas.object = NULL,
-    cid.pmid.ct.object = NULL
+    cid.pmid.ct.object = NULL,
+    output.directory = NULL
 ){  
+  
+  if(is.null(pc.directory) & is.null(cid.smiles.object)) {
+    stop("if you opt to note define the pc.directory, you must provide ALL 'cid.....object' variables", '\n')
+  }
+  
+  out.dir <- pc.directory
+  if(is.null(out.dir)) out.dir <- output.directory
   
   cid <- vector(length = 0, mode = 'integer')
   
@@ -452,8 +466,10 @@ build.pubchem.bio <- function(
   rm(out)
   gc()
   
+  if(!is.null(out.dir)) {
+    save(pc.bio, file = paste0(out.dir, "/pc.bio.Rdata"))
+  }
   
-  save(pc.bio, file = paste0(pc.directory, "/pc.bio.Rdata"))
   return(pc.bio)
 }
 ## pc.bio <- build.pubchem.bio(pc.directory = "R:/RSTOR-PMF/Software/db/met.db/20241216")

@@ -8,14 +8,18 @@ build.taxon.metabolome(
   pc.directory = NULL,
   taxid = c(),
   get.properties = TRUE,
-  full.scored = FALSE,
+  full.scored = TRUE,
   aggregation.function = max,
   threads = 8,
   db.name = "custom.metabolome",
   rcdk.desc = c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor",
     "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
     "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
-    "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor")
+    "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"),
+  pubchem.bio.object = NULL,
+  cid.lca.object = NULL,
+  taxid.hierarchy.object = NULL,
+  output.directory = NULL
 )
 }
 \arguments{
@@ -34,6 +38,14 @@ build.taxon.metabolome(
 \item{db.name}{character. what do you wish the file name for the saved version of this database to be?  default = 'custom.metabolome', but could be 'taxid.4071' or 'Streptomyces', etc.  Saved as an .Rdata file in the 'pc.directory' location.}
 
 \item{rcdk.desc}{vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc[4]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.}
+
+\item{pubchem.bio.object}{R data.table, generally produced by build.pubchem.bio; alternatively, define pc.directory}
+
+\item{cid.lca.object}{R data.table, generally produced by build.cid.lca; alternatively, define pc.directory}
+
+\item{taxid.hierarchy.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+
+\item{output.directory}{directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved.}
 }
 \value{
 a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
@@ -43,6 +55,15 @@ utilizes downloaded and properly formatted local pubchem data created by 'get.pu
 }
 \details{
 utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
+}
+\examples{
+data('cid.lca', package = "pubchem.bio")
+data('pubchem.bio', package = "pubchem.bio")
+data('taxid.hierarchy', package = "pubchem.bio")
+my.taxon.db <- build.taxon.metabolome(pc.bio.out = pubchem.bio, cid.lca.object = cid.lca, 
+taxid.hierarchy.object = taxid.hierarchy, get.properties = FALSE, threads = 1)
+head(my.taxon.db)
+
 }
 \author{
 Corey Broeckling
