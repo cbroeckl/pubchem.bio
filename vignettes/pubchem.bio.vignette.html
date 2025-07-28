@@ -12,7 +12,7 @@
 
 <meta name="author" content="Corey Broeckling" />
 
-<meta name="date" content="2025-07-18" />
+<meta name="date" content="2025-07-25" />
 
 <title>pubchem.bio</title>
 
@@ -340,12 +340,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">pubchem.bio</h1>
 <h4 class="author">Corey Broeckling</h4>
-<h4 class="date">2025-07-18</h4>
+<h4 class="date">2025-07-25</h4>
 
 
 
-<div id="background" class="section level1">
-<h1>Background</h1>
+<div id="background" class="section level2">
+<h2>Background</h2>
 <p>Metabolomics approaches utilize analytical instrumentation to detect
 and quantify small molecules. The chemical space covered by metabolomics
 is pontentially massive, with more than 100 million structures in
@@ -375,19 +375,28 @@ available taxonomic data in PubChem.</li>
 <p>As such, this package will help to streamline metabolomic database
 creation, increase the accuracy of annotation efforts by</p>
 </div>
-<div id="installation" class="section level1">
-<h1>Installation</h1>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(pubchem.bio, <span class="at">dependencies =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(pubchem.bio)</span></code></pre></div>
 </div>
-<div id="system-requirements" class="section level1">
-<h1>System requirements</h1>
+<div id="system-requirements" class="section level2">
+<h2>System requirements</h2>
 <p>PubChem is a very large database. The pubchem.bio package does not
 download <em>ALL</em> of PubChem. It does however download every
 structure, inchikey, smiles, and several other basic descriptors. As
 such, while the package is designed to minimize computational overhead,
 you will still want to have sufficient disk space and RAM to ensure that
 processing doesn’t bog down during parsing and organizing files.</p>
+<p>rcdk is an R package which enables calculations of chemical
+properties. it requires 64 bit Java to be installed on your computer. If
+you do not have 64 bit Java installed, you will receive an error message
+upon trying to load pubchem.bio or rcdk, something to the effect that
+‘Java not found’. Most computers do not have 64 bit Java installed by
+default, so you will likely need to install this manually using the
+manual Java instructions - just search ‘install 64 bit java’ in your
+favorite internet browser for the latest hyperlink. <em>Then</em> open
+Rstudio and install pubchem.bio.</p>
 <p>It is recommended that you perform these functions on a computer with
 at least <strong>200 GB local SSD</strong> disk space, since a great
 deal of reading and writing of data will be occurring. Further, during
@@ -408,20 +417,16 @@ of computer time on a modern laptop/desktop. <em>Once you have
 everything set up, each new metabolome generated can be created in
 minutes.</em></p>
 </div>
-<div id="running-the-code" class="section level1">
-<h1>Running the code</h1>
+<div id="running-the-code" class="section level2">
+<h2>Running the code</h2>
 <p>This isn’t a complex package, there are relatively few functions. All
 functions start with ‘get’, ‘build’, or ‘export’. ‘get’ functions
 download data to your local drive, ‘build’ functions parse and organize
 the downloaded data to turn it into something more useful for
 metabolomic scientists, and ‘export’ functions write these metabolome
 datasets to file for use in other programs.</p>
-<center>
-<p><strong>I AM GOING TO BE WORDY HERE, BUT PLEASE READ ON, AS IT WILL
-HELP YOU APPLY THE pubchem.bio PACKAGE TO MEET YOUR NEEDS.</strong></p>
-</center>
-<div id="downloading-all-the-pubchem-we-need" class="section level2">
-<h2>Downloading all the PubChem we need</h2>
+<div id="downloading-all-the-pubchem-we-need" class="section level3">
+<h3>Downloading all the PubChem we need</h3>
 <p>First thing we need to do is get PubChem data local to your
 computer.</p>
 <div id="note-that-running-this-line-of-code-may-occupy-your-r-session-for-2-3-few-hours" class="section level6">
@@ -438,9 +443,9 @@ the data we want from remote to local, and discarded data we have no
 need for to keep from cluttering up our hard drive and RAM.</p>
 </div>
 </div>
-<div id="building-metabolite-cid---lowest-common-ancestor-lca-relationships" class="section level2">
-<h2>Building metabolite (CID) - lowest common ancestor (LCA)
-relationships</h2>
+<div id="building-metabolite-cid---lowest-common-ancestor-lca-relationships" class="section level3">
+<h3>Building metabolite (CID) - lowest common ancestor (LCA)
+relationships</h3>
 <p>Our next step needs to be further organization of taxonomy data. This
 function is separated out as it is relatively computationally intensive,
 taking a good deal of time. This will be done using the ‘build.cid.lca’
@@ -561,8 +566,8 @@ it falls within the taxonomy structure headed by the LCA Pentapetalae:
 Pentapetalae/rosids/fabids/Fabales/Fabaceae/Papilionoideae/Phaseoleae/Glycine/max.</p>
 </div>
 </div>
-<div id="creating-pubchem-bio-metabolome-database." class="section level2">
-<h2>Creating PubChem BIO metabolome database.</h2>
+<div id="creating-pubchem-bio-metabolome-database." class="section level3">
+<h3>Creating PubChem BIO metabolome database.</h3>
 <p>We can now build a database of biological compounds as a subset of
 PubChem data. We base this on (1) BIO databases as a source (2) pathway
 data and (3) taxonomy data. If you would like to see the full list of
@@ -608,8 +613,8 @@ molecular size. Such properties can be valuable in predicting retention
 time, CCS, adduct affinity, etc.</p>
 </div>
 </div>
-<div id="creating-taxon-specific-metabolite-databases" class="section level2">
-<h2>Creating taxon-specific metabolite databases</h2>
+<div id="creating-taxon-specific-metabolite-databases" class="section level3">
+<h3>Creating taxon-specific metabolite databases</h3>
 <p>By organizing taxonomy-metabolite data within the taxonomic hierarchy
 in CID - LCA pairs (above), we can use some logical/reasoned steps to
 ensure that our taxonomy-specific metabolome database is as
@@ -645,8 +650,8 @@ time, with 8 threads, 64 GB RAM</h6>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>pc.bio.sub <span class="ot">&lt;-</span> <span class="fu">build.taxon.metabolome</span>(<span class="at">taxid =</span> <span class="dv">1710960</span>, <span class="at">pc.directory =</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>, <span class="at">get.properties =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 </div>
 </div>
-<div id="meta-metabolomes" class="section level2">
-<h2>Meta-metabolomes</h2>
+<div id="meta-metabolomes" class="section level3">
+<h3>Meta-metabolomes</h3>
 <p>This function can also take a list of taxids. Imagine you are
 analyzing stool samples from a gut microbiome study under controlled
 diet conditions. You can include human (9606), <em>Prevotella</em>
@@ -668,8 +673,8 @@ always do this. You can use any taxonomic level in building your
 metabolome (or meta-metabolome). While it may not make perfect sense to
 do so, I wanted to demonstrate that you can.</p>
 </div>
-<div id="taxon-scored-metabolite-database-structure" class="section level2">
-<h2>Taxon-scored metabolite database structure</h2>
+<div id="taxon-scored-metabolite-database-structure" class="section level3">
+<h3>Taxon-scored metabolite database structure</h3>
 <p>When we created the pc.bio object above, we also saved a version of
 it to the pc.directory specified. We load this into memory, and then use
 the mapped CID - LCA data, the taxonomy hierarchy, to (1) determine all
@@ -765,8 +770,8 @@ information (using your chosen CID - LCA parameters) will have a score
 of NA. It will be up to you to determine how you want to handle
 these.</p>
 </div>
-<div id="exporting-your-custom-database" class="section level2">
-<h2>Exporting your custom database</h2>
+<div id="exporting-your-custom-database" class="section level3">
+<h3>Exporting your custom database</h3>
 <p>We provide two export options. In each case, we take as input the
 pc.bio object or the related taxonomy-scored pc.bio object. At this
 point, taxonomy scoring isn’t feasible in these programs - we are
@@ -779,13 +784,23 @@ pubchem.bio table to .tsv format - export.pubchem.bio().</p>
 <span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">export.sirius</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="st">&quot;C:/Temp/20250703/pc.bio.sirius.tsv&quot;</span>)</span>
 <span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">export.pubchem.bio</span>(<span class="at">pc.bio.object =</span> pc.bio.sub, <span class="at">export.file.name =</span> <span class="st">&quot;C:/Temp/20250703/pc.bio.full.pubchem.bio.tsv&quot;</span>)</span></code></pre></div>
 </div>
+<div id="the-future" class="section level3">
+<h3>The future</h3>
+<p>if you look closely at the data that has been downloaded, you will
+find a good deal of additional data - all of it mapped by CID. This
+includes MESH names/functions, pubmed reference identifiers, synonyms,
+pathway membership, etc. These data can ultimately be used for mapping
+your pubchem.bio data to biology, enabling, for example, enrichment
+analysis. I do not have all these data mapped in the output data.table
+yet, but they are available for you to use in the interim.</p>
 </div>
-<div id="workflow-in-brief" class="section level1">
-<h1>Workflow in brief</h1>
+</div>
+<div id="workflow-in-brief" class="section level2">
+<h2>Workflow in brief</h2>
 <p>Just make sure to set the local.pubchem.directory to something that
 makes sense for your system.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">install.packages</span>(pubchem.bio, <span class="at">dependencies =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>local.pubchem.directory <span class="ot">&lt;-</span> <span class="st">&quot;C:/Temp/20250703&quot;</span>  <span class="do">## i suggest this naming scheme, but feel free to chose your own.</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>local.pubchem.directory <span class="ot">&lt;-</span> <span class="st">&quot;C:/Temp/20250718&quot;</span>  <span class="do">## i suggest this naming scheme, but feel free to chose your own.</span></span>
 <span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>pubchem.bio<span class="sc">::</span><span class="fu">get.pubchem.ftp</span>(<span class="at">pc.directory =</span> local.pubchem.directory)</span>
 <span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="fu">build.cid.lca</span>(<span class="at">pc.directory =</span> local.pubchem.directory, <span class="at">tax.sources =</span>  <span class="st">&quot;LOTUS - the natural products occurrence database&quot;</span>)</span>
 <span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>pc.bio <span class="ot">&lt;-</span> <span class="fu">build.pubchem.bio</span>(<span class="at">pc.directory =</span> local.pubchem.directory)</span>

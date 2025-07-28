@@ -159,6 +159,13 @@ NULL
 #' @source subset of cid.title file from get.pubchem.ftp
 NULL
 
+#' pubchem.bio.rda
+#' @name pubchem.bio
+#' @description A subset of a full pubchem.bio biological metabolome, for example code
+#' @format data.table, stored in .rda format
+#' @source subset of pubchem.bio file from build.pubchem.bio function
+NULL
+
 
 
 

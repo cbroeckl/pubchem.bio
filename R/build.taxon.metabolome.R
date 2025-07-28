@@ -19,10 +19,11 @@
 #' data('cid.lca', package = "pubchem.bio")
 #' data('pubchem.bio', package = "pubchem.bio")
 #' data('taxid.hierarchy', package = "pubchem.bio")
-#' my.taxon.db <- build.taxon.metabolome(pc.bio.out = pubchem.bio, cid.lca.object = cid.lca, 
-#' taxid.hierarchy.object = taxid.hierarchy, get.properties = FALSE, threads = 1)
+#' my.taxon.db <- pubchem.bio::build.taxon.metabolome(
+#' pubchem.bio.object = pubchem.bio,
+#' cid.lca.object = cid.lca, taxid.hierarchy.object = taxid.hierarchy,
+#' get.properties = FALSE, threads = 1, taxid = c(1))
 #' head(my.taxon.db)
-#' 
 #' @author Corey Broeckling
 #' 
 #' @export
@@ -48,6 +49,11 @@ build.taxon.metabolome <- function(
     output.directory = NULL
 ) {
   
+  unregister <- function() {
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
+  }
+  
   out.dir <- pc.directory
   if(is.null(out.dir)) out.dir <- output.directory
   
@@ -59,31 +65,33 @@ build.taxon.metabolome <- function(
     stop("please list at least one integer taxid, i.e. 'taxid = c(4071, 4081)'", '\n')
   }
   
-  if(file.exists(paste0(pc.directory, "/cid.lca.Rdata"))) {
+  if(is.null(cid.lca.object)) {
     load(paste0(pc.directory, "/cid.lca.Rdata"))
+    cid.lca <- cid.lca
   } else {
-    stop(paste0(pc.directory, "/cid.lca.Rdata"), "does not exist", '\n')
+    cid.lca <- cid.lca.object
   }
   
-  if(file.exists(paste0(pc.directory, "/taxid.hierarchy.Rdata"))) {
+  if(is.null(taxid.hierarchy.object)) {
     load(paste0(pc.directory, "/taxid.hierarchy.Rdata"))
+    taxid.hierarchy <- taxid.hierarchy
   } else {
-    stop(paste0(pc.directory, "/taxid.hierarchy.Rdata"), "does not exist", '\n')
+    taxid.hierarchy <- taxid.hierarchy.object
   }
   
-  if(file.exists(paste0(pc.directory, "/pc.bio.Rdata"))) {
+  if(is.null(pubchem.bio.object)) {
     load(paste0(pc.directory, "/pc.bio.Rdata"))
+    pc.bio <- pc.bio
   } else {
-    stop(paste0(pc.directory, "/pc.bio.Rdata"), "does not exist", '\n')
+    pc.bio <- pubchem.bio.object
   }
-  
-  taxid.hierarchy <- taxid.hierarchy
-  cid.lca <- cid.lca
-  pc.bio <- pc.bio
-  
+
   `%dopar%` <- foreach::`%dopar%`
   
   out <- pc.bio
+  
+  doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
+  base::on.exit(unregister()) ## used to prevent package check warnings from foreach and dopar
   
   for(i in 1:length(taxid)) {
     tax.match <- which(taxid.hierarchy == taxid[i], arr.ind = TRUE)
@@ -97,7 +105,7 @@ build.taxon.metabolome <- function(
     if(full.scored) {
       ## get taxid hierarchy. store as vector.  
       ## compare to each out taxid vector by lca
-      message(taxid[i], " ", length(keep), 'mapped metabolites')
+      message(taxid[i], " ", length(keep), ' mapped metabolites')
       taxid.row <- tax.match[1,1]
       taxid.column <- as.integer(tax.match[1,2])
       taxid.vector <- as.vector(unlist(taxid.hierarchy[taxid.row, 1:ncol(taxid.hierarchy)]))
@@ -113,7 +121,7 @@ build.taxon.metabolome <- function(
       error <- NA
       j <- 1
       
-      doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
+      
       results <- foreach::foreach(j = do.sim) %dopar% {
         tryCatch(
           #this is the chunk of code we want to run
@@ -127,7 +135,7 @@ build.taxon.metabolome <- function(
           }
         )
       }
-      
+
       results <- unlist(results)
       tax.lca.sim <- rep(NA, length(tmp))
       tax.lca.sim[do.sim] <- results
@@ -184,12 +192,11 @@ build.taxon.metabolome <- function(
       
       out[,paste0("taxonomy.lca.similarity.", taxid[i])] <- tax.lca.sim
       
-      doParallel::stopImplicitCluster()
     }
   }
   
   if(!full.scored) {
-    message("keeping", length(keep), "metabolites", '\n')
+    message("keeping ", length(keep), " metabolites", '\n')
     out <- pc.bio[keep, ]
     if(nrow(out) == 0) {
       error("no metabolites found for taxid(s):", paste0(taxid, collapse = ", "))
@@ -197,18 +204,19 @@ build.taxon.metabolome <- function(
   } else {
     
     ## aggregate taxonomy.lca.similarity scores using assigned function
+    
     use.cols <- which(grepl("taxonomy.lca.similarity.", names(out)))
-    suppressWarnings(agg.sim <- apply(out[,use.cols, drop = FALSE], 1, aggregation.function, na.rm = TRUE, simplify = TRUE))
+    ..use.cols <- use.cols
+    suppressWarnings(agg.sim <- apply(out[, ..use.cols, drop = FALSE], 1, aggregation.function, na.rm = TRUE, simplify = TRUE))
     agg.sim[is.infinite(agg.sim)] <- NA
     # agg.sim <- agg.sim[unique(c(which(is.infinite(agg.sim)), which(is.na(agg.sim))))] <- NA
     out[,paste0("taxonomy.lca.similarity.", "aggregate")] <- agg.sim
   }
   
   if(get.properties) {
-    message(" - calclulating rcdk properties",  format(Sys.time()), '\n')
+    message(" - calclulating rcdk properties ",  format(Sys.time()), '\n')
     cid.list <- as.list(out$cid)
     sm.list <- as.list(out$smiles)
-    doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
     results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
       desc <- rcdk.desc
       mol <- rcdk::parse.smiles(sm.list[[i]])
@@ -222,9 +230,7 @@ build.taxon.metabolome <- function(
       
       descs
     }
-    doParallel::stopImplicitCluster()
-    
-    
+
     results.df <- do.call("rbind", results)
     out <- out[order(out$cid),]
     results.df <- results.df[order(as.numeric(row.names(results.df))),]
@@ -233,12 +239,10 @@ build.taxon.metabolome <- function(
       out,
       results.df
     )
-    doParallel::stopImplicitCluster()
   }
   
   return(out)
-  doParallel::stopImplicitCluster()
-  
+
   if(!is.null(out.dir)) {
     save(out, file = paste0(out.dir, "/", db.name, ".Rdata"))
   }

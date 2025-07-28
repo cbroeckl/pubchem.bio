@@ -47,9 +47,10 @@ utilizes downloaded and properly formatted local pubchem data created by 'get.pu
 \examples{
 data('cid.taxid', package = "pubchem.bio")
 data('taxid.hierarchy', package = "pubchem.bio")
-cid.lca.out <- build.cid.lca(tax.sources =  "LOTUS - the natural products occurrence database", 
-use.pathways = FALSE, 
-threads = 1, cid.taxid.object = cid.taxid, 
+cid.lca.out <- pubchem.bio::build.cid.lca(
+tax.sources =  "LOTUS - the natural products occurrence database",
+use.pathways = FALSE,
+threads = 1, cid.taxid.object = cid.taxid,
 taxid.hierarchy.object = taxid.hierarchy)
 head(cid.lca.out)
 }

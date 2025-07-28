@@ -60,10 +60,11 @@ utilizes downloaded and properly formatted local pubchem data created by 'get.pu
 data('cid.lca', package = "pubchem.bio")
 data('pubchem.bio', package = "pubchem.bio")
 data('taxid.hierarchy', package = "pubchem.bio")
-my.taxon.db <- build.taxon.metabolome(pc.bio.out = pubchem.bio, cid.lca.object = cid.lca, 
-taxid.hierarchy.object = taxid.hierarchy, get.properties = FALSE, threads = 1)
+my.taxon.db <- pubchem.bio::build.taxon.metabolome(
+pubchem.bio.object = pubchem.bio,
+cid.lca.object = cid.lca, taxid.hierarchy.object = taxid.hierarchy,
+get.properties = FALSE, threads = 1, taxid = c(1))
 head(my.taxon.db)
-
 }
 \author{
 Corey Broeckling

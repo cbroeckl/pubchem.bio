@@ -41,17 +41,16 @@
 #' data('cid.title', package = "pubchem.bio")
 #' data('cid.cas', package = "pubchem.bio")
 #' data('cid.pmid.ct', package = "pubchem.bio")
-#' pc.bio.out <- build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE, 
+#' pc.bio.out <- pubchem.bio::build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE,
 #' get.properties = FALSE, threads = 1,
-#' cid.sid.object = cid.sid, cid.pwid.object = cid.pwid, 
+#' cid.sid.object = cid.sid, cid.pwid.object = cid.pwid,
 #' cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
-#' cid.formula.object = cid.formula, cid.smiles.object = cid.smiles, 
-#' cid.inchikey.object = cid.inchikey, 
-#' cid.monoisotopic.mass.object = cid.monoisotopic.mass, 
-#' cid.title.object = cid.title, cid.cas.object = cid.cas, 
+#' cid.formula.object = cid.formula, cid.smiles.object = cid.smiles,
+#' cid.inchikey.object = cid.inchikey,
+#' cid.monoisotopic.mass.object = cid.monoisotopic.mass,
+#' cid.title.object = cid.title, cid.cas.object = cid.cas,
 #' cid.pmid.ct.object = cid.pmid.ct)
 #' head(pc.bio.out)
-#' 
 #' @export 
 #' 
 #' 
@@ -97,6 +96,11 @@ build.pubchem.bio <- function(
     stop("if you opt to note define the pc.directory, you must provide ALL 'cid.....object' variables", '\n')
   }
   
+  unregister <- function() {
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
+  }
+  
   out.dir <- pc.directory
   if(is.null(out.dir)) out.dir <- output.directory
   
@@ -140,7 +144,7 @@ build.pubchem.bio <- function(
       }
       source.cid.table <- table(source.cid)
       cid <- sort(unique(c(cid, source.cid)))
-      message(" - added", length(source.cid.table), "cids based on bio.sources", '\n')
+      message(" - added ", length(source.cid.table), " cids based on bio.sources", '\n')
       rm(cid.sid); rm(source.cid); rm(keep); gc()
     }  ## which(cid == 187)
   }
@@ -174,7 +178,7 @@ build.pubchem.bio <- function(
     }
     path.cid.table <- table(path.cid)
     cid <- sort(unique(c(cid, path.cid)))
-    message(" - added", length(path.cid.table), "cids based on pathways. current unique cid count:" , length(cid), '\n')
+    message(" - added ", length(path.cid.table), " cids based on pathways. current unique cid count:" , length(cid), '\n')
     rm(path.cid); rm(cid.pwid); rm(keep); gc()
   }
   
@@ -208,7 +212,7 @@ build.pubchem.bio <- function(
     }
     tax.cid.table <- table(tax.cid)
     cid <- sort(unique(c(cid, tax.cid)))
-    message(" - added", length(tax.cid.table), "cids based on taxonomy. current unique cid count:" , length(cid), '\n')
+    message(" - added ", length(tax.cid.table), " cids based on taxonomy. current unique cid count:" , length(cid), '\n')
     rm(tax.cid); rm(cid.taxid); gc()
   }
   
@@ -222,7 +226,6 @@ build.pubchem.bio <- function(
   message(" - extracting descriptors from files:" , '\n')
   
   ## formula
-  message(" ---- formula" ,  format(Sys.time()), '\n')
   if(is.null(cid.formula.object)) {
     load(paste0(pc.directory, "/cid.formula.Rdata"))
     cid.formula <- cid.formula
@@ -238,7 +241,6 @@ build.pubchem.bio <- function(
   rm(cid.formula); rm(m); gc()
   
   ## smiles
-  message(" ---- smiles" ,  format(Sys.time()), '\n')
   if(is.null(cid.smiles)) {
     load(paste0(pc.directory, "/cid.smiles.Rdata"))
     cid.smiles <- cid.smiles
@@ -272,7 +274,6 @@ build.pubchem.bio <- function(
   # }
   
   ## monoisotopic mass
-  message(" ---- monoisotopic mass" ,  format(Sys.time()), '\n')
   if(is.null(cid.monoisotopic.mass.object)) {
     load(paste0(pc.directory, "/cid.monoisotopic.mass.Rdata"))
     cid.monoisotopic.mass <- cid.monoisotopic.mass
@@ -286,7 +287,6 @@ build.pubchem.bio <- function(
   rm(cid.monoisotopic.mass); rm(m); gc()
   
   ## inchikey
-  message(" ---- inchikey" ,  format(Sys.time()), '\n')
   if(is.null(cid.inchikey.object)) {
     load(paste0(pc.directory, "/cid.inchikey.Rdata"))
     cid.inchikey <- cid.inchikey
@@ -300,7 +300,6 @@ build.pubchem.bio <- function(
   rm(cid.inchikey); rm(m); gc()
   
   ## title
-  message(" ---- compound name" ,  format(Sys.time()), '\n')
   if(is.null(cid.title.object)) {
     load(paste0(pc.directory, "/cid.title.Rdata"))
     cid.title <- cid.title
@@ -314,7 +313,6 @@ build.pubchem.bio <- function(
   rm(cid.title); rm(m); gc()
   
   ## cas
-  message(" ---- cas number" ,  format(Sys.time()), '\n')
   if(is.null(cid.cas.object)) {
     load(paste0(pc.directory, "/cid.cas.Rdata"))
     cid.cas <- cid.cas
@@ -328,7 +326,6 @@ build.pubchem.bio <- function(
   rm(cid.cas); rm(m); gc()
   
   ## pmid count
-  message(" ---- pubmed count" ,  format(Sys.time()), '\n')
   if(is.null(cid.pmid.ct.object)) {
     load(paste0(pc.directory, "/cid.pmid.ct.Rdata"))
     cid.pmid.ct <- cid.pmid.ct
@@ -345,7 +342,6 @@ build.pubchem.bio <- function(
   rm(cid.pmid.ct); rm(m); gc()
   
   ## first block of inchikey - same bonding
-  message(" ---- first block of inchikey" , '\n')
   inchikey.first.block <- sapply(1:length(inchikey), FUN = function(x){unlist(strsplit(inchikey[x], "-"))[1]})
   
   out <- data.table::data.table(
@@ -412,7 +408,7 @@ build.pubchem.bio <- function(
   rm.rows <- unique(which(is.na(out$smiles)))
   if(length(rm.rows) > 0) {
     out <- out[-rm.rows,]
-    message(" - removed", length(rm.rows), "with missing structures,", "current unique cid count:" , nrow(out), '\n')
+    message(" - removed ", length(rm.rows), " with missing structures, ", "current unique cid count: " , nrow(out), '\n')
   }
   
   ## remove duplicated rows
@@ -431,10 +427,11 @@ build.pubchem.bio <- function(
   
   ## get simple physical-chemical properties
   if(get.properties) {
-    message(" - calclulating rcdk properties",  format(Sys.time()), '\n')
+    message(" - calclulating rcdk properties ",  format(Sys.time()), '\n')
     cid.list <- as.list(out$cid)
     sm.list <- as.list(out$smiles)
     doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
+    base::on.exit(unregister()) ## used to prevent package check warnings from foreach and dopar
     results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
       i <- i
       desc <- rcdk.desc
@@ -451,6 +448,7 @@ build.pubchem.bio <- function(
     }
     
     
+    
     results.df <- do.call("rbind", results)
     out <- out[order(out$cid),]
     results.df <- results.df[order(as.numeric(row.names(results.df))),]
@@ -459,9 +457,8 @@ build.pubchem.bio <- function(
       out,
       results.df
     )
-    doParallel::stopImplicitCluster()
   }
-  message(" - rcdk properties completed", format(Sys.time()), '\n')
+  message(" - rcdk properties completed ", format(Sys.time()), '\n')
   pc.bio <- out
   rm(out)
   gc()

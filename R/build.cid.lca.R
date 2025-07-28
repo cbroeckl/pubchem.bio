@@ -17,9 +17,10 @@
 #' @examples
 #' data('cid.taxid', package = "pubchem.bio")
 #' data('taxid.hierarchy', package = "pubchem.bio")
-#' cid.lca.out <- build.cid.lca(tax.sources =  "LOTUS - the natural products occurrence database", 
-#' use.pathways = FALSE, 
-#' threads = 1, cid.taxid.object = cid.taxid, 
+#' cid.lca.out <- pubchem.bio::build.cid.lca(
+#' tax.sources =  "LOTUS - the natural products occurrence database",
+#' use.pathways = FALSE,
+#' threads = 1, cid.taxid.object = cid.taxid,
 #' taxid.hierarchy.object = taxid.hierarchy)
 #' head(cid.lca.out)
 #' @export 
@@ -44,6 +45,12 @@ build.cid.lca <- function(
   
   if(is.null(pc.directory) & is.null(cid.taxid.object)) {
     stop("if you opt to note define the pc.directory, you must provide ALL of 'cid.taxid.object', 'taxid.hierarchy.object', 'cid.pwid.object' variables", '\n')
+  }
+  
+  ## used to prevent package check warnings from foreach and dopar
+  unregister <- function() {
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
   }
   
   ## load necessary files
@@ -80,7 +87,7 @@ build.cid.lca <- function(
       source <- unique(cid.taxid$data.source)
       source.number <- 1:length(source)
       for(i in 1:length(source)) {
-         message(paste(source.number[i], source[i], '\n'))
+         message(paste(source.number[i], " ",  source[i], '\n'))
       }
       use <- readline("enter source.number values for all sources, separated by a space:  ")
       use <- sort(as.numeric(unlist(strsplit(use, " "))))
@@ -196,7 +203,8 @@ build.cid.lca <- function(
   Sys.time()
   # threads = 8
   doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
-  results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
+  base::on.exit(unregister()) ## used to prevent package check warnings from foreach and dopar
+    results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
     taxids <- unique(cid.taxid$taxid[cid.taxid$cid == cid.list[[i]]])
     out <- c(cid.list[[i]], NA)
     if(length(taxids) == 1) {
@@ -221,7 +229,7 @@ build.cid.lca <- function(
     }
     return(out)
   }
-  parallel::stopCluster(cl)
+
   Sys.time()
   cid.lca <- do.call("rbind", results)
   dimnames(cid.lca)[[2]] <- c("cid", "lca")

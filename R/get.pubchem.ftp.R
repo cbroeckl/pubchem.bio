@@ -9,8 +9,10 @@
 #' @author Corey Broeckling
 #' 
 #' @examples
-#' /donttest{
-#' my.dir <- paste0(getwd(), "/", format(Sys.Date(), "%Y%m%d"))
+#' \dontrun{
+#' my.dir <- "C:/Temp/20250725"
+#' # or some other valid directory.
+#' # this will be created assuming 'C:/Temp' exists.
 #' get.pubchem.ftp(
 #'     pc.directory = my.dir,
 #'     timeout = 50000,
@@ -34,7 +36,7 @@ get.pubchem.ftp <- function(
   tmp.dir <- suppressWarnings(paste0(pc.directory, "/tmp/"))
   dir.create(tmp.dir)
   
-  message(" -- writing data to", pc.directory, '\n')
+  message(" -- writing data to ", pc.directory, '\n')
   
   readme <- c(
     "Data collection derived from pubchem, primarily using the 'compound' FTP data.", '\n',

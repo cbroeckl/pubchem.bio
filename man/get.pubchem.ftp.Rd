@@ -23,8 +23,10 @@ first step to building a local selective, biologically focused, pubchem data rep
 this function downloads and unzips files from pubchem and NCBI taxonomy FTP sites as a first step in building a local metabolomics repository.
 }
 \examples{
-/donttest{
-my.dir <- paste0(getwd(), "/", format(Sys.Date(), "\%Y\%m\%d"))
+\dontrun{
+my.dir <- "C:/Temp/20250725"
+# or some other valid directory.
+# this will be created assuming 'C:/Temp' exists.
 get.pubchem.ftp(
     pc.directory = my.dir,
     timeout = 50000,
