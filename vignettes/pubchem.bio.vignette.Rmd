@@ -2,7 +2,7 @@
 title: "pubchem.bio"
 author: "Corey Broeckling"
 date: "`r Sys.Date()`"
-version: 0.9.0.0
+version: 1.0.0
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{pubchem.bio}
