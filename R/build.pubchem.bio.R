@@ -95,12 +95,7 @@ build.pubchem.bio <- function(
   if(is.null(pc.directory) & is.null(cid.smiles.object)) {
     stop("if you opt to note define the pc.directory, you must provide ALL 'cid.....object' variables", '\n')
   }
-  
-  unregister <- function() {
-    env <- foreach:::.foreachGlobals
-    rm(list=ls(name=env), pos=env)
-  }
-  
+
   out.dir <- pc.directory
   if(is.null(out.dir)) out.dir <- output.directory
   
@@ -430,8 +425,12 @@ build.pubchem.bio <- function(
     message(" - calclulating rcdk properties ",  format(Sys.time()), '\n')
     cid.list <- as.list(out$cid)
     sm.list <- as.list(out$smiles)
-    doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
-    base::on.exit(unregister()) ## used to prevent package check warnings from foreach and dopar
+    cl <- parallel::makeCluster(threads)
+    doParallel::registerDoParallel(cl)
+    base::on.exit({
+      parallel::stopCluster(cl)
+      rm(cl)
+    }) 
     results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
       i <- i
       desc <- rcdk.desc

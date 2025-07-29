@@ -47,12 +47,6 @@ build.cid.lca <- function(
     stop("if you opt to note define the pc.directory, you must provide ALL of 'cid.taxid.object', 'taxid.hierarchy.object', 'cid.pwid.object' variables", '\n')
   }
   
-  ## used to prevent package check warnings from foreach and dopar
-  unregister <- function() {
-    env <- foreach:::.foreachGlobals
-    rm(list=ls(name=env), pos=env)
-  }
-  
   ## load necessary files
   
   if(!is.null(pc.directory)) {
@@ -202,9 +196,13 @@ build.cid.lca <- function(
   cid.list <- as.list(cid)
   Sys.time()
   # threads = 8
-  doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
-  base::on.exit(unregister()) ## used to prevent package check warnings from foreach and dopar
-    results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
+  cl <- parallel::makeCluster(threads)
+  doParallel::registerDoParallel(cl)
+  base::on.exit({
+    parallel::stopCluster(cl)
+    rm(cl)
+    }) 
+  results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
     taxids <- unique(cid.taxid$taxid[cid.taxid$cid == cid.list[[i]]])
     out <- c(cid.list[[i]], NA)
     if(length(taxids) == 1) {

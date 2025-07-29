@@ -49,11 +49,6 @@ build.taxon.metabolome <- function(
     output.directory = NULL
 ) {
   
-  unregister <- function() {
-    env <- foreach:::.foreachGlobals
-    rm(list=ls(name=env), pos=env)
-  }
-  
   out.dir <- pc.directory
   if(is.null(out.dir)) out.dir <- output.directory
   
@@ -90,8 +85,12 @@ build.taxon.metabolome <- function(
   
   out <- pc.bio
   
-  doParallel::registerDoParallel(cl <- parallel::makeCluster(threads))
-  base::on.exit(unregister()) ## used to prevent package check warnings from foreach and dopar
+  cl <- parallel::makeCluster(threads)
+  doParallel::registerDoParallel(cl)
+  base::on.exit({
+    parallel::stopCluster(cl)
+    rm(cl)
+  }) 
   
   for(i in 1:length(taxid)) {
     tax.match <- which(taxid.hierarchy == taxid[i], arr.ind = TRUE)
