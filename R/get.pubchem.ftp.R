@@ -545,6 +545,8 @@ get.pubchem.ftp <- function(
   names(d) <- c("taxid", "cid", "data.source", "source.compound", "source.compound.id", 
                 "source.taxonomy", "source.taxonomy.id")
   
+  
+  
   ## consider whether keep only the natural products type databases
   ## HMDB has too many exogenous compounds, which reduces the value of the lca estimate, and creates associations which are not biologically real (i.e. pesticides are not produced by humans)
   ## FooDB seems to have many genome-predicted records, which seem at best speculative (daidzein is everywhere)
@@ -569,6 +571,14 @@ get.pubchem.ftp <- function(
   rm(d); gc()
   Sys.sleep(2)
   save(cid.taxid, file = paste0(pc.directory, "/cid.taxid.Rdata"))
+  
+  ## load("C:/Temp/20250718/cid.taxid.Rdata")
+  tax.source.table <- table(cid.taxid$data.source)
+  tax.source.table <- data.frame(tax.source.table)
+  names(tax.source.table) <- c("data.source", "count")
+  write.csv(tax.source.table, file = paste0(pc.directory, "/taxid.sources.csv"), row.names = FALSE)
+  rm(tax.source.table)
+  
   rm(cid.taxid); gc() # wait to remove cid.taxid, as we will add to it for pathway data
   Sys.sleep(2)
   readme <- c(
@@ -644,6 +654,14 @@ get.pubchem.ftp <- function(
   data.table::setkey(cid.pwid, "cid")
   gc()
   save(cid.pwid, file = paste0(pc.directory, "/cid.pwid.Rdata"))
+  
+  ## load("C:/Temp/20250718/cid.pwid.Rdata")
+  pw.source.table <- table(cid.pwid$source)
+  pw.source.table <- data.frame(pw.source.table)
+  names(pw.source.table) <- c("data.source", "count")
+  write.csv(pw.source.table, file = paste0(pc.directory, "/pw.sources.csv"), row.names = FALSE)
+  rm(pw.source.table)
+  
   rm(cid.pwid)
   gc()
   readme <- c(
@@ -702,6 +720,14 @@ get.pubchem.ftp <- function(
   Sys.sleep(2)
   data.table::setkey(cid.sid, "cid")
   save(cid.sid, file = paste0(pc.directory, "/cid.sid.Rdata"))
+  
+  ## load("C:/Temp/20250718/cid.sid.Rdata")
+  all.source.table <- table(cid.sid$source)
+  all.source.table <- data.frame(all.source.table)
+  names(all.source.table) <- c("data.source", "count")
+  write.csv(all.source.table, file = paste0(pc.directory, "/all.sources.csv"), row.names = FALSE)
+  rm(all.source.table)
+  
   rm(cid.sid); gc()
   Sys.sleep(2)
   readme <- c(
