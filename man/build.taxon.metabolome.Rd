@@ -19,7 +19,8 @@ build.taxon.metabolome(
   pubchem.bio.object = NULL,
   cid.lca.object = NULL,
   taxid.hierarchy.object = NULL,
-  output.directory = NULL
+  output.directory = NULL,
+  keep.scored.only = FALSE
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ build.taxon.metabolome(
 \item{taxid.hierarchy.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
 
 \item{output.directory}{directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved.}
+
+\item{keep.scored.only}{logical.  If TRUE, biological metabolites with NA for the taxonomy score are removed before returning.}
 }
 \value{
 a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.

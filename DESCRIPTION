@@ -1,5 +1,5 @@
 Package: pubchem.bio
-Title: Building Biologically Meaningful Databases from 'PubChem'
+Title: Biologically Informed Metabolomic Databases from 'PubChem'
 Version: 1.0.1
 Authors@R: 
     person("Corey", "Broeckling", , "cbroeckl@colostate.edu", role = c("aut", "cre"))

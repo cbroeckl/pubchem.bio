@@ -30,7 +30,7 @@ get.pubchem.ftp <- function(
 ) {
   
   ## setup directory structure
-  if(is.null(pc.directory)) pc.directory <- paste0(getwd(), "/", format(Sys.time(), "%Y%m%d"), "/")
+  if(is.null(pc.directory)) stop("you must define the directory that you wish to save PubChem data to.", '\n')
   pc.directory <- suppressWarnings(normalizePath(pc.directory))
   if(!dir.exists(pc.directory)) dir.create(pc.directory)
   tmp.dir <- suppressWarnings(paste0(pc.directory, "/tmp/"))
@@ -43,12 +43,10 @@ get.pubchem.ftp <- function(
     "generation date:", date(), '\n')
   
   ## set download timeout to prevent errors
-  oldpar <- graphics::par(no.readonly = TRUE) 
-  on.exit(graphics::par(oldpar)) 
+  old <- base::options()
+  on.exit(base::options(old))
   options(timeout=timeout)
 
-
-  
   
   ## data are imported, generally, as a data.table using fread
   ## these data can also be indexed by cid using the data.table::setkey function
@@ -310,9 +308,10 @@ get.pubchem.ftp <- function(
   # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
   
   #### cid.to.mesh.name relationship
-  d <- readLines(paste0(tmp.dir, basename(tmp.file)))
+  d <- readLines(paste0(tmp.dir, basename(tmp.file)), encoding = "UTF-8")
   d <- lapply(1:length(d), FUN = function(x) {
-    tmp <- unlist(strsplit(d[x], '\t', fixed = TRUE))
+    # cat(d[x], '\n')
+    tmp <- unlist(strsplit(d[x], '\t', fixed = TRUE, useBytes = TRUE))
     tmp <- data.frame(
       "cid" = rep(tmp[1], length(tmp)-1),
       "mesh.name" = tmp[2:length(tmp)]
@@ -768,12 +767,12 @@ get.pubchem.ftp <- function(
     " - cid.synonym.Rdata, is a data.table of two columns, 'cid' (integer), 'synonym' (character). data.table is indexed by 'cid'. ", '\n', '\n'
   )
   
-  sink(paste0(pc.directory, '/readme.txt'))
-  message(readme)
-  sink()
+  fileConn<-file(paste0(pc.directory, '/readme.txt'))
+  writeLines(readme, fileConn)
+  close(fileConn)
   
   if(rm.tmp.files) {
-    unlink(paste0(pc.directory, "tmp/"), recursive=TRUE)
+    unlink(paste0(pc.directory, "/tmp/"), recursive=TRUE)
   }
   
   message(' -- finished', '\n')

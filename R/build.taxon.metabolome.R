@@ -14,6 +14,7 @@
 #' @param cid.lca.object R data.table, generally produced by build.cid.lca; alternatively, define pc.directory
 #' @param taxid.hierarchy.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
 #' @param output.directory directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved. 
+#' @param keep.scored.only logical.  If TRUE, biological metabolites with NA for the taxonomy score are removed before returning.  
 #' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
 #' @examples
 #' data('cid.lca', package = "pubchem.bio")
@@ -46,7 +47,8 @@ build.taxon.metabolome <- function(
     pubchem.bio.object = NULL,
     cid.lca.object = NULL, 
     taxid.hierarchy.object = NULL,
-    output.directory = NULL
+    output.directory = NULL,
+    keep.scored.only = FALSE
 ) {
   
   out.dir <- pc.directory
@@ -212,6 +214,13 @@ build.taxon.metabolome <- function(
     out[,paste0("taxonomy.lca.similarity.", "aggregate")] <- agg.sim
   }
   
+  if(keep.scored.only) {
+    if(any(names(out) == "taxonomy.lca.similarity.aggregate")) {
+      keep <- !is.na(out$taxonomy.lca.similarity.aggregate)
+      out <- out[keep,]
+    }
+  }
+  
   if(get.properties) {
     message(" - calclulating rcdk properties ",  format(Sys.time()), '\n')
     cid.list <- as.list(out$cid)
@@ -239,6 +248,8 @@ build.taxon.metabolome <- function(
       results.df
     )
   }
+  
+  
   
   return(out)
 
