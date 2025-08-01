@@ -120,7 +120,7 @@ build.pubchem.bio <- function(
       } else {
         cid.sid <- cid.sid.object
       }
-      cat("cid.sid")
+
       data.table::setkey(cid.sid, "cid")
       keep <- cid.sid$source %in% bio.sources
       source.cid <- cid.sid$cid[keep]
@@ -128,7 +128,7 @@ build.pubchem.bio <- function(
         source.cid <- source.cid[-which(is.na(source.cid))]
       }
       if(use.parent.cid) {
-        cat("cid.parent")
+
         data.table::setkey(cid.parent, "cid")
         m <- match(source.cid, cid.parent$cid)
         parent.cid <- cid.parent$parent.cid[m]
@@ -152,7 +152,7 @@ build.pubchem.bio <- function(
     } else {
       cid.pwid <- cid.pwid.object
     }
-    cat("cid.pwid")
+
     data.table::setkey(cid.pwid, "cid")
     if(!is.null(pathway.sources)) {
       keep <- cid.pwid$source %in% pathway.sources
@@ -186,7 +186,7 @@ build.pubchem.bio <- function(
       cid.taxid <- cid.taxid.object
     }
 
-    cat("cid.taxid")
+
     data.table::setkey(cid.taxid, "cid")
     if(!is.null(taxonomy.sources)) {
       keep <- cid.taxid$data.source %in% taxonomy.sources
@@ -198,7 +198,7 @@ build.pubchem.bio <- function(
       tax.cid <- tax.cid[-which(is.na(tax.cid))]
     }
     if(use.parent.cid) {
-      cat("cid.parent")
+
       data.table::setkey(cid.parent, "cid")
       m <- match(tax.cid, cid.parent$cid)
       parent.cid <- cid.parent$parent.cid[m]
@@ -230,7 +230,7 @@ build.pubchem.bio <- function(
   } else {
     cid.formula <- cid.formula.object
   }
-  cat("cid.formula")
+
   data.table::setkey(cid.formula, "cid")
   m <- match(cid, cid.formula$cid)
   formula <- cid.formula$formula[m]
@@ -245,7 +245,7 @@ build.pubchem.bio <- function(
   } else {
     cid.smiles <- cid.smiles.object
   }
-  cat("cid.smiles")
+
   data.table::setkey(cid.smiles, "cid")
   m <- match(cid, cid.smiles$cid)
   smiles <- cid.smiles$smiles[m]
@@ -260,7 +260,7 @@ build.pubchem.bio <- function(
   } else {
     cid.monoisotopic.mass <- cid.monoisotopic.mass.object
   }
-  cat("cid.monoisotopic.mass")
+
   data.table::setkey(cid.monoisotopic.mass, "cid")
   m <- match(cid, cid.monoisotopic.mass$cid)
   monoisotopic.mass <- cid.monoisotopic.mass$monoisotopic.mass[m]
@@ -273,7 +273,7 @@ build.pubchem.bio <- function(
   } else {
     cid.inchikey <- cid.inchikey.object
   }
-  cat("cid.inchikey")
+
   data.table::setkey(cid.inchikey, "cid")
   m <- match(cid, cid.inchikey$cid)
   inchikey <- cid.inchikey$inchikey[m]
@@ -286,7 +286,7 @@ build.pubchem.bio <- function(
   } else {
     cid.title <- cid.title.object
   }
-  cat("cid.title")
+
   data.table::setkey(cid.title, "cid")
   m <- match(cid, cid.title$cid)
   name <- cid.title$title[m]
@@ -299,7 +299,7 @@ build.pubchem.bio <- function(
   } else {
     cid.cas <- cid.cas.object
   }
-  cat("cid.cas")
+
   data.table::setkey(cid.cas, "cid")
   m <- match(cid, cid.cas$cid)
   cas <- cid.cas$cas[m]
@@ -312,7 +312,7 @@ build.pubchem.bio <- function(
   } else {
     cid.pmid.ct <- cid.pmid.ct.object
   }
-  cat("cid.pmid.ct")
+
   data.table::setkey(cid.pmid.ct, "cid")
   m <- match(cid, cid.pmid.ct$cid)
   pmid.ct <- cid.pmid.ct$pmid.ct[m]
@@ -341,7 +341,7 @@ build.pubchem.bio <- function(
       'cid' = as.integer(as.numeric(names(source.cid.table))),
       'count' = as.vector(source.cid.table)
     )
-    cat("source.cid.table")
+
     data.table::setkey(source.cid.table, "cid")
     m <- match(cid, source.cid.table$cid)
     source.ct <- as.integer(source.cid.table$count[m])
@@ -359,7 +359,7 @@ build.pubchem.bio <- function(
       'cid' = as.integer(as.numeric(names(path.cid.table))),
       'count' = as.vector(path.cid.table)
     )
-    cat("path.cid.table")
+
     data.table::setkey(path.cid.table, "cid")
     m <- match(cid, path.cid.table$cid)
     pathway.ct <- as.integer(path.cid.table$count[m])
@@ -376,7 +376,7 @@ build.pubchem.bio <- function(
       'cid' = as.integer(as.numeric(names(tax.cid.table))),
       'count' = as.vector(tax.cid.table)
     )
-    cat("tax.cid.table")
+
     data.table::setkey(tax.cid.table, "cid")
     m <- match(cid, tax.cid.table$cid)
     taxonomy.ct <- as.integer(tax.cid.table$count[m])
