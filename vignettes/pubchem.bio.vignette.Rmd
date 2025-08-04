@@ -155,20 +155,21 @@ export.pubchem.bio(pc.bio.object = pc.bio.sub, export.file.name = "C:/Temp/20250
 if you look closely at the data that has been downloaded, you will find a good deal of additional data - all of it mapped by CID.  This includes MESH names/functions, pubmed reference identifiers, synonyms, pathway membership, etc.  These data can ultimately be used for mapping your pubchem.bio data to biology, enabling, for example, enrichment analysis.   I do not have all these data mapped in the output data.table yet, but they are available for you to use in the interim.  
 
 
-## Workflow in brief
+### Workflow in brief
 
 Just make sure to set the local.pubchem.directory to something that makes sense for your system.
 
 ```{r all.steps, eval=FALSE}
 install.packages(pubchem.bio, dependencies = TRUE)
-local.pubchem.directory <- "C:/Temp/20250718"  ## i suggest this naming scheme, but feel free to chose your own.
+library(pubchem.bio)
+local.pubchem.directory <- "C:/Temp/20250801"  ## i suggest this naming scheme, but feel free to chose your own.
 pubchem.bio::get.pubchem.ftp(pc.directory = local.pubchem.directory)
-build.cid.lca(pc.directory = local.pubchem.directory, tax.sources =  "LOTUS - the natural products occurrence database")
-pc.bio <- build.pubchem.bio(pc.directory = local.pubchem.directory)
-pc.bio.sub <- build.taxon.metabolome(taxid = c(4072, 4107, 4047), pc.directory = local.pubchem.directory, get.properties = FALSE)
-export.msfinder(pc.bio.object = pc.bio.sub, export.file.name = paste0(local.pubchem.directory, "/pc.bio.msfinder.tsv"))
-export.sirius(pc.bio.object = pc.bio.sub, export.file.name = paste0(local.pubchem.directory, "/pc.bio.sirius.tsv"))
-export.pubchem.bio(pc.bio.object = pc.bio.sub, export.file.name = paste0(local.pubchem.directory, "/pc.bio.full.pubchem.bio.tsv"))
+cid.lca <- pubchem.bio::build.cid.lca(pc.directory = local.pubchem.directory, tax.sources =  "LOTUS - the natural products occurrence database")
+pc.bio <- pubchem.bio::build.pubchem.bio(pc.directory = local.pubchem.directory)
+pc.bio.salsa <- pubchem.bio::build.taxon.metabolome(taxid = c(4081, 4072, 4047, 4679, 4682), pc.directory = local.pubchem.directory, get.properties = FALSE)
+export.msfinder(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.msfinder.tsv"))
+export.sirius(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.sirius.tsv"))
+export.pubchem.bio(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.full.pubchem.bio.tsv"))
 ```
 
 
