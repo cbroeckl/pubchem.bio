@@ -33,7 +33,7 @@
 build.taxon.metabolome <- function(
     pc.directory = NULL,
     taxid = c(),
-    get.properties = TRUE,
+    get.properties = FALSE,
     full.scored = TRUE,
     aggregation.function = max,
     threads = 8,
