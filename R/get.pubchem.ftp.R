@@ -575,7 +575,7 @@ get.pubchem.ftp <- function(
   tax.source.table <- table(cid.taxid$data.source)
   tax.source.table <- data.frame(tax.source.table)
   names(tax.source.table) <- c("data.source", "count")
-  write.csv(tax.source.table, file = paste0(pc.directory, "/taxid.sources.csv"), row.names = FALSE)
+  utils::write.csv(tax.source.table, file = paste0(pc.directory, "/taxid.sources.csv"), row.names = FALSE)
   rm(tax.source.table)
   
   rm(cid.taxid); gc() # wait to remove cid.taxid, as we will add to it for pathway data
@@ -658,7 +658,7 @@ get.pubchem.ftp <- function(
   pw.source.table <- table(cid.pwid$source)
   pw.source.table <- data.frame(pw.source.table)
   names(pw.source.table) <- c("data.source", "count")
-  write.csv(pw.source.table, file = paste0(pc.directory, "/pw.sources.csv"), row.names = FALSE)
+  utils::write.csv(pw.source.table, file = paste0(pc.directory, "/pw.sources.csv"), row.names = FALSE)
   rm(pw.source.table)
   
   rm(cid.pwid)
@@ -724,7 +724,7 @@ get.pubchem.ftp <- function(
   all.source.table <- table(cid.sid$source)
   all.source.table <- data.frame(all.source.table)
   names(all.source.table) <- c("data.source", "count")
-  write.csv(all.source.table, file = paste0(pc.directory, "/all.sources.csv"), row.names = FALSE)
+  utils::write.csv(all.source.table, file = paste0(pc.directory, "/all.sources.csv"), row.names = FALSE)
   rm(all.source.table)
   
   rm(cid.sid); gc()
