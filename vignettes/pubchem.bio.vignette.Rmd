@@ -94,7 +94,7 @@ We can now build a database of biological compounds as a subset of PubChem data.
 ###### note that running this line of code may will take about 1.5 hours of computer time, with 8 threads, 64 GB RAM
  
 ```{r build.pubchem.bio, eval=FALSE}
-pc.bio <- build.pubchem.bio(pc.directory = "C:/Temp/20250801")
+pc.bio <- build.pubchem.bio(pc.directory = "C:/Temp/20250703")
 ```
 
 This 'pc.bio' object contains > 1M metabolites (using default settings), and has columns with names, structures, and properties.   It can be used directly as a source dataset for export to spreadsheet format, as it is a data.frame object.  It includes metadata including the number of references to pubmed ('pmid.ct'), the number of sources that include this compound in their PubChem submission ('source.ct'), number of pathways that reference the compound ('pathway.ct') and the number of taxonomy relationships defined ('taxonomy.ct').  These are only reported - it is up to you what to do with this information.  Some informatics tools rely heavily on such information to increase the true positive hits, while others vehemently eschew such approaches as it introduces bias into the analysis.  Additionally, we have now four rcdk-calculated properties, 'XLogP', 'nAcid', 'nBase', and 'TopoPSA'.  These properties are useful entry points into chemical descriptions that are of value in undersatnding analytical behavior. 'XLogP' as an estimator of neutral pH hydrophobicity, 'nAcid' and 'nBase' to describe ionizability, and 'TopoPSA' as a tool for understanding polarity in a manner dependent on molecular size.  Such properties can be valuable in predicting retention time, CCS, adduct affinity, etc.  
