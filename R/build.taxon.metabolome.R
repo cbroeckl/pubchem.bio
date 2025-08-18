@@ -10,9 +10,9 @@
 #' @param threads integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.  
 #' @param db.name character. what do you wish the file name for the saved version of this database to be?  default = 'custom.metabolome', but could be 'taxid.4071' or 'Streptomyces', etc.  Saved as an .Rdata file in the 'pc.directory' location. 
 #' @param rcdk.desc vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc\[4\]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.   
-#' @param pubchem.bio.object R data.table, generally produced by build.pubchem.bio; alternatively, define pc.directory
-#' @param cid.lca.object R data.table, generally produced by build.cid.lca; alternatively, define pc.directory
-#' @param taxid.hierarchy.object R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory
+#' @param pubchem.bio.object R data.table, generally produced by build.pubchem.bio; preferably, define pc.directory
+#' @param cid.lca.object R data.table, generally produced by build.cid.lca; preferably, define pc.directory
+#' @param taxid.hierarchy.object R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory
 #' @param output.directory directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved. 
 #' @param keep.scored.only logical.  If TRUE, biological metabolites with NA for the taxonomy score are removed before returning.  
 #' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
@@ -35,6 +35,7 @@ build.taxon.metabolome <- function(
     taxid = c(),
     get.properties = FALSE,
     full.scored = TRUE,
+    keep.scored.only = FALSE,
     aggregation.function = max,
     threads = 8,
     db.name = "custom.metabolome", 
@@ -47,8 +48,7 @@ build.taxon.metabolome <- function(
     pubchem.bio.object = NULL,
     cid.lca.object = NULL, 
     taxid.hierarchy.object = NULL,
-    output.directory = NULL,
-    keep.scored.only = FALSE
+    output.directory = NULL
 ) {
   
   out.dir <- pc.directory
@@ -82,7 +82,7 @@ build.taxon.metabolome <- function(
   } else {
     pc.bio <- pubchem.bio.object
   }
-
+  
   `%dopar%` <- foreach::`%dopar%`
   
   out <- pc.bio
@@ -93,6 +93,12 @@ build.taxon.metabolome <- function(
     parallel::stopCluster(cl)
     rm(cl)
   }) 
+
+  ## store maximum taxid value so we can use it later for eliminating NA values for fast matching.
+  first.tax.col <- grep("species", names(cid.lca))[1]
+  tmp.df <- as.numeric(as.matrix(cid.lca[,1:ncol(cid.lca), with = FALSE]))
+  max.taxid <- max(tmp.df, na.rm = TRUE)
+  rm(tmp.df); gc()
   
   for(i in 1:length(taxid)) {
     tax.match <- which(taxid.hierarchy == taxid[i], arr.ind = TRUE)
@@ -102,41 +108,70 @@ build.taxon.metabolome <- function(
     metabolome <- metabolome[keep]
     ## metabolome <- metabolome[keep]
     ## which(metabolome == 1548943)
+    message(taxid[i], " ", length(keep), ' mapped metabolites')
     
     if(full.scored) {
       ## get taxid hierarchy. store as vector.  
       ## compare to each out taxid vector by lca
-      message(taxid[i], " ", length(keep), ' mapped metabolites')
+      message(" -- calculating similarities", '\n')
       taxid.row <- tax.match[1,1]
       taxid.column <- as.integer(tax.match[1,2])
-      taxid.vector <- as.vector(unlist(taxid.hierarchy[taxid.row, 1:ncol(taxid.hierarchy)]))
+      taxid.dt <- taxid.hierarchy[taxid.row, 1:ncol(taxid.hierarchy)]
+      taxid.vector <- as.numeric(as.vector(unlist(taxid.dt)))
       
+      ## replace NA values with large numbers which will not match any taxids later on.
+      ## useful since using %in% for matching.  incomparables option only available for match.
+      taxid.na <- which(is.na(taxid.vector))
+      if(length(taxid.na) > 0) {
+        taxid.vector[taxid.na] <- max.taxid + 1:length(taxid.na)
+      }
+
       ## tmp is the index to the correct cid.lca row for each pubchem row
       th.ind <- which(names(cid.lca) == "species"):ncol(cid.lca)
       # th.ind <- th.ind[taxid.column:length(th.ind)]
-      tmp <- match(pc.bio$cid, cid.lca$cid)
-      message(" -- calculating similarities", '\n')
       
-      do.sim <- which(!is.na(tmp))
       
-      error <- NA
-      j <- 1
-      
+      ## create vector of indices on which to perform calculations
+      ## all CID which are in pc.bio which are also in cid.lca (taxonomy mapped)
+      lca.cid <- cid.lca$cid
+      tmp <- list()
+      current.iteration <- 1
+      tmp[[current.iteration]] <- match(pc.bio$cid, lca.cid)
+      lca.cid[tmp[[current.iteration]]] <- NA
+      l.is.na <- length(which(is.na(lca.cid)))
+      delta.is.na <- 1
+      while(delta.is.na > 0) {
+        current.iteration <- current.iteration + 1
+        tmp[[current.iteration]] <- match(pc.bio$cid, lca.cid)
+        lca.cid[tmp[[current.iteration]]] <- NA
+        delta.is.na <- length(which(is.na(lca.cid))) - l.is.na
+        l.is.na <- length(which(is.na(lca.cid)))
+      }
+      tmp <- data.frame(tmp)
+      names(tmp) <- NULL
+      # system.time(tmp <- lapply(pc.bio$cid, FUN = function(x) pc.bio$cid[x] %in% cid.lca$cid))
+      # tmp <- match(pc.bio$cid, cid.lca$cid)
+      ## only calculate similarities when there is at least one !NA value (would be in first column, if present)
+      do.sim <- which(!is.na(tmp[,1]))
       
       results <- foreach::foreach(j = do.sim) %dopar% {
-        tryCatch(
-          #this is the chunk of code we want to run
-          {
-            mtch.col <- suppressWarnings((which(taxid.vector == cid.lca[tmp[j], th.ind])[1]) - taxid.column + 1)
-            mtch.col
-            #when it throws an error, the following block catches the error
-          }, error = function(msg){
-            stop("error on", j, '\n')
-            return(NA)
-          }
+        tryCatch({
+          library(data.table)
+          tmp.j <- tmp[j,]
+          tmp.j <- tmp.j[!is.na(tmp.j)]
+          mtchs <- sapply(1:length(tmp.j), FUN = function(k) {
+            min(which(taxid.vector %in% cid.lca[tmp.j[k], th.ind, with = FALSE]))
+          })
+          mtch.col <- min(mtchs)
+          mtch.col
+          #when it throws an error, the following block catches the error
+        }, error = function(msg){
+          stop("error on ", j, '\n')
+          return(NA)
+        }
         )
       }
-
+      
       results <- unlist(results)
       tax.lca.sim <- rep(NA, length(tmp))
       tax.lca.sim[do.sim] <- results
@@ -238,7 +273,7 @@ build.taxon.metabolome <- function(
       
       descs
     }
-
+    
     results.df <- do.call("rbind", results)
     out <- out[order(out$cid),]
     results.df <- results.df[order(as.numeric(row.names(results.df))),]
@@ -252,7 +287,7 @@ build.taxon.metabolome <- function(
   
   
   return(out)
-
+  
   if(!is.null(out.dir)) {
     save(out, file = paste0(out.dir, "/", db.name, ".Rdata"))
   }

@@ -21,6 +21,7 @@ build.pubchem.bio(
     "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor",
     "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor",
     "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"),
+  cid.lca.object = NULL,
   cid.sid.object = NULL,
   cid.pwid.object = NULL,
   cid.parent.object = NULL,
@@ -60,27 +61,29 @@ build.pubchem.bio(
 
 \item{rcdk.desc}{vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc[4]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.}
 
-\item{cid.sid.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.lca.object}{R data.table, generally produced by build.cid.lca; preferably, define pc.directory}
 
-\item{cid.pwid.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.sid.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
-\item{cid.parent.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.pwid.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
-\item{cid.taxid.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.parent.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
-\item{cid.formula.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.taxid.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
-\item{cid.smiles.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.formula.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
-\item{cid.inchikey.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.smiles.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
-\item{cid.monoisotopic.mass.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.inchikey.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
-\item{cid.title.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.monoisotopic.mass.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
-\item{cid.cas.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.title.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
-\item{cid.pmid.ct.object}{R data.table, generally produced by get.pubchem.ftp; alternatively, define pc.directory}
+\item{cid.cas.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
+
+\item{cid.pmid.ct.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
 \item{output.directory}{directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved.}
 }

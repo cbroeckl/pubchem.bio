@@ -5,6 +5,7 @@
 #' @param pc.directory character. directory to which data will be saved
 #' @param timeout numeric.  timeout setting for FTP download.  setting options(timeout) value too small will generate errors for large files. default = 50000.
 #' @param rm.tmp.files logical.  should temporary files be removed after completion of download and parsing?  Default = TRUE. 
+#' @param threads integer. the number of parallel threads to be used by foreach %dopar% during processing of taxonomy hierarchy data.  
 #' @return nothing.  all data are saved to disk for later loading
 #' @author Corey Broeckling
 #' 
@@ -26,7 +27,8 @@
 get.pubchem.ftp <- function(
     pc.directory = NULL,
     timeout = 50000,
-    rm.tmp.files = TRUE
+    rm.tmp.files = TRUE,
+    threads = 2
 ) {
   
   ## setup directory structure
@@ -46,7 +48,7 @@ get.pubchem.ftp <- function(
   old <- base::options()
   on.exit(base::options(old))
   options(timeout=timeout)
-
+  
   
   ## data are imported, generally, as a data.table using fread
   ## these data can also be indexed by cid using the data.table::setkey function
@@ -107,8 +109,7 @@ get.pubchem.ftp <- function(
   save(cid.parent, file = paste0(pc.directory, "/cid.parent.Rdata"))
   rm(cid.parent)
   gc()
-  Sys.sleep(2)
-  
+
   readme <- c(
     readme,
     " - cid.parent.Rdata, is a data.table of two columns, headers 'cid' and 'parent.cid', each integer values. data.table is indexed by 'cid'. ", '\n', '\n'
@@ -136,16 +137,13 @@ get.pubchem.ftp <- function(
   data.table::setkey(cid.inchikey, "cid")
   save(cid.inchikey, file = paste0(pc.directory, "/cid.inchikey.Rdata"))
   rm(cid.inchikey);   gc()
-  Sys.sleep(2)
-  
+
   cid.inchi <- d[,c(1,2)]
   data.table::setkey(cid.inchi, "cid")
   save(cid.inchi, file = paste0(pc.directory, "/cid.inchi.Rdata"))
   rm(cid.inchi); gc()
-  Sys.sleep(2)
   rm(d); gc()
-  Sys.sleep(2)
-  
+
   readme <- c(
     readme,
     " - cid.inchikey.Rdata, is a data.table of two columns, headers 'cid'and 'inchikey', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n',
@@ -172,12 +170,10 @@ get.pubchem.ftp <- function(
   }
   cid.smiles <- d
   rm(d); gc()
-  Sys.sleep(2)
   data.table::setkey(cid.smiles, "cid")
   save(cid.smiles, file = paste0(pc.directory, "/cid.smiles.Rdata"))
   rm(cid.smiles); gc()
-  Sys.sleep(2)
-  
+
   readme <- c(
     readme,
     " - cid.smiles.Rdata, is a data.table of two columns, headers 'cid'and 'smiles', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
@@ -203,12 +199,10 @@ get.pubchem.ftp <- function(
   }  
   cid.title <- d
   rm(d); gc()
-  Sys.sleep(2)
   data.table::setkey(cid.title, "cid")
   save(cid.title, file = paste0(pc.directory, "/cid.title.Rdata"))
   rm(cid.title); gc
-  Sys.sleep(2)
-  
+
   readme <- c(
     readme,
     " - cid.title.Rdata, is a data.table of two columns, headers 'cid'and 'title', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
@@ -235,7 +229,6 @@ get.pubchem.ftp <- function(
   } 
   cid.pmid <- d
   rm(d); gc()
-  Sys.sleep(2)
   data.table::setkey(cid.pmid, "cid")
   save(cid.pmid, file = paste0(pc.directory, "/cid.pmid.Rdata"))
   
@@ -247,8 +240,7 @@ get.pubchem.ftp <- function(
   save(cid.pmid.ct, file = paste0(pc.directory, "/cid.pmid.ct.Rdata"))
   
   rm(cid.pmid); gc()
-  Sys.sleep(2)
-  
+
   readme <- c(
     readme,
     " - cid.pmid.Rdata, is a data.table of two columns, headers 'cid'and 'pmid', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n',
@@ -278,20 +270,16 @@ get.pubchem.ftp <- function(
   data.table::setkey(cid.formula, "cid")
   save(cid.formula, file = paste0(pc.directory, "/cid.formula.Rdata"))
   rm(cid.formula); gc()
-  Sys.sleep(2)
   cid.monoisotopic.mass <- d[,c(1,3)]
   data.table::setkey(cid.monoisotopic.mass, "cid")
   save(cid.monoisotopic.mass, file = paste0(pc.directory, "/cid.monoisotopic.mass.Rdata"))
   rm(cid.monoisotopic.mass); gc()
-  Sys.sleep(2)
   cid.accurate.mass <- d[,c(1,4)]
   data.table::setkey(cid.accurate.mass, "cid")
   save(cid.accurate.mass, file = paste0(pc.directory, "/cid.accurate.mass.Rdata"))
   rm(cid.accurate.mass); gc()
-  Sys.sleep(2)
   rm(d); gc()
-  Sys.sleep(2)
-  
+
   readme <- c(
     readme,
     " - cid.formula.Rdata, is a data.table of two columns, headers 'cid'and 'formula', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n',
@@ -381,15 +369,12 @@ get.pubchem.ftp <- function(
   data.table::setkey(cid.mesh.function, "cid")
   save(cid.mesh.function, file = paste0(pc.directory, "/cid.mesh.function.Rdata"))
   rm(mesh.name.mesh.function); gc()
-  Sys.sleep(2)
   rm(cid.mesh.name); gc()
-  Sys.sleep(2)
   readme <- c(
     readme,
     " - cid.mesh.function.Rdata, is a data.table of two columns, headers 'cid'and 'mesh.function', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
   )
-  Sys.sleep(2)
-  
+
   
   ########################
   ## TaxID to taxonomy
@@ -412,39 +397,159 @@ get.pubchem.ftp <- function(
                 "inherited.gc.flag", "mitocondrial.genetic.code.id", 
                 "inherited.mgc.flag", "genbank.hidden.flag", "hidden.subtree.root.flag", 
                 "comments")
-  d <- d[,c("taxid", "parent.taxid", "rank"),]
+  d <- d[,c("taxid", "parent.taxid", "rank", "division.id"),]
   gc()
-  Sys.sleep(2)
-  
   
   d <- data.table::as.data.table(d)
   data.table::setkey(d, "taxid")
+
+  ranks <- c( "sub.subspecies", "subspecies",
+              "species", "genus", "subfamily", "family",  
+              "suborder", "order", "subclass", "class", 
+              "subphylum", "phylum", "kingdom", "domain")
   
-  ## check.taxid <- 1280
-  ## check.lineage <- c(1280, 1279, 90964, 1385, 91061, 1239, 2, 1)
-  ## d[d$taxid %in% check.lineage,]
-  ##  1280  1279 90964  1385 91061  1239     2     1
-  ### try replacing all parent ids that are not in the rank list
-  ## with their increasing parentage until you hit a rank list level
-  #  consider adding 'strain', 'isolate', 'subspecies, - 
-  ranks <- c("species", "genus", "subtribe", "tribe", "subfamily", "family", "superfamily", "infraorder", "suborder", "order", "superorder", "infraclass", "subclass", "class", "superclass", "subphylum", "phylum", "subkingdom", "kingdom", "superkingdom")
+  
+  ## determine the rank of the parent taxid
   d$rank.parent.taxid <- d$rank[match(d$parent.taxid, d$taxid)]
-  missing.old <- length(which(!d$rank.parent.taxid %in% ranks))
-  missing.new <- 1 + missing.old
-  while(missing.new != missing.old) {
-    missing.old <- missing.new
-    do <- which(!(d$rank.parent.taxid %in% ranks))
-    old.parent <- d$parent.taxid[do]
-    repl.index <- match(old.parent, d$taxid)
-    new.parent <- d$parent.taxid[repl.index]
-    new.parent.rank <- d$rank.parent.taxid[repl.index]
-    d$parent.taxid[do] <- new.parent
-    d$rank.parent.taxid[do] <- new.parent.rank
-    parent.rank <- d$rank[match(d$parent.taxid, d$taxid)]
-    missing.new <- length(which(!parent.rank %in% ranks))
-    # message(missing.new, '\n')
-    # d[d$taxid %in% check.lineage,]
+
+  ## define '1' as root
+  d[which(d$taxid == "1" & d$parent.taxid == "1"), "rank.parent.taxid"] <- "root"
+  d[which(d$taxid == "1" & d$parent.taxid == "1"), "rank"] <- "root"
+  
+  
+  ## start from child as species
+  sp.id <- d$taxid[which(d$rank == "species")]
+  names(sp.id) <- rep("species", length(sp.id))
+  
+  ## parent lineage
+  par.id <- list()
+  par.id[[1]] <- d$taxid[which(d$rank == "species")]
+  names(par.id[[1]]) <- rep("species", length(par.id[[1]]))
+  
+  keep.going <- TRUE
+  i <- 1
+  unique.levs <- length(sp.id) + 1
+  while(keep.going) {
+    mtch <- match(par.id[[i]], d$taxid)
+    par.id[[i+1]] <- d$parent.taxid[mtch]
+    names(par.id[[i+1]]) <- d$rank.parent.taxid[mtch]
+    old.unique.levs <- unique.levs
+    unique.levs <- length(unique(par.id[[i+1]]))
+    i <- i + 1
+    if(old.unique.levs == unique.levs) {keep.going = FALSE}
   }
+  
+  # table(par.id[[36]])
+  # threads = 8
+  cl <- parallel::makeCluster(threads)
+  doParallel::registerDoParallel(cl)
+  base::on.exit({
+    parallel::stopCluster(cl)
+    rm(cl)
+  }) 
+  `%dopar%` <- foreach::`%dopar%`
+  
+  sp.lineage <- foreach::foreach(j = 1:length(sp.id)) %dopar% {
+    lineage <- c(sp.id[j], sapply(1:length(par.id), FUN = function(x) par.id[[x]][j]))
+    lineage <- lineage[1:which(lineage == "1")[1]]
+    lineage <- lineage[names(lineage) %in% ranks]
+    lineage <- lineage[ranks]
+    lineage
+  }
+  par.lineage <- data.frame(t(data.frame(sp.lineage)))
+  names(par.lineage) <- ranks
+  row.names(par.lineage) <- NULL
+  par.lineage <- par.lineage[,ranks[which(ranks == "species"):length(ranks)]]
+  
+  ## subspecies lineage
+  
+  sp.id <- d$parent.taxid[which(d$rank.parent.taxid == "species")]
+  u.sp.id <- unique(sp.id)
+  # u.sp.id.l <- split(u.sp.id, ceiling(seq_along(u.sp.id)/(length(u.sp.id)/threads)))
+  sub.sp <- foreach::foreach(x = 1:length(u.sp.id)) %dopar% {
+    children <- d$taxid[which(d$parent.taxid == u.sp.id[x])]
+    out <- data.frame(
+      "species" = rep(u.sp.id[x], length(children)),
+      "subspecies" = children
+    )
+    out
+  }
+  
+  sub.sp <- do.call("rbind", sub.sp)
+  
+  ## and now, with subspecies as parent, where all clades immediately below species were assigned as 'subspecies'
+  u.sp.id <- unique(sub.sp$subspecies)
+  # u.sp.id.l <- split(u.sp.id, ceiling(seq_along(u.sp.id)/(length(u.sp.id)/threads)))
+  sub.sub.sp <- foreach::foreach(x = 1:length(u.sp.id)) %dopar% {
+    children <- d$taxid[which(d$parent.taxid == sub.sp$subspecies[x])]
+    out <- data.frame(
+      "subspecies" = rep(u.sp.id[x], length(children)),
+      "sub.subspecies" = children
+    )
+    out
+  }
+  sub.sub.sp <- do.call("rbind", sub.sub.sp)
+  
+  tmp <- merge(sub.sp, sub.sub.sp, by = "subspecies", all = TRUE)
+  
+  tmp <- merge(tmp, par.lineage, by = "species", all = TRUE)
+  dim(tmp)
+  
+  taxid.hierarchy <- tmp[,ranks]
+  taxid.hierarchy$root <- "1"
+  
+  
+  # ## catalog all parent/child relationships in tree
+  # all.levels <- unique(d$rank)
+  # all.ranks <- all.levels
+  # tree <- data.frame("parent" = vector(length = 0, mode = "character"), "child" = vector(length = 0, mode = "character"))
+  # for(i in 1:length(all.levels)) {
+  #   parents <- unique(d$rank.parent.taxid[which(d$rank == all.levels[i])])
+  #   if(length(parents) > 0) {
+  #     subtree <- data.frame(
+  #       "parent" = parents, 
+  #       "children" = rep(all.levels[i], length(parents))
+  #     )
+  #     tree <- rbind(tree, subtree)
+  #   }
+  # }
+  # tree.backup <- tree
+  # level.on <- "cellular root"
+  # rank.hierarchy <- vector(level.on)
+  # while(nrow(tree) > 0) {
+  #   tmp <- which(tree$parent == level.on)
+  #   use <- tree[level.on,]
+  #   tree <- tree[-tmp,]
+  # }
+  # 
+  # ## for all ranks which have a parent rank of 'species'
+  # ## replace rank type with 'subspecies'
+  # ## ignore 'clade' and 'no rank', which could refer to levels above species
+  # remap.to.sp <- unique(d$rank[which(d$rank.parent.taxid == "species")])
+  # remap.to.sp <- remap.to.sp[!remap.to.sp %in% c("no rank", "clade")]
+  # 
+  # do <- which(d$rank.parent.taxid == "species")
+  # d$rank[do] <- "subspecies"
+  # 
+  # do <- which(d$rank %in% remap.to.sp & (d$rank.parent.taxid == "subspecies"))
+  # d$rank[do] <- "sub.subspecies"
+  # 
+  # missing.old <- length(which(!d$rank.parent.taxid %in% ranks))
+  # missing.new <- 1 + missing.old
+  # while(missing.new != missing.old) {
+  #   missing.old <- missing.new
+  #   do <- which(!(d$rank.parent.taxid %in% ranks))
+  #   old.parent <- d$parent.taxid[do]
+  #   repl.index <- match(old.parent, d$taxid)
+  #   new.parent <- d$parent.taxid[repl.index]
+  #   new.parent.rank <- d$rank.parent.taxid[repl.index]
+  #   d$parent.taxid[do] <- new.parent
+  #   d$rank.parent.taxid[do] <- new.parent.rank
+  #   parent.rank <- d$rank[match(d$parent.taxid, d$taxid)]
+  #   missing.new <- length(which(!parent.rank %in% ranks))
+  #   # message(missing.new, '\n')
+  #   # d[d$taxid %in% check.lineage,]
+  # }
   # d.orig <- d
   ## now each taxid to parent relationship is defined with only specified ranks allowed
   ## need to reorganize into full hierarchy table now, or create network
@@ -453,33 +558,60 @@ get.pubchem.ftp <- function(
   ## for each level of rank, find parent id and parent taxid rank
   #### for each level of parent taxid rank, 
   #### insert the parent taxid in appropriate column
-  tar.rank <- which(d$rank == "species")
-  taxid.hierarchy <- matrix(nrow = length(tar.rank), ncol = length(ranks)) 
-  dimnames(taxid.hierarchy)[[2]] <- ranks
-  taxid.hierarchy[,"species"] <- as.numeric(as.vector(d$taxid[tar.rank]))
-  child.taxid <- as.numeric(d$taxid)
-  child.taxid.rank <- d$rank
-  child.taxid.ind <- match(child.taxid.rank, ranks)
-  parent.taxid <- as.numeric(d$parent.taxid)
-  parent.taxid.rank <- d$rank.parent.taxid
-  parent.taxid.ind <- match(parent.taxid.rank, ranks)
-  tab <- data.frame(child.taxid, child.taxid.rank, child.taxid.ind, parent.taxid, parent.taxid.rank, parent.taxid.ind)
-  # head(tab[do.d,], 10)
-  for(i in 1:ncol(taxid.hierarchy)) {
-    for(j in 2:ncol(taxid.hierarchy)) {
-      do.d <- which(child.taxid.ind == i & parent.taxid.ind == j)
-      do.th.row <- which(taxid.hierarchy[,i] %in% child.taxid[do.d])
-      child.vals <- match(taxid.hierarchy[do.th.row,i], child.taxid)
-      parent.vals <- parent.taxid[child.vals]
-      # length(do.th.row); length(child.vals); length(parent.vals); length(child.taxid); length(parent.taxid)
-      # if(length(rm.na) > 0) {
-      #   do.d <- do.d[-rm.na]
-      #   do.th.row <- do.th.row[-rm.na]
-      # }
-      taxid.hierarchy[do.th.row,j] <- parent.vals  # match(as.numeric(parent.taxid[do.d]), taxid.hierarchy[,i])
-    }
-  }
-  
+  # 
+  # tar.rank <- which(d$rank == "species")
+  # taxid.hierarchy <- matrix(nrow = length(tar.rank), ncol = length(ranks)) 
+  # dimnames(taxid.hierarchy)[[2]] <- ranks
+  # taxid.hierarchy[,"species"] <- as.numeric(as.vector(d$taxid[tar.rank]))
+  # child.taxid <- as.numeric(d$taxid)
+  # child.taxid.rank <- d$rank
+  # child.taxid.ind <- match(child.taxid.rank, ranks)
+  # parent.taxid <- as.numeric(d$parent.taxid)
+  # parent.taxid.rank <- d$rank.parent.taxid
+  # parent.taxid.ind <- match(parent.taxid.rank, ranks)
+  # tab <- data.frame(child.taxid, child.taxid.rank, child.taxid.ind, parent.taxid, parent.taxid.rank, parent.taxid.ind)
+  # # head(tab[do.d,], 10)
+  # sp.col <- which(ranks == "species")
+  # for(i in sp.col:ncol(taxid.hierarchy)) {
+  #   for(j in (sp.col+1):ncol(taxid.hierarchy)) {
+  #     do.d <- which(child.taxid.ind == i & parent.taxid.ind == j)
+  #     do.th.row <- which(taxid.hierarchy[,i] %in% child.taxid[do.d])
+  #     child.vals <- match(taxid.hierarchy[do.th.row,i], child.taxid)
+  #     parent.vals <- parent.taxid[child.vals]
+  #     # length(do.th.row); length(child.vals); length(parent.vals); length(child.taxid); length(parent.taxid)
+  #     # if(length(rm.na) > 0) {
+  #     #   do.d <- do.d[-rm.na]
+  #     #   do.th.row <- do.th.row[-rm.na]
+  #     # }
+  #     taxid.hierarchy[do.th.row,j] <- parent.vals  # match(as.numeric(parent.taxid[do.d]), taxid.hierarchy[,i])
+  #   }
+  # }
+  # 
+  # ## and for below species level
+  # ## change existing sub-category to subspecies rank
+  # do <- which(d$rank.parent.taxid == "species")
+  # d$rank[do] <- "subspecies"
+  # mtch <- match(d$parent.taxid[do], taxid.hierarchy[,"species"])
+  # # d$parent.taxid[do[1]]
+  # # taxid.hierarchy[270,]
+  # taxid.hierarchy[mtch, "subspecies"] <- d$taxid[do]
+  # 
+  # ## change any rank below species which is not mapped to species
+  # do <- which(d$rank %in% remap.to.sp & !(d$rank.parent.taxid == "species"))
+  # ## parent.ranks <- d$rank.parent.taxid[do]  
+  # ## table(parent.ranks)
+  # # ## essentially all map to subspecies, keep only those that do
+  # # ## one maps to genus???  
+  # do <- which(d$rank %in% remap.to.sp & (d$rank.parent.taxid == "subspecies"))
+  # d$rank[do] <- "sub.subspecies"
+  # mtch <- match(d$parent.taxid[do], taxid.hierarchy[,"subspecies"])
+  # 
+  # 
+  # 
+  # for(i in do) {
+  #   do.s <- which(d$rank[i] %in% remap.to.sp)
+  # }
+  # 
   ## tried this option for display of hierarchy as a network, where NA values were causing trouble
   ## but abandoned that - didn't seem worth the extra effort.  
   ## now replace all empty level values (NA) with a placeholder value to build a network in which 
@@ -497,36 +629,16 @@ get.pubchem.ftp <- function(
   # }
   
   taxid.hierarchy <- data.table::as.data.table(taxid.hierarchy)
-  taxid.hierarchy$root <- rep(1, nrow(taxid.hierarchy))
   data.table::setkey(taxid.hierarchy, "species")
   rm(d); gc() 
-  Sys.sleep(2)
+  rm(i, keep.going, mtch, old.unique.levs, ranks, sp.id, u.sp.id, unique.levs, tmp, old, par.id, par.lineage, sp.lineage, sub.sp, sub.sub.sp)
+  gc() 
   save(taxid.hierarchy, file = paste0(pc.directory, "/taxid.hierarchy.Rdata"))
   
   readme <- c(
     readme,
-    " - taxid.hierarchy.Rdata, is a data.table of 21 columns, each representing a taxonomic level.  Each cell contains an integer taxid value from the NCBI taxonomy database. If hierarchy isn't defined, cell will contain NA. ",
-    '\n', "  species",
-    '\n', "  genus",
-    '\n', "  subtribe",
-    '\n', "  tribe",
-    '\n', "  subfamily",
-    '\n', "  family",
-    '\n', "  superfamily",
-    '\n', "  infraorder",
-    '\n', "  suborder",
-    '\n', "  order",
-    '\n', "  superorder",
-    '\n', "  infraclass",
-    '\n', "  subclass",
-    '\n', "  class",
-    '\n', "  superclass",
-    '\n', "  subphylum",
-    '\n', "  phylum",
-    '\n', "  subkingdom",
-    '\n', "  kingdom",
-    '\n', "  superkingdom",
-    '\n', "  root",
+    " - taxid.hierarchy.Rdata, is a data.table of several columns, each representing a taxonomic level, ordered from lowest to highest.  Each cell contains an integer taxid value from the NCBI taxonomy database. If hierarchy isn't defined, cell will contain NA. ",
+    paste0(ranks, collapse = '\n', sep = ""),
     '\n', '\n'
   )
   
@@ -568,7 +680,6 @@ get.pubchem.ftp <- function(
   cid.taxid <- cid.taxid[!duplicated(cid.taxid), ]
   data.table::setkey(cid.taxid, "cid")
   rm(d); gc()
-  Sys.sleep(2)
   save(cid.taxid, file = paste0(pc.directory, "/cid.taxid.Rdata"))
   
   ## load("C:/Temp/20250718/cid.taxid.Rdata")
@@ -579,7 +690,6 @@ get.pubchem.ftp <- function(
   rm(tax.source.table)
   
   rm(cid.taxid); gc() # wait to remove cid.taxid, as we will add to it for pathway data
-  Sys.sleep(2)
   readme <- c(
     readme,
     " - cid.taxid.Rdata, is a data.table of two columns, headers 'cid'and 'taxid', each integer values. data.table is indexed by 'cid'. ", '\n', '\n'
@@ -648,7 +758,6 @@ get.pubchem.ftp <- function(
   }
   cid.pwid <- d
   rm(d); gc()
-  Sys.sleep(2)
   gc()
   data.table::setkey(cid.pwid, "cid")
   gc()
@@ -696,8 +805,6 @@ get.pubchem.ftp <- function(
   utils::download.file(url = download.url, destfile = tmp.file)
   R.utils::gunzip(tmp.file, remove = FALSE)
   gc()
-  Sys.sleep(2)
-  gc()
   
   #### sid.to.data.source.relationship
   d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)), sep="\t", fill=TRUE) 
@@ -705,8 +812,7 @@ get.pubchem.ftp <- function(
   
   names(d) <- c("sid", "source", "source.id", "cid")
   gc()
-  Sys.sleep(2)
-  
+
   # bio.cid <- bio.sources %in% d[,2]
   
   tmp <- match(d$cid, cid.preferred$cid)
@@ -716,7 +822,6 @@ get.pubchem.ftp <- function(
   }
   cid.sid <- d
   rm(d); gc()
-  Sys.sleep(2)
   data.table::setkey(cid.sid, "cid")
   save(cid.sid, file = paste0(pc.directory, "/cid.sid.Rdata"))
   
@@ -728,7 +833,6 @@ get.pubchem.ftp <- function(
   rm(all.source.table)
   
   rm(cid.sid); gc()
-  Sys.sleep(2)
   readme <- c(
     readme,
     " - cid.sid.Rdata, is a data.table of four columns, 'sid' (integer), 'source' (character), 'source.id' (character), and 'cid' (integer). data.table is indexed by 'cid'. ", '\n', '\n'
