@@ -47,15 +47,11 @@ utilizes downloaded and properly formatted local pubchem data created by 'get.pu
 \details{
 utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
 }
-\examples{
-data('cid.lca', package = "pubchem.bio")
-data('pubchem.bio', package = "pubchem.bio")
-data('taxid.hierarchy', package = "pubchem.bio")
-my.taxon.db <- pubchem.bio::build.taxon.metabolome(
-pubchem.bio.object = pubchem.bio,
-get.properties = FALSE, threads = 1, taxid = c(1))
-head(my.taxon.db)
-}
 \author{
 Corey Broeckling
+data('pubchem.bio', package = "pubchem.bio")
+my.primary.db <- build.primary.metabolome(
+pubchem.bio.object = pubchem.bio,
+get.properties = FALSE, threads = 1)
+head(my.taxon.db)
 }

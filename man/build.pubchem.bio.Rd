@@ -108,7 +108,8 @@ data('cid.monoisotopic.mass', package = "pubchem.bio")
 data('cid.title', package = "pubchem.bio")
 data('cid.cas', package = "pubchem.bio")
 data('cid.pmid.ct', package = "pubchem.bio")
-pc.bio.out <- pubchem.bio::build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE,
+data('cid.lca', package = "pubchem.bio")
+pc.bio.out <- build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE,
 get.properties = FALSE, threads = 1,
 cid.sid.object = cid.sid, cid.pwid.object = cid.pwid,
 cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
@@ -116,7 +117,7 @@ cid.formula.object = cid.formula, cid.smiles.object = cid.smiles,
 cid.inchikey.object = cid.inchikey,
 cid.monoisotopic.mass.object = cid.monoisotopic.mass,
 cid.title.object = cid.title, cid.cas.object = cid.cas,
-cid.pmid.ct.object = cid.pmid.ct)
+cid.pmid.ct.object = cid.pmid.ct, cid.lca.object = cid.lca)
 head(pc.bio.out)
 }
 \author{

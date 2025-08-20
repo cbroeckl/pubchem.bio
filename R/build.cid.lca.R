@@ -18,11 +18,13 @@
 #' @examples
 #' data('cid.taxid', package = "pubchem.bio")
 #' data('taxid.hierarchy', package = "pubchem.bio")
-#' cid.lca.out <- pubchem.bio::build.cid.lca(
+#' data('cid.pwid', package = "pubchem.bio")
+#' cid.lca.out <- build.cid.lca(
 #' tax.sources =  "LOTUS - the natural products occurrence database",
-#' use.pathways = FALSE,
+#' use.pathways = FALSE, 
 #' threads = 1, cid.taxid.object = cid.taxid,
-#' taxid.hierarchy.object = taxid.hierarchy)
+#' taxid.hierarchy.object = taxid.hierarchy,
+#' cid.pwid.object = cid.pwid)
 #' head(cid.lca.out)
 #' @export 
 #' @importFrom foreach '%dopar%'
@@ -162,7 +164,6 @@ build.cid.lca <- function(
   
   
   if(use.pathways) {
-    load(paste0(pc.directory, "/cid.pwid.Rdata"))
     cid.pwid <- cid.pwid
     data.table::setkey(cid.pwid, "cid")
     sp.spec <- which(!is.na(cid.pwid$taxid))
@@ -238,7 +239,7 @@ build.cid.lca <- function(
   results <- foreach::foreach(i = 1:(length(cid.list)), .errorhandling = "pass") %dopar% {
   # results <- foreach::foreach(i = 1:13000, .errorhandling = "pass") %dopar% {  
     
-    require(data.table)
+    requireNamespace('data.table')
     taxids <- unique(cid.taxid$taxid[cid.taxid$cid == cid.list[[i]]])
     if(any(is.na(taxids))) {taxids <- taxids[!is.na(taxids)]}
     if(length(taxids) == 0) {
@@ -408,7 +409,8 @@ build.cid.lca <- function(
     save(cid.lca, file = paste0(out.dir, "/cid.lca.Rdata"))
   }
   
-  
+  parallel::stopCluster(cl)
+  rm(cl)
   return(cid.lca)
 }
 

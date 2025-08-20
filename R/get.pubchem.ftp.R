@@ -448,6 +448,9 @@ get.pubchem.ftp <- function(
     rm(cl)
   }) 
   `%dopar%` <- foreach::`%dopar%`
+  j <- NULL
+  x <- NULL
+  i <- NULL
   
   sp.lineage <- foreach::foreach(j = 1:length(sp.id)) %dopar% {
     lineage <- c(sp.id[j], sapply(1:length(par.id), FUN = function(x) par.id[[x]][j]))
@@ -881,6 +884,8 @@ get.pubchem.ftp <- function(
   
   message(' -- finished', '\n')
   
+  parallel::stopCluster(cl)
+  rm(cl)
   return(readme)
 }
 

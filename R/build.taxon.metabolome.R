@@ -20,7 +20,7 @@
 #' data('cid.lca', package = "pubchem.bio")
 #' data('pubchem.bio', package = "pubchem.bio")
 #' data('taxid.hierarchy', package = "pubchem.bio")
-#' my.taxon.db <- pubchem.bio::build.taxon.metabolome(
+#' my.taxon.db <- build.taxon.metabolome(
 #' pubchem.bio.object = pubchem.bio,
 #' cid.lca.object = cid.lca, taxid.hierarchy.object = taxid.hierarchy,
 #' get.properties = FALSE, threads = 1, taxid = c(1))
@@ -50,6 +50,8 @@ build.taxon.metabolome <- function(
     taxid.hierarchy.object = NULL,
     output.directory = NULL
 ) {
+  
+  # loadNamespace("data.table")
   
   out.dir <- pc.directory
   if(is.null(out.dir)) out.dir <- output.directory
@@ -96,7 +98,7 @@ build.taxon.metabolome <- function(
 
   ## store maximum taxid value so we can use it later for eliminating NA values for fast matching.
   first.tax.col <- grep("species", names(cid.lca))[1]
-  tmp.df <- as.numeric(as.matrix(cid.lca[,1:ncol(cid.lca), with = FALSE]))
+  tmp.df <- as.numeric(as.matrix(cid.lca[,1:ncol(cid.lca)]))
   max.taxid <- max(tmp.df, na.rm = TRUE)
   rm(tmp.df); gc()
   
@@ -153,14 +155,16 @@ build.taxon.metabolome <- function(
       # tmp <- match(pc.bio$cid, cid.lca$cid)
       ## only calculate similarities when there is at least one !NA value (would be in first column, if present)
       do.sim <- which(!is.na(tmp[,1]))
-      
+      j <- NULL
+      cid.lca.df <- data.frame(cid.lca)
       results <- foreach::foreach(j = do.sim) %dopar% {
         tryCatch({
-          library(data.table)
+          # requireNamespace('data.table', quietly = TRUE)
           tmp.j <- tmp[j,]
           tmp.j <- tmp.j[!is.na(tmp.j)]
           mtchs <- sapply(1:length(tmp.j), FUN = function(k) {
-            min(which(taxid.vector %in% cid.lca[tmp.j[k], th.ind, with = FALSE]))
+            tmp.k <- cid.lca.df[tmp.j[k], th.ind]
+            min(which(taxid.vector %in% tmp.k))
           })
           mtch.col <- min(mtchs)
           mtch.col
@@ -235,7 +239,7 @@ build.taxon.metabolome <- function(
     message("keeping ", length(keep), " metabolites", '\n')
     out <- pc.bio[keep, ]
     if(nrow(out) == 0) {
-      error("no metabolites found for taxid(s):", paste0(taxid, collapse = ", "))
+      stop("no metabolites found for taxid(s):", paste0(taxid, collapse = ", "))
     }
   } else {
     
@@ -285,13 +289,14 @@ build.taxon.metabolome <- function(
   }
   
   
-  
-  return(out)
-  
+  parallel::stopCluster(cl)
+  rm(cl)
+
   if(!is.null(out.dir)) {
     save(out, file = paste0(out.dir, "/", db.name, ".Rdata"))
   }
   
+  return(out)
 }
 
 # pc.bio.sub <- build.taxon.metabolome(taxid = c(4072, 4107, 4047), pc.directory = "C:/Temp/20250703", get.properties = FALSE, full.scored = TRUE)

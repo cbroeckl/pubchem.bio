@@ -13,7 +13,7 @@ build.cid.lca(
   cid.taxid.object = NULL,
   taxid.hierarchy.object = NULL,
   cid.pwid.object = NULL,
-  min.taxid.table.length = 2,
+  min.taxid.table.length = 3,
   output.directory = NULL
 )
 }
@@ -47,35 +47,76 @@ utilizes downloaded and properly formatted local pubchem data created by 'get.pu
 \details{
 utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' function
 
-Natural products are often reported as being synthesized by an organism which is in symbiosis with a second organism.  The taxonomic assignment is sometimes both organisms, even if neither
-would create that product in isolation, or if only one is actually capable of producing that metabolite.  In these situations, the LCA approach can break down.  For example, if a bacteria
-is in symbiosis with an algae, and each is listed as producing the metabolite, the LCA will be assigned as '1' - the root of all biology, since we have to go back to the base of the
-taxonomic tree to find the common taxonomic ancestor of prokaryotes and eukaryotes.  In this example, there are two unique species, genera, families, orders, etc listed in the full taxonomic
-hierarchy for this metabolite.  The 'min.unique.taxid.ct' variable controls sensitivity to this phenomenon in assigning LCA.  The number of unique taxa which are mapped to each metabolite
-varies by taxonomic level.  it may map to two species, but only one genus.  in that case, the genus is assigned as the LCA.  However, if the metabolite maps to two unique species,
-two unique genera, two unique familes, two unique kingdoms, and one unique domain, it seems clear that it would inappropriate to assign the LCA as '1', which would mark that metabolite as
-'conserved' or 'primary.'  What makes more intuitive sense is to conclude that there are likely extenuating circumstances which have resulted from unique biology.  for example, Ceratodictyol B
-is reported from Haliclona cymaeformis and Ceratodictyon spongiosum, one of which is a red algal symbiont of the other. At each taxonomic level, there are either 0, 1, or 2 unique taxonomy IDs.
-0 unique levels is uninteresting - that just reflects that there is no taxonomy assigned for those lineages at that level.  '1' is also relatively uninteresting - we know there is always going
-to be a level that returns one unique taxonomy ID - the 'root' level, which is always 1.  What is more intersting is the number of unique levels of the number of unique taxonomy ids.  in the
-case of Ceratodictyol B, the only other value is '2'.  There are 2 unique taxonomy IDs at each level species, genus, order, class, and phylum.  So there are five taxonomic levels that have
-exactly 2 unique taxonomy IDs, and there are no taxonomic levels which have more than 2 unique taxids.  We will call this the taxid.ct.table length, where the taxid.ct.table is the table
-of frequencies of the number of unique taxids at each taxonomic level.  the length is the number of unique values when IGNORING '0' or '1'.  When the taxid.ct.table length is less than or equal
-to min.taxid.table.length, the lca is calcluated within the lowest taxonomic level that has the most frequent unique taxonomy ID count.  For the Ceratodictyol B example, this would mean that we
-would find that '2' was the most common number of unique taxids reported, so we find that the lowest taxonomic level which reports two unique taxids is 'species'.  LCA is there for assigned
-to those two species.  If however, there were two Ceratodicyon spp reported, then the species level would have 3 unique taxids, and there would be 4 levels (rather than five) which have 2
-unique taxids.  the lowest taxonomic level with 2 unique taxids, the most frequent count observed, would now be 'genus', so LCA would be assigned for within each level of 'genus'.  This would
-mean that the first LCA would be assigned to the Ceratodicyon genus, since there are multiple Ceratodicyon species reported, and then a second LCA would be assigned to the
-Haliclona cymaeformis species.  Sorry it is so complicated.  Life is complicated.
+Some metabolism is highly conserved - all species perform those reactions.
+Other metabolism is highly specific - there is one know species to produce
+that metabolite. Sometimes, it is in between.  The lowest common ancestor
+approach allows us to analyze these patterns and put them to use to
+generalize metabolites for metabolomics across species.
+
+Biology is more complex than that though.  Natural products are often
+reported as being synthesized by an organism which is in symbiosis with
+a second organism.  The taxonomic assignment is sometimes both organisms,
+even if neither would create that product in isolation, or if only one is
+actually capable of producing that metabolite.  In these situations, the
+LCA approach can break down.  For example, if a bacteria is in symbiosis
+with an algae, and each is listed as producing the metabolite, the LCA will
+be assigned as '1' - the root of all biology, since we have to go back to
+the base of the taxonomic tree to find the common taxonomic ancestor of
+prokaryotes and eukaryotes.  In this example, there are two unique species,
+genera, families, orders, etc listed in the full taxonomic
+hierarchy for this metabolite.
+
+The 'min.unique.taxid.ct' variable controls
+sensitivity to this phenomenon in assigning LCA.  The number of unique taxa
+which are mapped to each metabolite varies by taxonomic level.  it may map
+to two species, but only one genus.  in that case, the genus is assigned as
+the LCA.  However, if the metabolite maps to two unique species,
+two unique genera, two unique families, two unique kingdoms, and one unique
+domain, we should ask ourselves whether this sparse patterns supports that
+this metabolite should be marked as conserved' or 'primary.'  What makes
+more intuitive sense is to conclude that there are may be extenuating
+circumstances which have resulted from unique biology.  For example,
+Ceratodictyol B is reported from \emph{Haliclona cymaeformis} and \emph{Ceratodictyon}
+\emph{spongiosum}, one of which is a red algal symbiont of the other. At each
+taxonomic level, there are either 0, 1, or 2 unique taxonomy IDs. 0 unique
+levels is uninteresting - that just reflects that there is no taxonomy
+assigned for those lineages at that level.
+
+What is more interesting is the number of unique levels of the number of
+unique taxonomy ids.  in the case of Ceratodictyol B, the only other value is
+'2'.  There are 2 unique taxonomy IDs at each level species, genus, order,
+class, and phylum.  So there are five taxonomic levels that have exactly 2
+unique taxonomy IDs, and there are no taxonomic levels which have more than 2
+unique taxids.  We will call this the taxid.ct.table length, where the
+taxid.ct.table is the table of frequencies of the number of unique taxids at
+each taxonomic level.  the length is the number of unique values when
+IGNORING '0' or '1'.  When the taxid.ct.table length is less than or equal
+to min.taxid.table.length, the lca is calcluated within the lowest taxonomic
+level that has the most frequent unique taxonomy ID count.
+
+For the Ceratodictyol B example, this would mean that we would find that '2'
+was the most common number of unique taxids reported, so we find that the
+lowest taxonomic level which reports two unique taxids is 'species'.  LCA is
+for assigned to those two species.  If however, there were two \emph{Ceratodicyon}
+spp reported, then the species level would have 3 unique taxids, and there
+would be 4 levels (rather than five) which have 2unique taxids.  the lowest
+taxonomic level with 2 unique taxids, the most frequent count observed,
+would now be 'genus', so LCA would be assigned for within each level of
+'genus'.  This would mean that the first LCA would be assigned to the
+\emph{Ceratodicyon} genus, since there are multiple \emph{Ceratodicyon} species
+reported, and then a second LCA would be assigned to the \emph{Haliclona}
+\emph{cymaeformis} species.  Sorry it is so complicated.  Life is complicated.
 }
 \examples{
 data('cid.taxid', package = "pubchem.bio")
 data('taxid.hierarchy', package = "pubchem.bio")
-cid.lca.out <- pubchem.bio::build.cid.lca(
+data('cid.pwid', package = "pubchem.bio")
+cid.lca.out <- build.cid.lca(
 tax.sources =  "LOTUS - the natural products occurrence database",
-use.pathways = FALSE,
+use.pathways = FALSE, 
 threads = 1, cid.taxid.object = cid.taxid,
-taxid.hierarchy.object = taxid.hierarchy)
+taxid.hierarchy.object = taxid.hierarchy,
+cid.pwid.object = cid.pwid)
 head(cid.lca.out)
 }
 \author{

@@ -12,16 +12,13 @@
 #' @param keep.primary.only logical.  If TRUE, only biological metabolites scored as 'primary' are returned. If FALSE, full dataset of metabolites is returned, with new logical column, 'primary' 
 #' @param min.tax.ct integer.  if assigned an integer value, only those metabolites with at least min.tax.ct unique taxonomy assigments are considered 'primary'.  default = 3. 
 #' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
-#' @examples
-#' data('cid.lca', package = "pubchem.bio")
-#' data('pubchem.bio', package = "pubchem.bio")
-#' data('taxid.hierarchy', package = "pubchem.bio")
-#' my.taxon.db <- pubchem.bio::build.taxon.metabolome(
-#' pubchem.bio.object = pubchem.bio,
-#' get.properties = FALSE, threads = 1, taxid = c(1))
-#' head(my.taxon.db)
+
 #' @author Corey Broeckling
-#' 
+#' data('pubchem.bio', package = "pubchem.bio")
+#' my.primary.db <- build.primary.metabolome(
+#' pubchem.bio.object = pubchem.bio,
+#' get.properties = FALSE, threads = 1)
+#' head(my.taxon.db)
 #' @export
 #' 
 #' 
@@ -76,7 +73,7 @@ build.primary.metabolome <- function(
     primary[keep] <- TRUE
     out$primary <- primary
   }
-  
+  i <- NULL
   if(get.properties) {
     message(" - calclulating rcdk properties ",  format(Sys.time()), '\n')
     cid.list <- as.list(out$cid)
@@ -105,13 +102,15 @@ build.primary.metabolome <- function(
     )
   }
   
-  
-  
-  return(out)
-  
   if(!is.null(out.dir)) {
     save(out, file = paste0(out.dir, "/", db.name, ".Rdata"))
   }
+  
+  parallel::stopCluster(cl)
+  rm(cl)
+  return(out)
+  
+
   
 }
 

@@ -9,6 +9,7 @@ build.taxon.metabolome(
   taxid = c(),
   get.properties = FALSE,
   full.scored = TRUE,
+  keep.scored.only = FALSE,
   aggregation.function = max,
   threads = 8,
   db.name = "custom.metabolome",
@@ -19,8 +20,7 @@ build.taxon.metabolome(
   pubchem.bio.object = NULL,
   cid.lca.object = NULL,
   taxid.hierarchy.object = NULL,
-  output.directory = NULL,
-  keep.scored.only = FALSE
+  output.directory = NULL
 )
 }
 \arguments{
@@ -31,6 +31,8 @@ build.taxon.metabolome(
 \item{get.properties}{logical. if TRUE, will return rcdk calculated properties:  XLogP, TPSA, HBondDonorCount and HBondAcceptorCount.}
 
 \item{full.scored}{logincal.  default = FALSE.  When false, only metabolites which map to the taxid(s) are returned.  When TRUE, all metabolites are returned, with scores assigned based on the distance of non-mapped metabolites to the root node.  i.e. specialized metabolites from distantly related species are going to be scored at or near zero, specialized metabolites of mores similar species higher, and more conserved metabolites will score higher than ore specialized.}
+
+\item{keep.scored.only}{logical.  If TRUE, biological metabolites with NA for the taxonomy score are removed before returning.}
 
 \item{aggregation.function}{function. default = max.  can use mean, median, min, etc, or a custom function.  Defines how the aggregate score will be calculated when multiple taxids are used.}
 
@@ -47,8 +49,6 @@ build.taxon.metabolome(
 \item{taxid.hierarchy.object}{R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory}
 
 \item{output.directory}{directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved.}
-
-\item{keep.scored.only}{logical.  If TRUE, biological metabolites with NA for the taxonomy score are removed before returning.}
 }
 \value{
 a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
@@ -63,7 +63,7 @@ utilizes downloaded and properly formatted local pubchem data created by 'get.pu
 data('cid.lca', package = "pubchem.bio")
 data('pubchem.bio', package = "pubchem.bio")
 data('taxid.hierarchy', package = "pubchem.bio")
-my.taxon.db <- pubchem.bio::build.taxon.metabolome(
+my.taxon.db <- build.taxon.metabolome(
 pubchem.bio.object = pubchem.bio,
 cid.lca.object = cid.lca, taxid.hierarchy.object = taxid.hierarchy,
 get.properties = FALSE, threads = 1, taxid = c(1))

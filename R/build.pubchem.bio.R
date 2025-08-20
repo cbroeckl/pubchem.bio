@@ -42,7 +42,8 @@
 #' data('cid.title', package = "pubchem.bio")
 #' data('cid.cas', package = "pubchem.bio")
 #' data('cid.pmid.ct', package = "pubchem.bio")
-#' pc.bio.out <- pubchem.bio::build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE,
+#' data('cid.lca', package = "pubchem.bio")
+#' pc.bio.out <- build.pubchem.bio(use.pathways = FALSE, use.parent.cid = FALSE,
 #' get.properties = FALSE, threads = 1,
 #' cid.sid.object = cid.sid, cid.pwid.object = cid.pwid,
 #' cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
@@ -50,9 +51,9 @@
 #' cid.inchikey.object = cid.inchikey,
 #' cid.monoisotopic.mass.object = cid.monoisotopic.mass,
 #' cid.title.object = cid.title, cid.cas.object = cid.cas,
-#' cid.pmid.ct.object = cid.pmid.ct)
+#' cid.pmid.ct.object = cid.pmid.ct, cid.lca.object = cid.lca)
 #' head(pc.bio.out)
-#' @export 
+#' @export
 #' 
 #' 
 build.pubchem.bio <- function(
@@ -250,7 +251,7 @@ build.pubchem.bio <- function(
     cid.lca <- cid.lca.object
   }
 
-  data.table::setkey(cid.lca, "cid")
+  # data.table::setkey(cid.lca, "cid")
   m <- match(cid, cid.lca$cid)
   lca <- cid.lca$lca[m]
   lca.level <- cid.lca$lca.level[m]
@@ -465,8 +466,9 @@ build.pubchem.bio <- function(
       out,
       results.df
     )
+    message(" - rcdk properties completed ", format(Sys.time()), '\n')
   }
-  message(" - rcdk properties completed ", format(Sys.time()), '\n')
+  
   pc.bio <- out
   rm(out)
   gc()
@@ -475,6 +477,8 @@ build.pubchem.bio <- function(
     save(pc.bio, file = paste0(out.dir, "/pc.bio.Rdata"))
   }
   
+  parallel::stopCluster(cl)
+  rm(cl)
   return(pc.bio)
 }
 ## pc.bio <- build.pubchem.bio(pc.directory = "R:/RSTOR-PMF/Software/db/met.db/20241216")

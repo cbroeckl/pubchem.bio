@@ -4,7 +4,12 @@
 \alias{get.pubchem.ftp}
 \title{get.pubchem.ftp}
 \usage{
-get.pubchem.ftp(pc.directory = NULL, timeout = 50000, rm.tmp.files = TRUE)
+get.pubchem.ftp(
+  pc.directory = NULL,
+  timeout = 50000,
+  rm.tmp.files = TRUE,
+  threads = 2
+)
 }
 \arguments{
 \item{pc.directory}{character. directory to which data will be saved}
@@ -12,6 +17,8 @@ get.pubchem.ftp(pc.directory = NULL, timeout = 50000, rm.tmp.files = TRUE)
 \item{timeout}{numeric.  timeout setting for FTP download.  setting options(timeout) value too small will generate errors for large files. default = 50000.}
 
 \item{rm.tmp.files}{logical.  should temporary files be removed after completion of download and parsing?  Default = TRUE.}
+
+\item{threads}{integer. the number of parallel threads to be used by foreach \%dopar\% during processing of taxonomy hierarchy data.}
 }
 \value{
 nothing.  all data are saved to disk for later loading
