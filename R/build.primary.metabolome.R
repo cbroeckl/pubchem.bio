@@ -105,9 +105,8 @@ build.primary.metabolome <- function(
   if(!is.null(out.dir)) {
     save(out, file = paste0(out.dir, "/", db.name, ".Rdata"))
   }
+
   
-  parallel::stopCluster(cl)
-  rm(cl)
   return(out)
   
 

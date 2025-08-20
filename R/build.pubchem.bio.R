@@ -476,9 +476,8 @@ build.pubchem.bio <- function(
   if(!is.null(out.dir)) {
     save(pc.bio, file = paste0(out.dir, "/pc.bio.Rdata"))
   }
+
   
-  parallel::stopCluster(cl)
-  rm(cl)
   return(pc.bio)
 }
 ## pc.bio <- build.pubchem.bio(pc.directory = "R:/RSTOR-PMF/Software/db/met.db/20241216")

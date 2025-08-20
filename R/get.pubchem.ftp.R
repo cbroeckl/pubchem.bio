@@ -884,8 +884,7 @@ get.pubchem.ftp <- function(
   
   message(' -- finished', '\n')
   
-  parallel::stopCluster(cl)
-  rm(cl)
+
   return(readme)
 }
 

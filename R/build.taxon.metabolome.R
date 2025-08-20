@@ -288,9 +288,6 @@ build.taxon.metabolome <- function(
     )
   }
   
-  
-  parallel::stopCluster(cl)
-  rm(cl)
 
   if(!is.null(out.dir)) {
     save(out, file = paste0(out.dir, "/", db.name, ".Rdata"))

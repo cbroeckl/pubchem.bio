@@ -408,9 +408,6 @@ build.cid.lca <- function(
   if(!is.null(out.dir)) {
     save(cid.lca, file = paste0(out.dir, "/cid.lca.Rdata"))
   }
-  
-  parallel::stopCluster(cl)
-  rm(cl)
   return(cid.lca)
 }
 
