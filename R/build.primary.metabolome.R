@@ -46,6 +46,8 @@ build.primary.metabolome <- function(
     stop("if you opt to note define the pc.directory, you must provide ALL of 'pubchem.bio.object', 'taxid.hierarchy.object', 'pubchem.bio.object' variables", '\n')
   }
   
+  pc.bio <- NULL
+  
   if(is.null(pubchem.bio.object)) {
     load(paste0(pc.directory, "/pc.bio.Rdata"))
     pubchem.bio <- pc.bio
