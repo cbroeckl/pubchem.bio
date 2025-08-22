@@ -48,23 +48,16 @@ build.primary.metabolome <- function(
   
   if(is.null(pubchem.bio.object)) {
     load(paste0(pc.directory, "/pc.bio.Rdata"))
-    pc.bio <- pc.bio
+    pubchem.bio <- pc.bio
   } else {
-    pc.bio <- pubchem.bio.object
+    pubchem.bio <- pubchem.bio.object
   }
   
   `%dopar%` <- foreach::`%dopar%`
   
-  out <- pc.bio
-  
-  cl <- parallel::makeCluster(threads)
-  doParallel::registerDoParallel(cl)
-  base::on.exit({
-    parallel::stopCluster(cl)
-    rm(cl)
-  }) 
-  
-  keep <- (out$lca == 1 & out$taxonomy.ct >= min.tax.ct)
+  out <- pubchem.bio
+
+  keep <- which(out$lca == 1 & out$taxonomy.ct >= min.tax.ct)
   
   if(keep.primary.only) {
     out <- out[keep,]
@@ -75,7 +68,16 @@ build.primary.metabolome <- function(
   }
   i <- NULL
   if(get.properties) {
+    
     message(" - calclulating rcdk properties ",  format(Sys.time()), '\n')
+    
+    cl <- parallel::makeCluster(threads)
+    doParallel::registerDoParallel(cl)
+    base::on.exit({
+      parallel::stopCluster(cl)
+      rm(cl)
+    }) 
+    
     cid.list <- as.list(out$cid)
     sm.list <- as.list(out$smiles)
     results <- foreach::foreach(i = 1:(length(cid.list))) %dopar% {
@@ -105,11 +107,8 @@ build.primary.metabolome <- function(
   if(!is.null(out.dir)) {
     save(out, file = paste0(out.dir, "/", db.name, ".Rdata"))
   }
-
   
   return(out)
-  
-
   
 }
 

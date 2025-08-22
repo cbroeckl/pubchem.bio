@@ -61,63 +61,69 @@ get.pubchem.ftp <- function(
   ########################
   ## CID to Preferred CID
   ########################
-  download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Preferred.gz"
-  tmp.file <- paste0(tmp.dir, basename(download.url))
-  utils::download.file(url = download.url, destfile = tmp.file)
-  R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
-  # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
   
-  #### cid.to.preferred.cid.relationship
-  d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
-  names(d) <- c("cid", "preferred.cid")
-  data.table::setkey(d, "cid")
-  cid.preferred <- d
-  rm(d)
-  data.table::setkey(cid.preferred, "cid")
-  save(cid.preferred, file = paste0(pc.directory, "/cid.preferred.Rdata"))
-  ### this is the only dataset we leave open, all others are immediately removed after saving
-  ### replace CID with preferred CID for all datasets
-  
-  readme <- c(
-    readme,
-    " - cid.preferred.Rdata, is a data.table of two columns, headers 'cid' and 'preferred.cid', each integer values. data.table is indexed by 'cid'. ", '\n',
-    "   NOTE THAT: for all values in all downloaded datasets, FTP available CID values for all associations have been replaced with their preferred CIDs, based on this table. ", '\n', '\n'
-  )
-  
+  if(file.exists(paste0(pc.directory, "/cid.preferred.Rdata"))) {load(paste0(pc.directory, "/cid.preferred.Rdata"))} else {
+    download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Preferred.gz"
+    tmp.file <- paste0(tmp.dir, basename(download.url))
+    utils::download.file(url = download.url, destfile = tmp.file)
+    R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
+    # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
+    
+    #### cid.to.preferred.cid.relationship
+    d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
+    names(d) <- c("cid", "preferred.cid")
+    data.table::setkey(d, "cid")
+    cid.preferred <- d
+    rm(d)
+    data.table::setkey(cid.preferred, "cid")
+    save(cid.preferred, file = paste0(pc.directory, "/cid.preferred.Rdata"))
+    ### this is the only dataset we leave open, all others are immediately removed after saving
+    ### replace CID with preferred CID for all datasets
+    
+    readme <- c(
+      readme,
+      " - cid.preferred.Rdata, is a data.table of two columns, headers 'cid' and 'preferred.cid', each integer values. data.table is indexed by 'cid'. ", '\n',
+      "   NOTE THAT: for all values in all downloaded datasets, FTP available CID values for all associations have been replaced with their preferred CIDs, based on this table. ", '\n', '\n'
+    )
+  }
   
   ########################
   ## CID to parent CID
   ########################
-  download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Parent.gz"
-  tmp.file <- paste0(tmp.dir, basename(download.url))
-  utils::download.file(url = download.url, destfile = tmp.file)
-  R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
-  # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
-  
-  #### cid.to.parent.relationship
-  d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
-  names(d) <- c("cid", "parent.cid")
-  data.table::setkey(d, "cid")
-  tmp <- match(d$cid, cid.preferred$cid)
-  use <- which(!is.na(tmp))
-  if(length(use)>0) {
-    d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+  if(file.exists(paste0(pc.directory, "/cid.parent.Rdata"))) {
+    
+  } else {
+    download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Parent.gz"
+    tmp.file <- paste0(tmp.dir, basename(download.url))
+    utils::download.file(url = download.url, destfile = tmp.file)
+    R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
+    # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
+    
+    #### cid.to.parent.relationship
+    d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
+    names(d) <- c("cid", "parent.cid")
+    data.table::setkey(d, "cid")
+    tmp <- match(d$cid, cid.preferred$cid)
+    use <- which(!is.na(tmp))
+    if(length(use)>0) {
+      d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+    }
+    cid.parent <- d
+    rm(d)
+    data.table::setkey(cid.parent, "cid")
+    save(cid.parent, file = paste0(pc.directory, "/cid.parent.Rdata"))
+    rm(cid.parent)
+    gc()
+    
+    readme <- c(
+      readme,
+      " - cid.parent.Rdata, is a data.table of two columns, headers 'cid' and 'parent.cid', each integer values. data.table is indexed by 'cid'. ", '\n', '\n'
+    )
   }
-  cid.parent <- d
-  rm(d)
-  data.table::setkey(cid.parent, "cid")
-  save(cid.parent, file = paste0(pc.directory, "/cid.parent.Rdata"))
-  rm(cid.parent)
-  gc()
-
-  readme <- c(
-    readme,
-    " - cid.parent.Rdata, is a data.table of two columns, headers 'cid' and 'parent.cid', each integer values. data.table is indexed by 'cid'. ", '\n', '\n'
-  )
-  
   ########################
   ## CID to InChIKey
   ########################
+  if(!file.exists(paste0(pc.directory, "/cid.inchi.Rdata"))) {
   download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-InChI-Key.gz"
   tmp.file <- paste0(tmp.dir, basename(download.url))
   utils::download.file(url = download.url, destfile = tmp.file)
@@ -137,22 +143,24 @@ get.pubchem.ftp <- function(
   data.table::setkey(cid.inchikey, "cid")
   save(cid.inchikey, file = paste0(pc.directory, "/cid.inchikey.Rdata"))
   rm(cid.inchikey);   gc()
-
+  
   cid.inchi <- d[,c(1,2)]
   data.table::setkey(cid.inchi, "cid")
   save(cid.inchi, file = paste0(pc.directory, "/cid.inchi.Rdata"))
   rm(cid.inchi); gc()
   rm(d); gc()
-
+  }
   readme <- c(
     readme,
     " - cid.inchikey.Rdata, is a data.table of two columns, headers 'cid'and 'inchikey', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n',
     " - cid.inchi.Rdata, is a data.table of two columns, headers 'cid'and 'inchi', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
   )
   
+  
   ########################
   ## CID to SMILES
   ########################
+  if(!file.exists(paste0(pc.directory, "/cid.smiles.Rdata"))) {
   download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-SMILES.gz"
   tmp.file <- paste0(tmp.dir, basename(download.url))
   utils::download.file(url = download.url, destfile = tmp.file)
@@ -173,15 +181,17 @@ get.pubchem.ftp <- function(
   data.table::setkey(cid.smiles, "cid")
   save(cid.smiles, file = paste0(pc.directory, "/cid.smiles.Rdata"))
   rm(cid.smiles); gc()
-
+  }
   readme <- c(
     readme,
     " - cid.smiles.Rdata, is a data.table of two columns, headers 'cid'and 'smiles', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
   )
   
+  
   ########################
   ## CID to Title
   ########################
+  if(!file.exists(paste0(pc.directory, "/cid.title.Rdata"))) {
   download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Title.gz"
   tmp.file <- paste0(tmp.dir, basename(download.url))
   utils::download.file(url = download.url, destfile = tmp.file)
@@ -196,13 +206,14 @@ get.pubchem.ftp <- function(
   use <- which(!is.na(tmp))
   if(length(use)>0) {
     d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  }  
+  }
   cid.title <- d
   rm(d); gc()
   data.table::setkey(cid.title, "cid")
   save(cid.title, file = paste0(pc.directory, "/cid.title.Rdata"))
   rm(cid.title); gc
-
+  
+  }
   readme <- c(
     readme,
     " - cid.title.Rdata, is a data.table of two columns, headers 'cid'and 'title', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
@@ -211,6 +222,8 @@ get.pubchem.ftp <- function(
   ########################
   ## CID to PMID
   ########################
+  if(!file.exists(paste0(pc.directory, "/cid.pmid.ct.Rdata"))) {
+
   download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-PMID.gz"
   tmp.file <- paste0(tmp.dir, basename(download.url))
   utils::download.file(url = download.url, destfile = tmp.file)
@@ -226,7 +239,7 @@ get.pubchem.ftp <- function(
   use <- which(!is.na(tmp))
   if(length(use)>0) {
     d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  } 
+  }
   cid.pmid <- d
   rm(d); gc()
   data.table::setkey(cid.pmid, "cid")
@@ -240,7 +253,8 @@ get.pubchem.ftp <- function(
   save(cid.pmid.ct, file = paste0(pc.directory, "/cid.pmid.ct.Rdata"))
   
   rm(cid.pmid); gc()
-
+  
+  }
   readme <- c(
     readme,
     " - cid.pmid.Rdata, is a data.table of two columns, headers 'cid'and 'pmid', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n',
@@ -250,6 +264,7 @@ get.pubchem.ftp <- function(
   ########################
   ## CID to Mass
   ########################
+  if(!file.exists(paste0(pc.directory, "/cid.accurate.mass.Rdata"))) {
   download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Mass.gz"
   tmp.file <- paste0(tmp.dir, basename(download.url))
   utils::download.file(url = download.url, destfile = tmp.file)
@@ -264,7 +279,7 @@ get.pubchem.ftp <- function(
   use <- which(!is.na(tmp))
   if(length(use)>0) {
     d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  } 
+  }
   
   cid.formula <- d[,c(1,2)]
   data.table::setkey(cid.formula, "cid")
@@ -279,7 +294,7 @@ get.pubchem.ftp <- function(
   save(cid.accurate.mass, file = paste0(pc.directory, "/cid.accurate.mass.Rdata"))
   rm(cid.accurate.mass); gc()
   rm(d); gc()
-
+  }
   readme <- c(
     readme,
     " - cid.formula.Rdata, is a data.table of two columns, headers 'cid'and 'formula', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n',
@@ -289,6 +304,7 @@ get.pubchem.ftp <- function(
   ########################
   ## CID to MeSH name
   ########################
+  if(!file.exists(paste0(pc.directory, "/cid.mesh.name.Rdata"))) {
   download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-MeSH"
   tmp.file <- paste0(tmp.dir, basename(download.url))
   utils::download.file(url = download.url, destfile = tmp.file)
@@ -314,18 +330,22 @@ get.pubchem.ftp <- function(
   use <- which(!is.na(tmp))
   if(length(use)>0) {
     d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  } 
+  }
   cid.mesh.name <- d
   rm(d)
   data.table::setkey(cid.mesh.name, "cid")
   save(cid.mesh.name, file = paste0(pc.directory, "/cid.mesh.name.Rdata"))
+  
+  }
+  
   readme <- c(
     readme,
     " - cid.mesh.name.Rdata, is a data.table of two columns, headers 'cid'and 'mesh.name', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
   )
   
   
-  #### separate file for mesh name to mesh function
+  #### must use separate file for mesh name to mesh function
+  if(!file.exists(paste0(pc.directory, "/cid.mesh.function.Rdata"))) {
   download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/MeSH-Pharm"
   tmp.file <- paste0(tmp.dir, basename(download.url))
   utils::download.file(url = download.url, destfile = tmp.file)
@@ -349,7 +369,7 @@ get.pubchem.ftp <- function(
   use <- which(!is.na(tmp))
   if(length(use)>0) {
     d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  } 
+  }
   mesh.name.mesh.function <- d
   rm(d)
   
@@ -360,7 +380,7 @@ get.pubchem.ftp <- function(
   use <- which(!is.na(tmp))
   if(length(use)>0) {
     d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  } 
+  }
   cid.mesh.function <- d
   cid.mesh.function <- data.table::as.data.table((cid.mesh.function))
   cid.mesh.function <- cid.mesh.function[,c(2:3)]
@@ -370,22 +390,27 @@ get.pubchem.ftp <- function(
   save(cid.mesh.function, file = paste0(pc.directory, "/cid.mesh.function.Rdata"))
   rm(mesh.name.mesh.function); gc()
   rm(cid.mesh.name); gc()
+  
+  }
+  
   readme <- c(
     readme,
     " - cid.mesh.function.Rdata, is a data.table of two columns, headers 'cid'and 'mesh.function', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
   )
-
+  
   
   ########################
   ## TaxID to taxonomy
   ########################
   download.url <- "https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz"
   tmp.file <- paste0(tmp.dir, download.url)
-  utils::download.file(url = download.url, destfile = paste0(tmp.dir, basename(tmp.file)))
-  R.utils::gunzip(paste0(tmp.dir, basename(tmp.file)), remove = FALSE, 
-                  destname = gsub(".gz", "", paste0(tmp.dir, basename(tmp.file))))
-  utils::untar(gsub(".gz", "", paste0(tmp.dir, basename(tmp.file))), exdir = tmp.dir)
-  
+  if(!file.exists(paste0(tmp.dir, basename(tmp.file)))) {
+    utils::download.file(url = download.url, destfile = paste0(tmp.dir, basename(tmp.file)))
+    R.utils::gunzip(paste0(tmp.dir, basename(tmp.file)), remove = FALSE, 
+                    destname = gsub(".gz", "", paste0(tmp.dir, basename(tmp.file))))
+    utils::untar(gsub(".gz", "", paste0(tmp.dir, basename(tmp.file))), exdir = tmp.dir)
+  }
+
   #### taxid.to.rank.relationship
   suppressWarnings(d <- readLines(
     paste0(tmp.dir, "nodes.dmp"))
@@ -402,16 +427,10 @@ get.pubchem.ftp <- function(
   
   d <- data.table::as.data.table(d)
   data.table::setkey(d, "taxid")
-
-  ranks <- c( "sub.subspecies", "subspecies",
-              "species", "genus", "subfamily", "family",  
-              "suborder", "order", "subclass", "class", 
-              "subphylum", "phylum", "kingdom", "domain")
-  
   
   ## determine the rank of the parent taxid
   d$rank.parent.taxid <- d$rank[match(d$parent.taxid, d$taxid)]
-
+  
   ## define '1' as root
   d[which(d$taxid == "1" & d$parent.taxid == "1"), "rank.parent.taxid"] <- "root"
   d[which(d$taxid == "1" & d$parent.taxid == "1"), "rank"] <- "root"
@@ -447,10 +466,28 @@ get.pubchem.ftp <- function(
     parallel::stopCluster(cl)
     rm(cl)
   }) 
+  
   `%dopar%` <- foreach::`%dopar%`
   j <- NULL
   x <- NULL
   i <- NULL
+  k <- NULL
+  
+  ### turn par.id into two data frames, 
+  ### one contains values, the second names
+  par.id.names <- par.id
+  for(i in 1:length(par.id)){
+    par.id.names[[i]] <- names(par.id[[i]])
+  }
+  par.id.names <- data.frame(par.id.names)
+  par.id.df <- data.frame(par.id)
+  ranks <- c( "sub.subspecies", "subspecies",
+              "species", "genus", "subfamily", "family",  
+              "suborder", "order", "subclass", "class", 
+              "subphylum", "phylum", "kingdom", "domain")
+  
+  ## create species lineage for each species, from par.id
+  ## output is a list if length n.species, which will be coerced into a data.frame
   
   sp.lineage <- foreach::foreach(j = 1:length(sp.id)) %dopar% {
     lineage <- c(sp.id[j], sapply(1:length(par.id), FUN = function(x) par.id[[x]][j]))
@@ -459,13 +496,20 @@ get.pubchem.ftp <- function(
     lineage <- lineage[ranks]
     lineage
   }
+  
+  # sp.lineage <- lapply(1:length(sp.id), FUN = function(x, ranks) {
+  #   use <- which(!is.na(par.id.df[x,]))
+  #   tmp.v <- as.numeric(par.id.df[x, use])
+  #   names(tmp.v) <- par.id.names[x, use]
+  #   tmp.v <- tmp.v[ranks]
+  # })
+  
   par.lineage <- data.frame(t(data.frame(sp.lineage)))
   names(par.lineage) <- ranks
   row.names(par.lineage) <- NULL
-  par.lineage <- par.lineage[,ranks[which(ranks == "species"):length(ranks)]]
+  par.lineage <- par.lineage[,which(ranks == "species"):ncol(par.lineage)]
   
   ## subspecies lineage
-  
   sp.id <- d$parent.taxid[which(d$rank.parent.taxid == "species")]
   u.sp.id <- unique(sp.id)
   # u.sp.id.l <- split(u.sp.id, ceiling(seq_along(u.sp.id)/(length(u.sp.id)/threads)))
@@ -496,145 +540,20 @@ get.pubchem.ftp <- function(
   tmp <- merge(sub.sp, sub.sub.sp, by = "subspecies", all = TRUE)
   
   tmp <- merge(tmp, par.lineage, by = "species", all = TRUE)
-  dim(tmp)
+  
+  # head(tmp)
   
   taxid.hierarchy <- tmp[,ranks]
   taxid.hierarchy$root <- "1"
-  
-  
-  # ## catalog all parent/child relationships in tree
-  # all.levels <- unique(d$rank)
-  # all.ranks <- all.levels
-  # tree <- data.frame("parent" = vector(length = 0, mode = "character"), "child" = vector(length = 0, mode = "character"))
-  # for(i in 1:length(all.levels)) {
-  #   parents <- unique(d$rank.parent.taxid[which(d$rank == all.levels[i])])
-  #   if(length(parents) > 0) {
-  #     subtree <- data.frame(
-  #       "parent" = parents, 
-  #       "children" = rep(all.levels[i], length(parents))
-  #     )
-  #     tree <- rbind(tree, subtree)
-  #   }
-  # }
-  # tree.backup <- tree
-  # level.on <- "cellular root"
-  # rank.hierarchy <- vector(level.on)
-  # while(nrow(tree) > 0) {
-  #   tmp <- which(tree$parent == level.on)
-  #   use <- tree[level.on,]
-  #   tree <- tree[-tmp,]
-  # }
-  # 
-  # ## for all ranks which have a parent rank of 'species'
-  # ## replace rank type with 'subspecies'
-  # ## ignore 'clade' and 'no rank', which could refer to levels above species
-  # remap.to.sp <- unique(d$rank[which(d$rank.parent.taxid == "species")])
-  # remap.to.sp <- remap.to.sp[!remap.to.sp %in% c("no rank", "clade")]
-  # 
-  # do <- which(d$rank.parent.taxid == "species")
-  # d$rank[do] <- "subspecies"
-  # 
-  # do <- which(d$rank %in% remap.to.sp & (d$rank.parent.taxid == "subspecies"))
-  # d$rank[do] <- "sub.subspecies"
-  # 
-  # missing.old <- length(which(!d$rank.parent.taxid %in% ranks))
-  # missing.new <- 1 + missing.old
-  # while(missing.new != missing.old) {
-  #   missing.old <- missing.new
-  #   do <- which(!(d$rank.parent.taxid %in% ranks))
-  #   old.parent <- d$parent.taxid[do]
-  #   repl.index <- match(old.parent, d$taxid)
-  #   new.parent <- d$parent.taxid[repl.index]
-  #   new.parent.rank <- d$rank.parent.taxid[repl.index]
-  #   d$parent.taxid[do] <- new.parent
-  #   d$rank.parent.taxid[do] <- new.parent.rank
-  #   parent.rank <- d$rank[match(d$parent.taxid, d$taxid)]
-  #   missing.new <- length(which(!parent.rank %in% ranks))
-  #   # message(missing.new, '\n')
-  #   # d[d$taxid %in% check.lineage,]
-  # }
-  # d.orig <- d
-  ## now each taxid to parent relationship is defined with only specified ranks allowed
-  ## need to reorganize into full hierarchy table now, or create network
-  
-  ## data.frame
-  ## for each level of rank, find parent id and parent taxid rank
-  #### for each level of parent taxid rank, 
-  #### insert the parent taxid in appropriate column
-  # 
-  # tar.rank <- which(d$rank == "species")
-  # taxid.hierarchy <- matrix(nrow = length(tar.rank), ncol = length(ranks)) 
-  # dimnames(taxid.hierarchy)[[2]] <- ranks
-  # taxid.hierarchy[,"species"] <- as.numeric(as.vector(d$taxid[tar.rank]))
-  # child.taxid <- as.numeric(d$taxid)
-  # child.taxid.rank <- d$rank
-  # child.taxid.ind <- match(child.taxid.rank, ranks)
-  # parent.taxid <- as.numeric(d$parent.taxid)
-  # parent.taxid.rank <- d$rank.parent.taxid
-  # parent.taxid.ind <- match(parent.taxid.rank, ranks)
-  # tab <- data.frame(child.taxid, child.taxid.rank, child.taxid.ind, parent.taxid, parent.taxid.rank, parent.taxid.ind)
-  # # head(tab[do.d,], 10)
-  # sp.col <- which(ranks == "species")
-  # for(i in sp.col:ncol(taxid.hierarchy)) {
-  #   for(j in (sp.col+1):ncol(taxid.hierarchy)) {
-  #     do.d <- which(child.taxid.ind == i & parent.taxid.ind == j)
-  #     do.th.row <- which(taxid.hierarchy[,i] %in% child.taxid[do.d])
-  #     child.vals <- match(taxid.hierarchy[do.th.row,i], child.taxid)
-  #     parent.vals <- parent.taxid[child.vals]
-  #     # length(do.th.row); length(child.vals); length(parent.vals); length(child.taxid); length(parent.taxid)
-  #     # if(length(rm.na) > 0) {
-  #     #   do.d <- do.d[-rm.na]
-  #     #   do.th.row <- do.th.row[-rm.na]
-  #     # }
-  #     taxid.hierarchy[do.th.row,j] <- parent.vals  # match(as.numeric(parent.taxid[do.d]), taxid.hierarchy[,i])
-  #   }
-  # }
-  # 
-  # ## and for below species level
-  # ## change existing sub-category to subspecies rank
-  # do <- which(d$rank.parent.taxid == "species")
-  # d$rank[do] <- "subspecies"
-  # mtch <- match(d$parent.taxid[do], taxid.hierarchy[,"species"])
-  # # d$parent.taxid[do[1]]
-  # # taxid.hierarchy[270,]
-  # taxid.hierarchy[mtch, "subspecies"] <- d$taxid[do]
-  # 
-  # ## change any rank below species which is not mapped to species
-  # do <- which(d$rank %in% remap.to.sp & !(d$rank.parent.taxid == "species"))
-  # ## parent.ranks <- d$rank.parent.taxid[do]  
-  # ## table(parent.ranks)
-  # # ## essentially all map to subspecies, keep only those that do
-  # # ## one maps to genus???  
-  # do <- which(d$rank %in% remap.to.sp & (d$rank.parent.taxid == "subspecies"))
-  # d$rank[do] <- "sub.subspecies"
-  # mtch <- match(d$parent.taxid[do], taxid.hierarchy[,"subspecies"])
-  # 
-  # 
-  # 
-  # for(i in do) {
-  #   do.s <- which(d$rank[i] %in% remap.to.sp)
-  # }
-  # 
-  ## tried this option for display of hierarchy as a network, where NA values were causing trouble
-  ## but abandoned that - didn't seem worth the extra effort.  
-  ## now replace all empty level values (NA) with a placeholder value to build a network in which 
-  ## there is a constant number of levels. 
-  ## and add a 'root' node to the end column to ensure all organisms share a common ancestor
-  
-  ## need to replace NAs one column at a time
-  ## for each column, NA value should be identical if preceding value is identical
-  # for(i in 2:ncol(taxid.hierarchy)) {
-  #   nas <- which(is.na(taxid.hierarchy[, i]))
-  #   if(length(nas) == 0) next
-  #   to.replace <- taxid.hierarchy[, (i-1)][nas]
-  #   replace.with <- max(max(taxid.hierarchy, na.rm = TRUE), 900000000) + as.integer(as.factor(as.character(to.replace)))
-  #   taxid.hierarchy[nas, i] <- replace.with
-  # }
+  for(i in 1:ncol(taxid.hierarchy)) {
+    taxid.hierarchy[,i] <- as.numeric(taxid.hierarchy[,i])
+  }
   
   taxid.hierarchy <- data.table::as.data.table(taxid.hierarchy)
   data.table::setkey(taxid.hierarchy, "species")
   rm(d); gc() 
-  rm(i, keep.going, mtch, old.unique.levs, ranks, sp.id, u.sp.id, unique.levs, tmp, old, par.id, par.lineage, sp.lineage, sub.sp, sub.sub.sp)
+  rm(i, keep.going, mtch, old.unique.levs, sp.id, u.sp.id, unique.levs, tmp, par.id, par.lineage, sp.lineage, sub.sp, sub.sub.sp)
+  rm(par.id.df, par.id.names, j, k, x)
   gc() 
   save(taxid.hierarchy, file = paste0(pc.directory, "/taxid.hierarchy.Rdata"))
   
@@ -644,6 +563,7 @@ get.pubchem.ftp <- function(
     paste0(ranks, collapse = '\n', sep = ""),
     '\n', '\n'
   )
+  rm(ranks)
   
   ########################
   ## CID to TaxID
@@ -815,7 +735,7 @@ get.pubchem.ftp <- function(
   
   names(d) <- c("sid", "source", "source.id", "cid")
   gc()
-
+  
   # bio.cid <- bio.sources %in% d[,2]
   
   tmp <- match(d$cid, cid.preferred$cid)
@@ -884,7 +804,7 @@ get.pubchem.ftp <- function(
   
   message(' -- finished', '\n')
   
-
+  
   return(readme)
 }
 

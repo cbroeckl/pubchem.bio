@@ -94,7 +94,7 @@ build.pubchem.bio <- function(
     cid.pmid.ct.object = NULL,
     output.directory = NULL
 ){  
-  on <- 1
+
   if(is.null(pc.directory) & is.null(cid.smiles.object)) {
     stop("if you opt to note define the pc.directory, you must provide ALL 'cid.....object' variables", '\n')
   }
@@ -113,7 +113,7 @@ build.pubchem.bio <- function(
     }
     
   }
-  cat(on, '\n'); on <- on+1
+
   ## get CIDs by data source first
   if(use.bio.sources) {
     if(!is.null(bio.sources)) {
@@ -147,7 +147,7 @@ build.pubchem.bio <- function(
       rm(cid.sid); rm(source.cid); rm(keep); gc()
     }  ## which(cid == 187)
   }
-  cat(on, '\n'); on <- on+1
+
   if(use.pathways) {
     if(is.null(cid.pwid.object)) {
       load(paste0(pc.directory, "/cid.pwid.Rdata"))
@@ -180,7 +180,7 @@ build.pubchem.bio <- function(
     message(" - added ", length(path.cid.table), " cids based on pathways. current unique cid count:" , length(cid), '\n')
     rm(path.cid); rm(cid.pwid); rm(keep); gc()
   }
-  cat(on, '\n'); on <- on+1
+
   if(use.taxid) {
     if(is.null(cid.taxid.object)) {
       load(paste0(pc.directory, "/cid.taxid.Rdata"))
@@ -217,7 +217,7 @@ build.pubchem.bio <- function(
     rm(tax.cid); rm(cid.taxid); gc()
   }
   
-  cat(on, '\n'); on <- on+1
+
   if(use.parent.cid) {
     rm(cid.parent); gc()
   }
@@ -225,7 +225,7 @@ build.pubchem.bio <- function(
   # CID, name(title), formula, monoisotopic molecular weight, inchikey, smiles, cas, optionally pubchem properties
   
   message(" - extracting descriptors from files:" , '\n')
-  cat(on, '\n'); on <- on+1
+
   ## formula
   if(is.null(cid.formula.object)) {
     load(paste0(pc.directory, "/cid.formula.Rdata"))
@@ -240,7 +240,7 @@ build.pubchem.bio <- function(
   m <- match(cid, cid.formula$cid)
   parent.formula <- cid.formula$formula[m]
   rm(cid.formula); rm(m); gc()
-  cat(on, '\n'); on <- on+1
+
   
   ## lca
   
@@ -255,8 +255,8 @@ build.pubchem.bio <- function(
   m <- match(cid, cid.lca$cid)
   lca <- cid.lca$lca[m]
   lca.level <- cid.lca$lca.level[m]
-  rm(cid.smiles); rm(m); gc()
-  cat(on, '\n'); on <- on+1
+  rm(m); gc()
+
   ## smiles
   if(is.null(cid.smiles.object)) {
     load(paste0(pc.directory, "/cid.smiles.Rdata"))
@@ -271,7 +271,7 @@ build.pubchem.bio <- function(
   m <- match(cid, cid.smiles$cid)
   parent.smiles <- cid.smiles$smiles[m]
   rm(cid.smiles); rm(m); gc()
-  cat(on, '\n'); on <- on+1
+
   ## monoisotopic mass
   if(is.null(cid.monoisotopic.mass.object)) {
     load(paste0(pc.directory, "/cid.monoisotopic.mass.Rdata"))
@@ -284,7 +284,7 @@ build.pubchem.bio <- function(
   m <- match(cid, cid.monoisotopic.mass$cid)
   monoisotopic.mass <- cid.monoisotopic.mass$monoisotopic.mass[m]
   rm(cid.monoisotopic.mass); rm(m); gc()
-  cat(on, '\n'); on <- on+1
+
   
   ## inchikey
   if(is.null(cid.inchikey.object)) {
@@ -298,7 +298,7 @@ build.pubchem.bio <- function(
   m <- match(cid, cid.inchikey$cid)
   inchikey <- cid.inchikey$inchikey[m]
   rm(cid.inchikey); rm(m); gc()
-  cat(on, '\n'); on <- on+1
+
   ## title
   if(is.null(cid.title.object)) {
     load(paste0(pc.directory, "/cid.title.Rdata"))
@@ -311,7 +311,7 @@ build.pubchem.bio <- function(
   m <- match(cid, cid.title$cid)
   name <- cid.title$title[m]
   rm(cid.title); rm(m); gc()
-  cat(on, '\n'); on <- on+1
+
   ## cas
   if(is.null(cid.cas.object)) {
     load(paste0(pc.directory, "/cid.cas.Rdata"))
@@ -324,7 +324,7 @@ build.pubchem.bio <- function(
   m <- match(cid, cid.cas$cid)
   cas <- cid.cas$cas[m]
   rm(cid.cas); rm(m); gc()
-  cat(on, '\n'); on <- on+1
+
   ## pmid count
   if(is.null(cid.pmid.ct.object)) {
     load(paste0(pc.directory, "/cid.pmid.ct.Rdata"))
@@ -340,7 +340,7 @@ build.pubchem.bio <- function(
     pmid.ct[is.na(pmid.ct)] <- 0
   }
   rm(cid.pmid.ct); rm(m); gc()
-  cat(on, '\n'); on <- on+1
+
   ## first block of inchikey - same bonding
   inchikey.first.block <- sapply(1:length(inchikey), FUN = function(x){unlist(strsplit(inchikey[x], "-"))[1]})
   
