@@ -51,7 +51,8 @@ build.taxon.metabolome <- function(
     output.directory = NULL
 ) {
   
-  # loadNamespace("data.table")
+  loadNamespace("data.table")
+  .datatable.aware = TRUE
   
   out.dir <- pc.directory
   if(is.null(out.dir)) out.dir <- output.directory
@@ -159,7 +160,8 @@ build.taxon.metabolome <- function(
       cid.lca.df <- data.frame(cid.lca)
       results <- foreach::foreach(j = do.sim) %dopar% {
         tryCatch({
-          # requireNamespace('data.table', quietly = TRUE)
+          loadNamespace("data.table")
+          .datatable.aware = TRUE
           tmp.j <- tmp[j,]
           tmp.j <- tmp.j[!is.na(tmp.j)]
           mtchs <- sapply(1:length(tmp.j), FUN = function(k) {

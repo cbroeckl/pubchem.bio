@@ -15,6 +15,8 @@ build.pubchem.bio(
   taxonomy.sources = NULL,
   use.parent.cid = TRUE,
   remove.salts = TRUE,
+  remove.inorganics = FALSE,
+  mw.range = c(50, 2000),
   get.properties = TRUE,
   threads = 8,
   rcdk.desc = c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor",
@@ -54,6 +56,10 @@ build.pubchem.bio(
 \item{use.parent.cid}{logical. should CIDs be replaced with parent CIDs?  default = TRUE.}
 
 \item{remove.salts}{logical.  should salts be removed from dataset?  default = TRUE.  salts recognized as '.' in smiles string.  performed after 'use.parent.cid'.}
+
+\item{remove.inorganics}{logical. should inorganic molecules (those with no carbon) be removed? default = FALSE.}
+
+\item{mw.range}{vector. numerical vector of length = 2.  default = c(50, 2000).}
 
 \item{get.properties}{logical. if TRUE, will return rcdk calculated properties:  XLogP, TPSA, HBondDonorCount and HBondAcceptorCount.}
 

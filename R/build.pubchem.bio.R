@@ -11,6 +11,8 @@
 #' @param use.taxid logical.  should all CIDs associated with a taxonomic identifier (taxid) be used? 
 #' @param taxonomy.sources character. vector of sources to be used when adding taxonomically related metabolites to database.  Default = NULL, using all sources.
 #' @param remove.salts logical.  should salts be removed from dataset?  default = TRUE.  salts recognized as '.' in smiles string.  performed after 'use.parent.cid'. 
+#' @param remove.inorganics logical. should inorganic molecules (those with no carbon) be removed? default = FALSE.
+#' @param mw.range vector. numerical vector of length = 2.  default = c(50, 2000).
 #' @param use.parent.cid logical. should CIDs be replaced with parent CIDs?  default = TRUE.
 #' @param get.properties logical. if TRUE, will return rcdk calculated properties:  XLogP, TPSA, HBondDonorCount and HBondAcceptorCount.
 #' @param threads integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.  
@@ -72,6 +74,8 @@ build.pubchem.bio <- function(
     taxonomy.sources = NULL,
     use.parent.cid = TRUE,
     remove.salts = TRUE,
+    remove.inorganics = FALSE,
+    mw.range = c(50, 2000),
     get.properties = TRUE,
     threads = 8,
     rcdk.desc = c(
@@ -101,6 +105,9 @@ build.pubchem.bio <- function(
 
   out.dir <- pc.directory
   if(is.null(out.dir)) out.dir <- output.directory
+  
+  loadNamespace("data.table")
+  .datatable.aware = TRUE
   
   cid <- vector(length = 0, mode = 'integer')
   
@@ -237,8 +244,6 @@ build.pubchem.bio <- function(
   data.table::setkey(cid.formula, "cid")
   m <- match(cid, cid.formula$cid)
   formula <- cid.formula$formula[m]
-  m <- match(cid, cid.formula$cid)
-  parent.formula <- cid.formula$formula[m]
   rm(cid.formula); rm(m); gc()
 
   
@@ -422,6 +427,19 @@ build.pubchem.bio <- function(
   ## remove salts
   if(remove.salts) {
     rm.rows <- grep(".", out$smiles, fixed = TRUE)
+    if(length(rm.rows) > 0) {
+      out <- out[-rm.rows,]
+    }
+  }
+  
+  ## remove salts
+  if(remove.inorganics) {
+    
+    is.organic <- sapply(1:nrow(out), FUN = function(x) {
+      tmp <- CHNOSZ::count.elements(out$formula[x])
+      any(names(tmp) == "C")
+    })
+    rm.rows <- which(!is.organic)
     if(length(rm.rows) > 0) {
       out <- out[-rm.rows,]
     }

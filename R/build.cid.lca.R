@@ -240,6 +240,7 @@ build.cid.lca <- function(
   # results <- foreach::foreach(i = 1:13000, .errorhandling = "pass") %dopar% {  
     
     requireNamespace('data.table')
+    .datatable.aware = TRUE
     taxids <- unique(cid.taxid$taxid[cid.taxid$cid == cid.list[[i]]])
     if(any(is.na(taxids))) {taxids <- taxids[!is.na(taxids)]}
     if(length(taxids) == 0) {

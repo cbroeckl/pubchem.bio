@@ -38,6 +38,9 @@ get.pubchem.ftp <- function(
   tmp.dir <- suppressWarnings(paste0(pc.directory, "/tmp/"))
   dir.create(tmp.dir)
   
+  loadNamespace('data.table')
+  .datatable.aware = TRUE
+  
   message(" -- writing data to ", pc.directory, '\n')
   
   readme <- c(
@@ -124,31 +127,32 @@ get.pubchem.ftp <- function(
   ## CID to InChIKey
   ########################
   if(!file.exists(paste0(pc.directory, "/cid.inchi.Rdata"))) {
-  download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-InChI-Key.gz"
-  tmp.file <- paste0(tmp.dir, basename(download.url))
-  utils::download.file(url = download.url, destfile = tmp.file)
-  R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
-  # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
-  
-  #### cid.to.inchikey.relationship
-  d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
-  names(d) <- c("cid", "inchi", "inchikey")
-  data.table::setkey(d, "cid")
-  tmp <- match(d$cid, cid.preferred$cid)
-  use <- which(!is.na(tmp))
-  if(length(use)>0) {
-    d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  }
-  cid.inchikey <- d[,c(1,3)]
-  data.table::setkey(cid.inchikey, "cid")
-  save(cid.inchikey, file = paste0(pc.directory, "/cid.inchikey.Rdata"))
-  rm(cid.inchikey);   gc()
-  
-  cid.inchi <- d[,c(1,2)]
-  data.table::setkey(cid.inchi, "cid")
-  save(cid.inchi, file = paste0(pc.directory, "/cid.inchi.Rdata"))
-  rm(cid.inchi); gc()
-  rm(d); gc()
+    download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-InChI-Key.gz"
+    tmp.file <- paste0(tmp.dir, basename(download.url))
+    utils::download.file(url = download.url, destfile = tmp.file)
+    R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
+    # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
+    
+    #### cid.to.inchikey.relationship
+    d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
+    names(d) <- c("cid", "inchi", "inchikey")
+    data.table::setkey(d, "cid")
+    tmp <- match(d$cid, cid.preferred$cid)
+    use <- which(!is.na(tmp))
+    if(length(use)>0) {
+      d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+    }
+    cols <- c("cid", "inchikey")
+    cid.inchikey <- d[, ..cols]
+    data.table::setkey(cid.inchikey, "cid")
+    save(cid.inchikey, file = paste0(pc.directory, "/cid.inchikey.Rdata"))
+    rm(cid.inchikey);   gc()
+    cols <- c("cid", "inchi")
+    cid.inchi <- d[, ..cols]
+    data.table::setkey(cid.inchi, "cid")
+    save(cid.inchi, file = paste0(pc.directory, "/cid.inchi.Rdata"))
+    rm(cid.inchi); gc()
+    rm(d); gc()
   }
   readme <- c(
     readme,
@@ -161,26 +165,26 @@ get.pubchem.ftp <- function(
   ## CID to SMILES
   ########################
   if(!file.exists(paste0(pc.directory, "/cid.smiles.Rdata"))) {
-  download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-SMILES.gz"
-  tmp.file <- paste0(tmp.dir, basename(download.url))
-  utils::download.file(url = download.url, destfile = tmp.file)
-  R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
-  # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
-  
-  #### cid.to.smiles.relationship
-  d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
-  names(d) <- c("cid", "smiles")
-  data.table::setkey(d, "cid")
-  tmp <- match(d$cid, cid.preferred$cid)
-  use <- which(!is.na(tmp))
-  if(length(use)>0) {
-    d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  }
-  cid.smiles <- d
-  rm(d); gc()
-  data.table::setkey(cid.smiles, "cid")
-  save(cid.smiles, file = paste0(pc.directory, "/cid.smiles.Rdata"))
-  rm(cid.smiles); gc()
+    download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-SMILES.gz"
+    tmp.file <- paste0(tmp.dir, basename(download.url))
+    utils::download.file(url = download.url, destfile = tmp.file)
+    R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
+    # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
+    
+    #### cid.to.smiles.relationship
+    d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
+    names(d) <- c("cid", "smiles")
+    data.table::setkey(d, "cid")
+    tmp <- match(d$cid, cid.preferred$cid)
+    use <- which(!is.na(tmp))
+    if(length(use)>0) {
+      d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+    }
+    cid.smiles <- d
+    rm(d); gc()
+    data.table::setkey(cid.smiles, "cid")
+    save(cid.smiles, file = paste0(pc.directory, "/cid.smiles.Rdata"))
+    rm(cid.smiles); gc()
   }
   readme <- c(
     readme,
@@ -192,27 +196,27 @@ get.pubchem.ftp <- function(
   ## CID to Title
   ########################
   if(!file.exists(paste0(pc.directory, "/cid.title.Rdata"))) {
-  download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Title.gz"
-  tmp.file <- paste0(tmp.dir, basename(download.url))
-  utils::download.file(url = download.url, destfile = tmp.file)
-  R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
-  # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
-  
-  #### cid.to.title.relationship
-  d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
-  names(d) <- c("cid", "title")
-  data.table::setkey(d, "cid")
-  tmp <- match(d$cid, cid.preferred$cid)
-  use <- which(!is.na(tmp))
-  if(length(use)>0) {
-    d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  }
-  cid.title <- d
-  rm(d); gc()
-  data.table::setkey(cid.title, "cid")
-  save(cid.title, file = paste0(pc.directory, "/cid.title.Rdata"))
-  rm(cid.title); gc
-  
+    download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Title.gz"
+    tmp.file <- paste0(tmp.dir, basename(download.url))
+    utils::download.file(url = download.url, destfile = tmp.file)
+    R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
+    # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
+    
+    #### cid.to.title.relationship
+    d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)), quote="")
+    names(d) <- c("cid", "title")
+    data.table::setkey(d, "cid")
+    tmp <- match(d$cid, cid.preferred$cid)
+    use <- which(!is.na(tmp))
+    if(length(use)>0) {
+      d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+    }
+    cid.title <- d
+    rm(d); gc()
+    data.table::setkey(cid.title, "cid")
+    save(cid.title, file = paste0(pc.directory, "/cid.title.Rdata"))
+    rm(cid.title); gc
+    
   }
   readme <- c(
     readme,
@@ -223,37 +227,43 @@ get.pubchem.ftp <- function(
   ## CID to PMID
   ########################
   if(!file.exists(paste0(pc.directory, "/cid.pmid.ct.Rdata"))) {
-
-  download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-PMID.gz"
-  tmp.file <- paste0(tmp.dir, basename(download.url))
-  utils::download.file(url = download.url, destfile = tmp.file)
-  R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
-  # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
-  
-  #### cid.to.pmid.relationship
-  d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
-  d <- d[,c(1,2)]
-  names(d) <- c("cid", "pmid")
-  data.table::setkey(d, "cid")
-  tmp <- match(d$cid, cid.preferred$cid)
-  use <- which(!is.na(tmp))
-  if(length(use)>0) {
-    d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  }
-  cid.pmid <- d
-  rm(d); gc()
-  data.table::setkey(cid.pmid, "cid")
-  save(cid.pmid, file = paste0(pc.directory, "/cid.pmid.Rdata"))
-  
-  cid.pmid.ct <- table(cid.pmid$cid)
-  cid.pmid.ct <- data.table::data.table(cid.pmid.ct)
-  names(cid.pmid.ct) <- c('cid', 'pmid.ct')
-  cid.pmid.ct$cid <- as.integer(as.numeric(cid.pmid.ct$cid))
-  data.table::setkey(cid.pmid.ct, "cid")
-  save(cid.pmid.ct, file = paste0(pc.directory, "/cid.pmid.ct.Rdata"))
-  
-  rm(cid.pmid); gc()
-  
+    
+    download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-PMID.gz"
+    tmp.file <- paste0(tmp.dir, basename(download.url))
+    utils::download.file(url = download.url, destfile = tmp.file)
+    R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
+    # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
+    
+    #### cid.to.pmid.relationship
+    d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
+    if(ncol(d) > 2) {
+      names(d) <- c(c("cid", "pmid"), paste0("unk", 1:(ncol(d)-2)))
+    } else {
+      names(d) <- c("cid", "pmid")
+    }
+    cols <- c("cid", "pmid")
+    d <- d[, ..cols]
+    
+    data.table::setkey(d, "cid")
+    tmp <- match(d$cid, cid.preferred$cid)
+    use <- which(!is.na(tmp))
+    if(length(use)>0) {
+      d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+    }
+    cid.pmid <- d
+    rm(d); gc()
+    data.table::setkey(cid.pmid, "cid")
+    save(cid.pmid, file = paste0(pc.directory, "/cid.pmid.Rdata"))
+    
+    cid.pmid.ct <- table(cid.pmid$cid)
+    cid.pmid.ct <- data.table::data.table(cid.pmid.ct)
+    names(cid.pmid.ct) <- c('cid', 'pmid.ct')
+    cid.pmid.ct$cid <- as.integer(as.numeric(cid.pmid.ct$cid))
+    data.table::setkey(cid.pmid.ct, "cid")
+    save(cid.pmid.ct, file = paste0(pc.directory, "/cid.pmid.ct.Rdata"))
+    
+    rm(cid.pmid); gc()
+    
   }
   readme <- c(
     readme,
@@ -265,77 +275,99 @@ get.pubchem.ftp <- function(
   ## CID to Mass
   ########################
   if(!file.exists(paste0(pc.directory, "/cid.accurate.mass.Rdata"))) {
-  download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Mass.gz"
-  tmp.file <- paste0(tmp.dir, basename(download.url))
-  utils::download.file(url = download.url, destfile = tmp.file)
-  R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
-  # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
-  
-  #### cid.to.mass.relationship
-  d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
-  names(d) <- c("cid", "formula", "monoisotopic.mass", "exact.mass")
-  data.table::setkey(d, "cid")
-  tmp <- match(d$cid, cid.preferred$cid)
-  use <- which(!is.na(tmp))
-  if(length(use)>0) {
-    d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  }
-  
-  cid.formula <- d[,c(1,2)]
-  data.table::setkey(cid.formula, "cid")
-  save(cid.formula, file = paste0(pc.directory, "/cid.formula.Rdata"))
-  rm(cid.formula); gc()
-  cid.monoisotopic.mass <- d[,c(1,3)]
-  data.table::setkey(cid.monoisotopic.mass, "cid")
-  save(cid.monoisotopic.mass, file = paste0(pc.directory, "/cid.monoisotopic.mass.Rdata"))
-  rm(cid.monoisotopic.mass); gc()
-  cid.accurate.mass <- d[,c(1,4)]
-  data.table::setkey(cid.accurate.mass, "cid")
-  save(cid.accurate.mass, file = paste0(pc.directory, "/cid.accurate.mass.Rdata"))
-  rm(cid.accurate.mass); gc()
-  rm(d); gc()
+    download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Mass.gz"
+    tmp.file <- paste0(tmp.dir, basename(download.url))
+    if(!file.exists(paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))) {
+      utils::download.file(url = download.url, destfile = tmp.file)
+      R.utils::gunzip(tmp.file, remove = FALSE, destname = paste0(tmp.dir, gsub(".gz", "", basename(tmp.file))))
+    }
+
+    # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
+    
+    #### cid.to.mass.relationship
+    d <- data.table::fread(paste0(tmp.dir, basename(tmp.file)))
+    names(d) <- c("cid", "formula", "monoisotopic.mass", "accurate.mass")
+    # data.table::setkey(d, "cid")
+    # d <- as.data.frame(d)
+    is.750 <- which(d$cid == 750)
+    check.750 <- round(d$monoisotopic.mass[is.750], 2) == 75.03
+    if(!check.750) {
+      stop("accurate mass of cid 750 in d is reported as", round(d$monoisotopic.mass[is.750], 2), "and should be 75.03" )
+    } else {
+      warning("accurate mass of cid 750 in d is as expected")
+    }
+    tmp <- match(d$cid, cid.preferred$cid)
+    use <- which(!is.na(tmp))
+    if(length(use)>0) {
+      d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+    }
+    cols <- c("cid", "formula")
+    cid.formula <- d[, ..cols]
+    data.table::setkey(cid.formula, "cid")
+    save(cid.formula, file = paste0(pc.directory, "/cid.formula.Rdata"))
+    rm(cid.formula); gc()
+    cols <- c("cid", "monoisotopic.mass")
+    cid.monoisotopic.mass <- d[, ..cols]
+    is.750 <- which(cid.monoisotopic.mass$cid == 750)
+    check.750 <- round(cid.monoisotopic.mass$monoisotopic.mass[is.750], 2) == 75.03
+    if(!check.750) {
+      stop("accurate mass of cid 750 reported as", round(cid.monoisotopic.mass$monoisotopic.mass[is.750], 2), "and should be 75.03" )
+    } else {
+      warning("accurate mass of cid 750 is as expected")
+      
+    }
+    data.table::setkey(cid.monoisotopic.mass, "cid")
+    save(cid.monoisotopic.mass, file = paste0(pc.directory, "/cid.monoisotopic.mass.Rdata"))
+    rm(cid.monoisotopic.mass); gc()
+    cols <- c("cid", "accurate.mass")
+    cid.accurate.mass <- d[, ..cols]
+    data.table::setkey(cid.accurate.mass, "cid")
+    save(cid.accurate.mass, file = paste0(pc.directory, "/cid.accurate.mass.Rdata"))
+    rm(cid.accurate.mass); gc()
+    rm(d); gc()
   }
   readme <- c(
     readme,
     " - cid.formula.Rdata, is a data.table of two columns, headers 'cid'and 'formula', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n',
-    " - cid.monoisotopic.mass.Rdata, is a data.table of two columns, headers 'cid'and 'monoisotopic.mass', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
+    " - cid.monoisotopic.mass.Rdata, is a data.table of two columns, headers 'cid'and 'monoisotopic.mass', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n',
+    " - cid.accurate.mass.Rdata, is a data.table of two columns, headers 'cid'and 'accurate.mass', with integer and character values, respectively. data.table is indexed by 'cid'. ", '\n', '\n'
   )
   
   ########################
   ## CID to MeSH name
   ########################
   if(!file.exists(paste0(pc.directory, "/cid.mesh.name.Rdata"))) {
-  download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-MeSH"
-  tmp.file <- paste0(tmp.dir, basename(download.url))
-  utils::download.file(url = download.url, destfile = tmp.file)
-  # R.utils::gunzip(tmp.file, remove = FALSE)
-  # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
-  
-  #### cid.to.mesh.name relationship
-  d <- readLines(paste0(tmp.dir, basename(tmp.file)), encoding = "UTF-8")
-  d <- lapply(1:length(d), FUN = function(x) {
-    # cat(d[x], '\n')
-    tmp <- unlist(strsplit(d[x], '\t', fixed = TRUE, useBytes = TRUE))
-    tmp <- data.frame(
-      "cid" = rep(tmp[1], length(tmp)-1),
-      "mesh.name" = tmp[2:length(tmp)]
-    )
-    tmp
-  })
-  d <- as.data.frame(do.call(rbind, d))
-  d[,1] <- as.numeric(d[,1])
-  d <- data.table::as.data.table(d)
-  data.table::setkey(d, "cid")
-  tmp <- match(d$cid, cid.preferred$cid)
-  use <- which(!is.na(tmp))
-  if(length(use)>0) {
-    d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  }
-  cid.mesh.name <- d
-  rm(d)
-  data.table::setkey(cid.mesh.name, "cid")
-  save(cid.mesh.name, file = paste0(pc.directory, "/cid.mesh.name.Rdata"))
-  
+    download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-MeSH"
+    tmp.file <- paste0(tmp.dir, basename(download.url))
+    utils::download.file(url = download.url, destfile = tmp.file)
+    # R.utils::gunzip(tmp.file, remove = FALSE)
+    # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
+    
+    #### cid.to.mesh.name relationship
+    d <- readLines(paste0(tmp.dir, basename(tmp.file)), encoding = "UTF-8")
+    d <- lapply(1:length(d), FUN = function(x) {
+      # cat(d[x], '\n')
+      tmp <- unlist(strsplit(d[x], '\t', fixed = TRUE, useBytes = TRUE))
+      tmp <- data.frame(
+        "cid" = rep(tmp[1], length(tmp)-1),
+        "mesh.name" = tmp[2:length(tmp)]
+      )
+      tmp
+    })
+    d <- as.data.frame(do.call(rbind, d))
+    d[,1] <- as.numeric(d[,1])
+    d <- data.table::as.data.table(d)
+    data.table::setkey(d, "cid")
+    tmp <- match(d$cid, cid.preferred$cid)
+    use <- which(!is.na(tmp))
+    if(length(use)>0) {
+      d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+    }
+    cid.mesh.name <- d
+    rm(d)
+    data.table::setkey(cid.mesh.name, "cid")
+    save(cid.mesh.name, file = paste0(pc.directory, "/cid.mesh.name.Rdata"))
+    
   }
   
   readme <- c(
@@ -346,51 +378,51 @@ get.pubchem.ftp <- function(
   
   #### must use separate file for mesh name to mesh function
   if(!file.exists(paste0(pc.directory, "/cid.mesh.function.Rdata"))) {
-  download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/MeSH-Pharm"
-  tmp.file <- paste0(tmp.dir, basename(download.url))
-  utils::download.file(url = download.url, destfile = tmp.file)
-  # R.utils::gunzip(tmp.file, remove = FALSE)
-  # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
-  
-  #### cid.to.mesh.relationship
-  d <- readLines(paste0(tmp.dir, basename(tmp.file)))
-  d <- lapply(1:length(d), FUN = function(x) {
-    tmp <- unlist(strsplit(d[x], '\t', fixed = TRUE))
-    tmp <- data.frame(
-      "mesh.name" = rep(tmp[1], length(tmp)-1),
-      "mesh.function" = tmp[2:length(tmp)]
-    )
-    tmp
-  })
-  d <- as.data.frame(do.call(rbind, d))
-  d <- data.table::as.data.table(d)
-  data.table::setkey(d, "mesh.name")
-  tmp <- match(d$cid, cid.preferred$cid)
-  use <- which(!is.na(tmp))
-  if(length(use)>0) {
-    d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  }
-  mesh.name.mesh.function <- d
-  rm(d)
-  
-  
-  ## merge two files into one
-  d <- merge(cid.mesh.name, mesh.name.mesh.function, by = "mesh.name", all.y = TRUE, all.x = FALSE)
-  tmp <- match(d$cid, cid.preferred$cid)
-  use <- which(!is.na(tmp))
-  if(length(use)>0) {
-    d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
-  }
-  cid.mesh.function <- d
-  cid.mesh.function <- data.table::as.data.table((cid.mesh.function))
-  cid.mesh.function <- cid.mesh.function[,c(2:3)]
-  data.table::setkey(d, "cid")
-  rm(d)
-  data.table::setkey(cid.mesh.function, "cid")
-  save(cid.mesh.function, file = paste0(pc.directory, "/cid.mesh.function.Rdata"))
-  rm(mesh.name.mesh.function); gc()
-  rm(cid.mesh.name); gc()
-  
+    download.url <- "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/MeSH-Pharm"
+    tmp.file <- paste0(tmp.dir, basename(download.url))
+    utils::download.file(url = download.url, destfile = tmp.file)
+    # R.utils::gunzip(tmp.file, remove = FALSE)
+    # untar(paste0(gsub(".gz", "", tmp.file)), exdir = tmp.dir)
+    
+    #### cid.to.mesh.relationship
+    d <- readLines(paste0(tmp.dir, basename(tmp.file)))
+    d <- lapply(1:length(d), FUN = function(x) {
+      tmp <- unlist(strsplit(d[x], '\t', fixed = TRUE))
+      tmp <- data.frame(
+        "mesh.name" = rep(tmp[1], length(tmp)-1),
+        "mesh.function" = tmp[2:length(tmp)]
+      )
+      tmp
+    })
+    d <- as.data.frame(do.call(rbind, d))
+    d <- data.table::as.data.table(d)
+    data.table::setkey(d, "mesh.name")
+    tmp <- match(d$cid, cid.preferred$cid)
+    use <- which(!is.na(tmp))
+    if(length(use)>0) {
+      d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+    }
+    mesh.name.mesh.function <- d
+    rm(d)
+    
+    
+    ## merge two files into one
+    d <- merge(cid.mesh.name, mesh.name.mesh.function, by = "mesh.name", all.y = TRUE, all.x = FALSE)
+    tmp <- match(d$cid, cid.preferred$cid)
+    use <- which(!is.na(tmp))
+    if(length(use)>0) {
+      d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
+    }
+    cid.mesh.function <- d
+    cid.mesh.function <- data.table::as.data.table((cid.mesh.function))
+    cid.mesh.function <- cid.mesh.function[,c(2:3)]
+    data.table::setkey(d, "cid")
+    rm(d)
+    data.table::setkey(cid.mesh.function, "cid")
+    save(cid.mesh.function, file = paste0(pc.directory, "/cid.mesh.function.Rdata"))
+    rm(mesh.name.mesh.function); gc()
+    rm(cid.mesh.name); gc()
+    
   }
   
   readme <- c(
@@ -410,7 +442,7 @@ get.pubchem.ftp <- function(
                     destname = gsub(".gz", "", paste0(tmp.dir, basename(tmp.file))))
     utils::untar(gsub(".gz", "", paste0(tmp.dir, basename(tmp.file))), exdir = tmp.dir)
   }
-
+  
   #### taxid.to.rank.relationship
   suppressWarnings(d <- readLines(
     paste0(tmp.dir, "nodes.dmp"))
@@ -422,7 +454,7 @@ get.pubchem.ftp <- function(
                 "inherited.gc.flag", "mitocondrial.genetic.code.id", 
                 "inherited.mgc.flag", "genbank.hidden.flag", "hidden.subtree.root.flag", 
                 "comments")
-  d <- d[,c("taxid", "parent.taxid", "rank", "division.id"),]
+  d <- d[, c("taxid", "parent.taxid", "rank", "division.id"),]
   gc()
   
   d <- data.table::as.data.table(d)
@@ -591,8 +623,8 @@ get.pubchem.ftp <- function(
   # tax.sources <- c("LOTUS - the natural products occurrence database", "The Natural Products Atlas", 
   #                  "KNApSAcK Species-Metabolite Database", "Natural Product Activity and Species Source (NPASS)")
   # d <- d[d$data.source %in% tax.sources,]
-  
-  d <- d[,c(1:3)]
+  cols <- c("taxid", "cid", "data.source")
+  d <- d[, ..cols]
   tmp <- match(d$cid, cid.preferred$cid)
   use <- which(!is.na(tmp))
   if(length(use)>0) {
@@ -637,6 +669,7 @@ get.pubchem.ftp <- function(
            gsub(" ", "%22},{%22source%22:%22", source.name),   #  "Plant%22},{%22source%22:%22Reactome", 
            "%22}]}}"
     )
+  out.files <- paste0(tmp.dir, "/", "pw", 1:length(source.name),".tsv")
   
   # download.urls <- c(
   #   "https://pubchem.ncbi.nlm.nih.gov/sdq/sdqagent.cgi?infmt=json&outfmt=csv&query={%22download%22:%22*%22,%22collection%22:%22pathway%22,%22order%22:[%22relevancescore,desc%22],%22start%22:1,%22limit%22:10000000,%22downloadfilename%22:%22PubChem_pathway_text_Reactome%22,%22where%22:{%22ands%22:[{%22*%22:%22Reactome%22},{%22source%22:%22Reactome%22}]}}",
@@ -646,12 +679,16 @@ get.pubchem.ftp <- function(
   #   "https://pubchem.ncbi.nlm.nih.gov/sdq/sdqagent.cgi?infmt=json&outfmt=csv&query={%22download%22:%22*%22,%22collection%22:%22pathway%22,%22order%22:[%22relevancescore,desc%22],%22start%22:1,%22limit%22:10000000,%22downloadfilename%22:%22PubChem_pathway_text_WikiPathways%22,%22where%22:{%22ands%22:[{%22*%22:%22WikiPathways%22},{%22source%22:%22WikiPathways%22}]}}"
   # )  
   
-  #### cid.to.pathway.relationship
+  for(i in 1:length(out.files)) {
+    curl::curl_download(url = download.urls[i], destfile = out.files[i])
+  }
+  
+  #### cid.to.pathway.relationship - read downloaded files
   for(i in 1:length(download.urls)) {
     if(i == 1) {
-      d <- data.table::fread(download.urls[i])
+      d <- data.table::fread(out.files[i])
     } else {
-      d <- rbind(d, data.table::fread(download.urls[i]))
+      d <- rbind(d, data.table::fread(out.files[i]))
     }
   }
   
@@ -669,8 +706,9 @@ get.pubchem.ftp <- function(
   d <- d.2
   rm(d.2)
   gc()
-  d <- d[,c("pwacc", "name", "pwtype", "source", 
-            "taxid", "taxname", "cids")]
+  cols <- c("pwacc", "name", "pwtype", "source", 
+            "taxid", "taxname", "cids")
+  d <- d[, ..cols]
   names(d) <- c("pwid", "name", "pwtype", "source", 
                 "taxid", "taxname", "cid")
   d <- d[-which(is.na(d$cid)),]
