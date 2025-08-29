@@ -2,7 +2,7 @@
 title: "pubchem.bio"
 author: "Corey Broeckling"
 date: "`r Sys.Date()`"
-version: 1.0.0
+version: 1.0.1
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{pubchem.bio}
@@ -16,16 +16,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Background
 
-Metabolomics approaches utilize analytical instrumentation to detect and quantify small molecules.  The chemical space covered by metabolomics is pontentially massive, with more than 100 million structures in Pubchem.  Efforts to curate custom metabolome databases, such as the [Human Metabolome Database](https://www.hmdb.ca/) are incredibly valuable, enabling annotation efforts to focus on only those chemicals most likely to be found in the samples being analyzed.  Metabolomics, however, is well suited the analysis of metabolomes from _any_ species, and there are very few taxonomically informed databases available.  
+Metabolomics approaches utilize analytical instrumentation to detect and quantify small molecules.  The chemical space covered by metabolomics is potentially massive, with more than 100 million structures in Pubchem.  Efforts to curate custom metabolome databases, such as the [Human Metabolome Database](https://www.hmdb.ca/) are incredibly valuable, enabling annotation efforts to focus on only those chemicals most likely to be found in the samples being analyzed.  Metabolomics, however, is well suited the analysis of metabolomes from _any_ species, and there are very few taxonomically informed databases available.  
 
 Pubchem, which is a massive repository of chemical structures, is also extremely rich in chemical metadata.  Several biologicallly-focused metabolomic databases have deposited their structures data into PubChem, thousands of metabolic pathways are present, and there are rich taxonomic-structure pairs through taxonomy-informed natural products database efforts.  
 
 The pubchem.bio package enables researchers to 
 
 * Download metabolomics-centric subset of PubChem onto their local computer
-* Build a metabolomic structured database (data.frame) of all biological compounds in PubChem
-* Define a core biological metabolome, comprising metabolites plausibly found in any species
-* Develop custom metabolomic structure databases using selected or all available taxonomic data in PubChem.
+* Build a metabolomic structured database (data.table) of biological compounds from PubChem
+* Define a core biological 'primary' metabolome, comprising metabolites plausibly found in any species
+* Develop custom metabolomic structure databases using selected or all available taxonomic data in PubChem, and scoring metabolites based on taxonomic proximity.
 
 As such, this package will help to streamline metabolomic database creation, increase the accuracy of annotation efforts by 
 
@@ -37,12 +37,11 @@ library(pubchem.bio)
 
 ## System requirements
 PubChem is a very large database. The pubchem.bio package does not download _ALL_ of PubChem.  It does however download every structure, inchikey, smiles, and several other basic descriptors.  As such, while the package is designed to minimize computational overhead, you will still want to have sufficient disk space and RAM to ensure that processing doesn't bog down during parsing and organizing files.  
+rcdk is an R package which enables calculations of chemical properties, and is optionally used as part of the pubchem.bio package. it requires 64 bit Java to be installed on your computer.  If you do not have 64 bit Java installed, you will receive an error message upon trying to load pubchem.bio or rcdk, something to the effect that 'Java not found'.   Most computers do not have 64 bit Java installed by default, so you will likely need to install this manually using the manual Java instructions  - just search 'install 64 bit java' in your favorite internet browser for the latest hyperlink.  _Then_ open Rstudio and install pubchem.bio.   
 
-rcdk is an R package which enables calculations of chemical properties. it requires 64 bit Java to be installed on your computer.  If you do not have 64 bit Java installed, you will receive an error message upon trying to load pubchem.bio or rcdk, something to the effect that 'Java not found'.   Most computers do not have 64 bit Java installed by default, so you will likely need to install this manually using the manual Java instructions  - just search 'install 64 bit java' in your favorite internet browser for the latest hyperlink.  _Then_ open Rstudio and install pubchem.bio.   
+It is recommended that you perform these functions on a computer with at least __120 GB local SSD__ disk space, since a great deal of reading and writing of data will be occurring.  Further, during processing, there will be large files that are being handled in memory, so it is recommended that you utilize a computer with at least __64 GB of RAM__.  Parallel processing is enabled through the doParallel and foreach packages, which will speed up processing time, but the full processnig workflow will still take several hours, be patient.  Do note that parallel processing results in increased RAM consumption.  If your run out of RAM, the process will become extremely slow and could crash R/Rstudio.  If you are RAM limited, you are probably going to have more success using fewer threads.  The download process performance is also going to be dependent on network stability and speed.  
 
-It is recommended that you perform these functions on a computer with at least __200 GB local SSD__ disk space, since a great deal of reading and writing of data will be occurring.  Further, during processing, there will be large files that are being handled in memory, so it is recommended that you utilize a computer with at least __64 GB of RAM__.  Parallel processing is enabled through the doParallel and foreach packages, which will speed up processing time, but the  will still take several hours.  Do note that parallel processing results in increased RAM consumption.  If your run out of RAM, the process will become extremely slow and could crash R/Rstudio.  If you are RAM limited, you are probably going to have more success using fewer threads.  The download process performance is also going to be dependent on network stability and speed.  
-
-Running the program on a windows 11 PC, with 64 GB RAM, a local SSD hard drive, and setting threads = 8 in all functions, tyou can expect download, organization, and metabolome generation to take about 4 hours of computer time on a modern laptop/desktop.  _Once you have everything set up, each new metabolome generated can be created in minutes._   
+Running the program on a windows 11 PC, with 64 GB RAM, a local SSD hard drive, and setting threads = 8 in all functions, you can expect download, organization, and metabolome generation to take about 4 hours of computer time on a modern laptop/desktop.  _Once you have everything set up, each new metabolome generated can be created in minutes._   
 
 ## Running the code
 This isn't a complex package, there are relatively few functions.  All functions start with 'get', 'build', or 'export'.  'get' functions download data to your local drive, 'build' functions parse and organize the downloaded data to turn it into something more useful for metabolomic scientists, and 'export' functions write these metabolome datasets to file for use in other programs.  
@@ -60,7 +59,7 @@ pubchem.bio::get.pubchem.ftp(pc.directory ="C:/Temp/20250703")
 What just happened?  We have downloaded a bunch of data, mostly from the PubChem FTP site.  These downloaded compressed files were decompressed, and we extracted only the most relevant bits of data from them, saving those relevant bits as data.tables in .Rdata format.  The temporary files were removed after processing is done (assuming rm.tmp.files = TRUE).  We did not build a database, we simply moved all the data we want from remote to local, and discarded data we have no need for to keep from cluttering up our hard drive and RAM. 
 
 ### Building metabolite (CID) - lowest common ancestor (LCA) relationships
-Our next step needs to be further organization of taxonomy data.  This function is separated out as it is relatively computationally intensive, taking a good deal of time.  This will be done using the 'build.cid.lca' function.  The downloaded data is currently in a format containing three columns, a taxonomy ID, a PubChem CID, and the source of the relationship information.  This is a nice, clean format.  However, taxonomy is hierarchical, and the pubchem.bio package aims to use that hierarchy.  The 'build.taxid.lca function organizes the chemical relationships into the taxonomic hierarchy, so that we can utilize this hierarchy in building taxon-specific metabolomics databases.  The principle on which the process is based is the 'lowest common ancestor' approach.   As an example, the lowest common ancestor, from a taxonomy perspective, of the two species [_Homo heidelbergensis_](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?lvl=0&amp;id=1425170) and [_Homo sapiens_](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Tree&id=9606) is the genus [_Homo_](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Undef&id=9605).  Note that LCA is a property of a graph, in computer science, but i opted to organize this as a data.table, as recovering LCA was faster (for me at least, using the R tools I tried) in this format than in graph format.
+Our next step needs to be further organization of taxonomy data.  This function is separated out as it is relatively computationally intensive, taking a good deal of time.  This will be done using the 'build.cid.lca' function.  The downloaded data is currently in a format containing three columns, a taxonomy ID, a PubChem CID, and the source of the relationship information.  This is a nice, clean format.  However, taxonomy is hierarchical, and the pubchem.bio package aims to use that hierarchy to our advantage.  The 'build.taxid.lca function organizes the chemical relationships into the taxonomic hierarchy, so that we can utilize this hierarchy in building taxon-specific metabolomics databases.  Individual chemicals are nested in the hierarchy, and we can use the distribution of the chemical-taxonomy mappings to generalize structure distributions within the taxonomy hierarchy.  The principle on which the process is based is the 'lowest common ancestor' approach.   As an example, the lowest common ancestor, from a taxonomy perspective, of the two species [_Homo heidelbergensis_](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?lvl=0&amp;id=1425170) and [_Homo sapiens_](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Tree&id=9606) is the genus [_Homo_](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Undef&id=9605).  Note that LCA is a property of a graph, in computer science, but i opted to organize this as a data.table, as recovering LCA was faster (for me at least, using the R tools I tried) in this format than in graph format.
 
 To build the cid.lca relationships, we need to define which 'sources' of taxonomy information we wish to use.  for this example, we will just use LOTUS, but there are many options.  I will discuss the importance of this below, but for now, here is the code we can use to infer LCA for each CID.  
 
@@ -69,7 +68,7 @@ To build the cid.lca relationships, we need to define which 'sources' of taxonom
 build.cid.lca(pc.directory = "C:/Temp/20250703", tax.sources =  "LOTUS - the natural products occurrence database")
 ```
 
-This function builds the CID - LCA relationship for all compounds with taxonomy data.  Note that you can optionally use pathway information in your taxonomy source data as well, as many of them do have taxonmy assigned. In the case of pathway data, there are conserved and species specific pathways.  Conserved pathways are considered to have an LCA = 1, or 'root' taxonomy, and therefore can be used to ensure that the TCA cycle metabolites, for example, are going to be included in any metabolomic database generated (they would be anyway - this is a trivial example), even if there is no specific evidence that it is present in your species of interest.  By default 'use.conserved.pathways' is set to 'FALSE', as 'conserved' can mean different things to different people.  If you set 'use.conserved.pathways = TRUE', LCA = 1 for every metabolite mentioned in a pathway which is listed as 'conserved'.  
+This function builds the CID - LCA relationship for all compounds with taxonomy data.  You see how the function references the same directory we used in the 'get' step above?  That is where all the relevent information is stored - we are going to use it again here.  Note that you can optionally use pathway information in your taxonomy source data as well, as many of them do have taxonmy assigned. In the case of pathway data, there are conserved and species specific pathways.  Conserved pathways are considered to have an LCA = 1, or 'root' taxonomy, and therefore can be used to ensure that the TCA cycle metabolites, for example, are going to be included in any metabolomic database generated (they would be anyway - this is a trivial example), even if there is no specific evidence that it is present in your species of interest.  By default 'use.conserved.pathways' is set to 'FALSE', as 'conserved' can mean different things to different people.  If you set 'use.conserved.pathways = TRUE', LCA = 1 for every metabolite mentioned in a pathway which is listed as 'conserved'.  This will result in a much higher number of metabolites in every species database.  This is set to 'FALSE' by default, to enable the LCA approach to build 'converved' from the existing data, rather than take assignments at face value.  
 
 This function is not building your taxonomy specific database, it is assigning a lowest common ancestory for every metabolite with supporting taxonomy data.  Ultimately, we will build the taxonomy specific databases from the output of this function, for any taxa we like.  Ultimately, you will still need to demonstrate, using analytical mass spectrometry, that capsaicin is actually present in the species (or not) - we are just defining chemical search space.   As such, I tend to approach this in an 'inclusive' manner - if a metabolite is plausibly present, i want it in the search space.
 
@@ -82,27 +81,27 @@ sub.taxid.hierarchy
 
 We have five taxa represented here: species 1173 = _Mycobacterium tuberculosis_ (Tuberculosis bacterium), 4072 = _Capsicum annuum_ (pepper), 4081 = _Solanum lycopersicum_ (tomato), 4232 = _Helianthus annuus_ (sunflower), 4932 = _Saccharomyces cerevisiae_ (brewers yeast). Tomato and Pepper are the two most closely related species, and you can see this in the table above by looking for the left-most common value in those two rows - while 'species', 'genus', and 'tribe' are different, they share the same 'family' - taxid [4070](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=4070).  Sunflower, also a vascular plant, but more distantly related, does not share a taxid with tomato/pepper until 'class'.  Mycobacterium and yeast do not match until 'root.'  Taxonomy is therefore hierarchical, and we can map our CID - LCA relationships onto it.
 
-There are dedicated taxonomy-cid relationships defined by many groups, or in PubChem vernacular, 'sources'.  For example, if we look at the taxonomic relationships for capsaicin (see URL above), we see that it is noted to be found in various _Capsicum_ species, which is expected, but it is also noted to be found in humans through its presence in HMDB.  This record for humans is certainly true, in one sense - we humans often eat spicy peppers and therefore Capsaicin will be found in humans.  But it is not _produced_ by humans.  
+There are dedicated taxonomy-cid relationships defined by many groups, or in PubChem vernacular, 'sources'.  For example, if we look at the taxonomic relationships for [capsaicin](https://pubchem.ncbi.nlm.nih.gov/compound/Capsaicin#section=Taxonomy), we see that it is noted to be found in various _Capsicum_ species, which is expected, but it is also noted to be found in humans through its presence in HMDB.  This record for humans is certainly true, in one sense - we humans often eat spicy peppers and therefore Capsaicin will be found in humans.  But it is not _produced_ by humans.  
 
-It is up to you whether you want to capture these sorts of relationships in your taxonomy data, and you have to impliment that decision by choosing data sources appropriately. I have set the 'tax.sources' option default to be 'interactive' so that every time you can see the sources and decide.  However, you can also just set the sources as a character vector.  i.e. c("LOTUS - the natural products occurrence database") will ONLY use taxonomy-CID relationships as defined by LOTUS.  Also note that some sources appear to have what i would consider to be false positive assignments.  Capsicum is reported to be found in _Mango_ by the NPASS database.  This appears to be a product of automated text mining mis-assignment. Given that LOTUS seems to contain fewer of these (i have not been systematic or comprehensive in evaluating this), and is also massive, i generally _only_ use LOTUS, but this is ulitmately up to you to decide.   
+It is up to you whether you want to capture these sorts of relationships in your taxonomy data, and you have to implement that decision by choosing data sources appropriately. I have set the 'tax.sources' option default to be 'interactive' so that every time you can see the sources and decide.  However, you can also just set the sources as a character vector.  i.e. c("LOTUS - the natural products occurrence database") will ONLY use taxonomy-CID relationships as defined by LOTUS.  Also note that some sources appear to have what i would consider to be false positive assignments.  Capsicum is reported to be found in _Mango_ by the NPASS database.  This appears to be a product of automated text mining mis-assignment, if i were to guess. Given that LOTUS seems to contain fewer of these (i have not been systematic or comprehensive in evaluating this), and is also massive, i generally _only_ use LOTUS, but this is ulitmately up to you to decide.   
 
-As an example of why this all matters:  If you set 'tax.sources = c("LOTUS - the natural products occurrence database")', the LCA for Capsaicin is _Capsicum_, which make great sense, since this is the genus which contains all of the peppers we know and love.  However, if you use 'NPASS' in your 'tax.sources' option, the lowest common ancestor for Capsacin changes from _Capsicum_  to Petapetalae, a clade containing all Asterids, Caryophyllales, Rosids, etc.  This would mean that if you built a species specific database for _Glycine max_, the common soybean, it _would_ contain Capsaicin, since it falls within the taxonomy structure headed by the LCA Pentapetalae: Pentapetalae/rosids/fabids/Fabales/Fabaceae/Papilionoideae/Phaseoleae/Glycine/max.   
+As an example of why this all matters:  If you set 'tax.sources = c("LOTUS - the natural products occurrence database")', the LCA for Capsaicin is _Capsicum_, which make great sense, since this is the genus which contains all of the peppers we know and love.  However, if you use 'NPASS' in your 'tax.sources' option, the lowest common ancestor for Capsacin changes from _Capsicum_  to Petapetalae, a clade containing all Asterids, Caryophyllales, Rosids, etc.  This would mean that if you built a species specific database for _Glycine max_, the common soybean, it _would_ contain Capsaicin, since it falls within the taxonomy structure headed by the LCA Pentapetalae: Pentapetalae/rosids/fabids/Fabales/Fabaceae/Papilionoideae/Phaseoleae/Glycine/max.   All this descrition helps to understand why we have just built the CID-LCA relationship table. We haven't used it yet.  
 
 ### Creating PubChem BIO metabolome database.  
-We can now build a database of biological compounds as a subset of PubChem data.  We base this on (1) BIO databases as a source (2) pathway data and (3) taxonomy data.   If you would like to see the full list of all data sources, please go to PubChem: https://pubchem.ncbi.nlm.nih.gov/sources/.  Currently, the default uses bio.sources = c("Metabolomics Workbench","Human Metabolome Database (HMDB)", "ChEBI", "LIPID MAPS", "MassBank of North America (MoNA)").  All pathway metabolites are added, as are all metabolites from the taxonomy dataset.  You can specify to only include certain sources for each of pathways and taxonomy as well.  Generally, when compiling metabolomics databases, we want to remove salts as they are not detected in salt form by LC- or GC-MS, so that is done by default. We also can optionally calculate some basic physicochemical properties using the 'rcdk' package.  While some of these physicochemical properties are also available via PubChem, i have found it much faster to calculate them locally than to retrieve them from PubChem, and building the rcdk property calculation into the function at this stage makes the package output more versatile, as there are _many_ rcdk properties which are not available via PubChem.  Let me know if you feel it important to change this behavior and actually use PubChem predicted properties instead. 
+We can now build a database of biological compounds as a subset of PubChem data.  We base this on (1) biologically centered databases (2) pathway data and (3) taxonomy data.   If you would like to see the full list of all data sources, please go to PubChem: https://pubchem.ncbi.nlm.nih.gov/sources/.  A full list will also be saved in the pc.directory you defined when you ran 'get.pubchem.ftp.'  Currently, the default uses bio.sources = c("Metabolomics Workbench","Human Metabolome Database (HMDB)", "ChEBI", "LIPID MAPS", "MassBank of North America (MoNA)").  All pathway metabolites are added, as are all metabolites from the taxonomy dataset.  You can specify to only include certain sources for each of pathways and taxonomy as well.  Generally, when compiling metabolomics databases, we want to remove salts as they are not detected in salt form by LC- or GC-MS, so that is done by default. We also can optionally calculate some basic physicochemical properties using the 'rcdk' package.  While some of these physicochemical properties are also available via PubChem, i have found it much faster to calculate them locally than to retrieve them from PubChem, and building the rcdk property calculation into the function at this stage makes the package output more versatile, as there are _many_ rcdk properties which can be calculated and are not available via PubChem.  Let me know if you feel it important to change this behavior and actually use PubChem predicted properties instead. 
 
-###### note that running this line of code may will take about 1.5 hours of computer time, with 8 threads, 64 GB RAM
+###### note that running this line of code may will take about one hour of computer time, with 8 threads, 64 GB RAM
  
 ```{r build.pubchem.bio, eval=FALSE}
 pc.bio <- build.pubchem.bio(pc.directory = "C:/Temp/20250703")
 ```
 
-This 'pc.bio' object contains > 1M metabolites (using default settings), and has columns with names, structures, and properties.   It can be used directly as a source dataset for export to spreadsheet format, as it is a data.frame object.  It includes metadata including the number of references to pubmed ('pmid.ct'), the number of sources that include this compound in their PubChem submission ('source.ct'), number of pathways that reference the compound ('pathway.ct') and the number of taxonomy relationships defined ('taxonomy.ct').  These are only reported - it is up to you what to do with this information.  Some informatics tools rely heavily on such information to increase the true positive hits, while others vehemently eschew such approaches as it introduces bias into the analysis.  Additionally, we have now four rcdk-calculated properties, 'XLogP', 'nAcid', 'nBase', and 'TopoPSA'.  These properties are useful entry points into chemical descriptions that are of value in undersatnding analytical behavior. 'XLogP' as an estimator of neutral pH hydrophobicity, 'nAcid' and 'nBase' to describe ionizability, and 'TopoPSA' as a tool for understanding polarity in a manner dependent on molecular size.  Such properties can be valuable in predicting retention time, CCS, adduct affinity, etc.  
+This 'pc.bio' object contains > 1M metabolites (using default settings), and has columns with names, structures, and properties.   It can be used directly as a source data set for export to spreadsheet format, as it is a data.frame object.  It is supplemented with metadata including the number of references to pubmed ('pmid.ct'), the number of sources that include this compound in their PubChem submission ('source.ct'), number of pathways that reference the compound ('pathway.ct') and the number of taxonomy relationships defined ('taxonomy.ct').  These are only reported - it is up to you what to do with this information.  Some informatics tools rely heavily on such information to increase the true positive hits, while others vehemently eschew such approaches as it introduces bias into the analysis.  Additionally, we have now four rcdk-calculated properties, 'XLogP', 'nAcid', 'nBase', and 'TopoPSA'.  These properties are useful entry points into chemical descriptors that are of value in undersatnding analytical behavior. 'XLogP' as an estimator of neutral pH hydrophobicity, 'nAcid' and 'nBase' to describe ionizability, and 'TopoPSA' as a tool for understanding polarity in a manner dependent on molecular size.  Such properties can be valuable in predicting retention time, CCS, adduct affinity, etc.  
 
 ### Creating taxon-specific metabolite databases
-By organizing taxonomy-metabolite data within the taxonomic hierarchy in CID - LCA pairs (above), we can use some logical/reasoned steps to ensure that our taxonomy-specific metabolome database is as comprehensive as possible.   We know that [Capsaicin](https://pubchem.ncbi.nlm.nih.gov/compound/Capsaicin) is found in _Capsicum annuum_ and _Capsicum frutescens_ (amongst others). If the only two know sources of Capsacin were the two _Capsicum_ species, we can set the lowest common ancestor for Capasaicin to the _Capsicum_ genus.  Additionally, this allows us to _reasonably_ infer that capsaicin _could_ be found in other _Capsicum_ species, such as _Capsicum cornutum_ even if there is no documented evidence of this in PubChem.   Do note that this inference is not proof of capsaicin is found in all _Capsicum_ species, but the data supports to notion that it is quite plausible that capsaicin may be present in other _Capsicum_ species as well.  Evidence-based inference.  This can be inferred at every taxonomic level.  The more taxonomy associations are present in PubChem, the more data we have to infer the taxonomic breadth of the metabolic process that can produce that metabolite.  Some metabolic pathways can be considered to be 'conserved' - found in all known biology.  The TCA cycle, glycolysis, fatty acid biosynthesis, etc.  The data in PubChem enable us to assign an LCA of '1' - the root of all biology - to such metabolite CIDs. These metabolites will also therefore be expected to be part of the _Capsicum cornutum_ metabolome, since it is nested under the 'root' taxonomic hierarchy.    
+By organizing taxonomy-metabolite data within the taxonomic hierarchy in CID - LCA pairs (above), we can use some logical/reasoned steps to ensure that our taxonomy-specific metabolome database is as comprehensive as possible.   We know that [Capsaicin](https://pubchem.ncbi.nlm.nih.gov/compound/Capsaicin) is found in _Capsicum annuum_ and _Capsicum frutescens_ (amongst others). If the only two know sources of Capsacin were the two _Capsicum_ species, we can set the lowest common ancestor for Capasaicin to the _Capsicum_ genus.  Additionally, this allows us to _reasonably_ infer that capsaicin _could_ be found in other _Capsicum_ species, such as _Capsicum cornutum_ even if there is no documented evidence of this in PubChem.   Do note that this inference is not proof of capsaicin is found in all _Capsicum_ species, but the data supports the premise that it is quite plausible that capsaicin may be present in other _Capsicum_ species as well.  Evidence-based inference.  This can be inferred at every taxonomic level.  The more taxonomy associations are present in PubChem, the more data we have to infer the taxonomic breadth of the metabolic process that can produce that metabolite.  Some metabolic pathways can be considered to be 'conserved' - found in all known biology.  The TCA cycle, glycolysis, fatty acid biosynthesis, etc.  The data in PubChem enable us to assign an LCA of '1' - the root of all biology - to such metabolite CIDs. These metabolites will also therefore be expected to be part of the _Capsicum cornutum_ metabolome, since it is nested under the 'root' taxonomic hierarchy.    
 
-This ultimately enables us to build a metabolome database for _Capsicum cornutum_ even if PubChem had no information on _Capsicum cornutum_ metabolites, since we have defined many metabolites which associate with the _Capsicum_ genus, as well as with higher taxonomic levels. 
+This ultimately enables us to build a metabolome database for _Capsicum cornutum_ even if PubChem had no information on _Capsicum cornutum_ metabolites, since we have defined many metabolites which associate with the _Capsicum_ genus, as well as with all mapped taxonomic levels above _Capsicum._ 
 
 ###### running this line of code may will take about a minute of computer time, with 8 threads, 64 GB RAM
  
@@ -113,16 +112,16 @@ pc.bio.sub <- build.taxon.metabolome(taxid = 1710960, pc.directory = "C:/Temp/20
 ### Meta-metabolomes
 This function can also take a list of taxids. Imagine you are analyzing stool samples from a gut microbiome study under controlled diet conditions.  You can include human (9606), _Prevotella_ (838), _Bacterioides_ (816), _Capsicum_ (4071), _Bos taurus_ (9913), etc, by setting taxid = c(9606, 838, 816, 4071, 9913).  This tool does not try to predict cross-species metabolism, but you now have a metabolite database which you can provide to tools such as [BioTransformer](https://biotransformer.ca/).  
 
-Let's consider a meta-metabolome that is a bit more fun.   Salsa.  We can simplify the ingredient list a bit.  lets consider peppers, tomatoes, and cilantro.  
+Let's consider a meta-metabolome that is a bit pleasant.   Salsa.  We can simplify the ingredient list a bit.  lets consider peppers, tomatoes, and cilantro.  
 
 ```{r build.salsa.metabolome, eval=FALSE}
 pc.bio.sub <- build.taxon.metabolome(taxid = c(4072, 4107, 4047), pc.directory = "C:/Temp/20250703", get.properties = FALSE)
 ```
 
-In this example, I used _Capsicum annuum_ (pepper, 4072), the genus _Solanum_ (tomato, 4107), and _Coriandrum sativum_ (cilantro/coriander, 4047) as the taxa used to construct this meta-metabolome.  Note that i used _Solanum_ - a genus - rather than _Solanum lycopersicon_ - a species.   This is fine.  you can always do this.  You can use any taxonomic level in building your metabolome (or meta-metabolome).   While it may not make perfect sense to do so, I wanted to demonstrate that you can.  
+In this example, I used _Capsicum annuum_ (pepper, 4072), the genus _Solanum_ (tomato, 4107), and _Coriandrum sativum_ (cilantro/coriander, 4047) as the taxa used to construct this meta-metabolome.  Note that i used _Solanum_ - a genus - rather than _Solanum lycopersicon_ - a species.   This is fine.  you can always do this.  You can use any taxonomic level in building your metabolome (or meta-metabolome).   While it may not make perfect sense to do so, I wanted to demonstrate that you can - versatility is important and you may find a good reason to do so.  
 
 ### Taxon-scored metabolite database structure
-When we created the pc.bio object above, we also saved a version of it to the pc.directory specified.  We load this into memory, and then use the mapped CID - LCA data, the taxonomy hierarchy, to (1) determine all metabolites whose LCA maps to any taxonomic level in the taxa we ask and (2) assign a taxonomy-LCA score to all metabolite CIDs which have any taxonomy data.   All CIDs which map to the taxa listed are assinged a taxonomy.lca.similarity score of 1.  All metabolites with taxonomy data but are not mapped to the selected taxon are assigned a value greater than or equal to zero and less than one.  The closer the taxonomic level of the CID's LCA is to the lowest common ancestor of the mapping taxon, the higher the similarity score.  There are 21 levels to the taxonomic hierarchy.  If a CID maps to species A only, and we ask for species B's metabolome, and A and B are member of the same genus, then there is one taxonomic level between the two levels, so the CID is assigned a taxonomy.lca.similarity of (1 - 1/21) = 0.9523.  A value near, but less than, 1. 
+When we created the pc.bio object above, we also saved a version of it to the pc.directory specified.  We load this into memory, and then use the mapped CID - LCA data, the taxonomy hierarchy, to (1) determine all metabolites whose LCA maps to any taxonomic level in the taxa we ask and (2) assign a taxonomy-LCA score to all metabolite CIDs which have any taxonomy data.   All CIDs which map to the taxa listed are assinged a taxonomy.lca.similarity score of 1.  All metabolites with taxonomy data but are not mapped to the selected taxon are assigned a value greater than or equal to zero and less than one.  The closer the taxonomic level of the CID's LCA is to the lowest common ancestor of the mapping taxon, the higher the similarity score.  There are 13 levels to the taxonomic hierarchy.  If a CID maps to species A only, and we ask for species B's metabolome, and A and B are member of the same genus, then there is one taxonomic level between the two levels, so the CID is assigned a taxonomy.lca.similarity of (1 - 1/13) = 0.923.  A value near, but less than, 1. 
 
 Let's spend a bit of time looking at a small subset of the ouptut of our salsa meta-metabolome.  
 
@@ -132,9 +131,9 @@ pc.bio.subset[,c("cid", "name", "taxonomy.lca.similarity.4072", "taxonomy.lca.si
 ``` 
 
 
-We defined our target taxa as pepper (species), the tomato genus, and the cilantro species.  Each taxon is assigned its own similarity score (with the taxid appended to 'taxonomy.lca.similarity').  For citric acid, a highly conserved metabolite, all taxa are assigned a similarity score of 1.  Also enabled is an aggregation function - the default being 'max'.   Citric acid's aggregate taxonomy.lca.similarlity score is also 1.  Capsaicin is specific to peppers.  We can see that the assigned similarity score for peppers is 1 for taxid 4072 (peppers), 0.76 for 4107 (tomato genus), and 0.33 for 4047 (cilantro).  Since cilantro is more distantly related to pepper than tomato, which occupies the same solanceous clade, it is much less likely that capsaicin would be produced by cilantro - this is reflected in the scoring.   Daptomycin is produced by _Streptomyces filamentosus_ and Saccharamonopyrone C by brewers yeast, _Saccharomyces cerevisiae_ - these lowest common ancestor between pepper (or tomato, or cilantro) to these species is 'root', since they are fungal species.  As such, it is extremly unlikely that these compounds, which are only known to occur from one species (in PubChem, at least), are going to be found in our salsa - the scores are assigned as 0. Atropine is found in a few different solanaceous species (i.e. _Duboisia spp_, _Atropa spp_, _Datura spp_, etc).  It is not reported in tomato or pepper, but since its LCA is assigned as 4070 - [Solanaceae](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=4070&lvl=3&lin=f&keep=1&srchmode=1&unlock), atropine is considered to plausibly be found in all _Solanaceae_ species, and assigned scores of 1 for each of 4072 and 4107.  This example demonstrates both the benefit of the LCA approach - Citric acid and all other highly conserved metabolites are mapped to every species - but also demonstrates a cautionary tale - atropine is mapped to all Solanaceous species, even though there is no evidence that it is likely to be found in peppers and tomatoes, or our salsa.  You should be trying to think about this in evolutionary terms, and there are two explanations:  (1) Atropine synthesis capacity arose randomly a few genera, all of which happen to be in the _Solanacea_ or (2) The common ancestor to all _Solanacea_ had genetic traits which predisposes all of the progeny to develop the ability to synthesize atropine.   We can't tell the difference, but we are using taxonomy to infer phylogeny, and in this case, the impact of phylogeny on inferred metabolic traits.
+We defined our target taxa as pepper (species), the tomato genus, and the cilantro species.  Each taxon is assigned its own similarity score (with the taxid appended to 'taxonomy.lca.similarity').  For citric acid, a highly conserved metabolite, all taxa are assigned a similarity score of 1.  Also enabled is an aggregation function - the default being 'max'.   Citric acid's aggregate taxonomy.lca.similarlity score is also 1.  Capsaicin is specific to peppers.  We can see that the assigned similarity score for peppers is 1 for taxid 4072 (peppers), 0.76 for 4107 (tomato genus), and 0.33 for 4047 (cilantro).  Since cilantro is more distantly related to pepper than tomato, which occupies the same solanceous clade, it is much less likely that capsaicin would be produced by cilantro - this is reflected in the scoring.   Daptomycin is produced by _Streptomyces filamentosus_ and Saccharamonopyrone C by brewers yeast, _Saccharomyces cerevisiae_ - these lowest common ancestor between pepper (or tomato, or cilantro) to these species is 'root', since they are fungal species.  As such, it is extremely unlikely that these compounds, which are only known to occur from one species (in PubChem, at least), are going to be found in our salsa - the scores are assigned as 0. Atropine is found in a few different solanaceous species (i.e. _Duboisia spp_, _Atropa spp_, _Datura spp_, etc).  It is not reported in tomato or pepper, but since its LCA is assigned as 4070 - [Solanaceae](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=4070&lvl=3&lin=f&keep=1&srchmode=1&unlock), atropine is considered to plausibly be found in all _Solanaceae_ species, and assigned scores of 1 for each of 4072 and 4107.  This example demonstrates both the benefit of the LCA approach - Citric acid and all other highly conserved metabolites are mapped to every species - but also demonstrates a cautionary tale - atropine is mapped to all Solanaceous species, even though there is no evidence that it is likely to be found in peppers and tomatoes, or our salsa.  You should be trying to think about this in evolutionary terms, and there are two explanations:  (1) Atropine synthesis capacity arose randomly a few genera, all of which happen to be in the _Solanacea_ or (2) The common ancestor to all _Solanacea_ had genetic traits which predisposes all of the progeny to develop the ability to synthesize atropine.   We can't tell the difference, but we are using taxonomy to infer phylogeny, and in this case, the impact of phylogeny on inferred metabolic traits.
 
-If you wish to create a metabolome _ONLY_ with metabolites which are plausible, you can subset the data to keep only those metabolite CIDs with a similarilty score == 1. Something like:
+If you wish to create a metabolome _ONLY_ with metabolites which are plausible, you can use the conventience function below. Something like:
 
 `my.metabolome <- pc.bio.subset[which(pc.bio.subset$taxonomy.lca.similarity.4072 == 1),]`  
 
@@ -157,19 +156,157 @@ if you look closely at the data that has been downloaded, you will find a good d
 
 ### Workflow in brief
 
-Just make sure to set the local.pubchem.directory to something that makes sense for your system.
+Just make sure to set the local.pubchem.directory to something that makes sense for your system.  This is the code i used to generate much of the data reported in the submitted manuscript.  
 
 ```{r all.steps, eval=FALSE}
-install.packages(pubchem.bio, dependencies = TRUE)
+
 library(pubchem.bio)
-local.pubchem.directory <- "C:/Temp/20250801"  ## i suggest this naming scheme, but feel free to chose your own.
-pubchem.bio::get.pubchem.ftp(pc.directory = local.pubchem.directory)
-cid.lca <- pubchem.bio::build.cid.lca(pc.directory = local.pubchem.directory, tax.sources =  "LOTUS - the natural products occurrence database")
-pc.bio <- pubchem.bio::build.pubchem.bio(pc.directory = local.pubchem.directory)
-pc.bio.salsa <- pubchem.bio::build.taxon.metabolome(taxid = c(4081, 4072, 4047, 4679, 4682), pc.directory = local.pubchem.directory, get.properties = FALSE)
-export.msfinder(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.msfinder.tsv"))
-export.sirius(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.sirius.tsv"))
-export.pubchem.bio(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.full.pubchem.bio.tsv"))
+local.pubchem.directory <- "C:/Temp/20250828"  ## i suggest this naming scheme, but feel free to chose your own.
+
+## run code, with timings recorded, b-a will give you the time to run the 'get.pubchem.ftp' function, etc.  
+a <- Sys.time()
+pubchem.bio::get.pubchem.ftp(pc.directory = local.pubchem.directory, threads = 8)
+b <- Sys.time()
+
+cid.lca <- pubchem.bio::build.cid.lca(pc.directory = local.pubchem.directory, tax.sources =  "LOTUS - the natural products occurrence database", threads = 8, min.taxid.table.length = 3)
+cid.lca[cid.lca$cid == 5793,]
+cid.lca[cid.lca$cid == 1548943,]
+cid.lca[cid.lca$cid == 44254980,]
+c <- Sys.time()
+
+pc.bio <- pubchem.bio::build.pubchem.bio(pc.directory = local.pubchem.directory, get.properties = TRUE, threads = 8)
+d <- Sys.time()
+
+pc.bio.tomato <- build.taxon.metabolome(taxid = c(4081), pc.directory = local.pubchem.directory, get.properties = FALSE)
+pc.bio.tomato[which(pc.bio.tomato == 5793),]
+pc.bio.tomato[which(pc.bio.tomato == 1548943),]
+pc.bio.tomato[which(pc.bio.tomato == 44254980),]
+e <- Sys.time()
+
+pc.bio.salsa <- build.taxon.metabolome(taxid = c(4081, 4072, 4047, 4679, 4682), pc.directory = local.pubchem.directory, get.properties = FALSE)
+pc.bio.salsa[which(pc.bio.salsa == 5793),]
+pc.bio.salsa[which(pc.bio.salsa == 1548943),]
+pc.bio.salsa[which(pc.bio.salsa == 44254980),]
+f <- Sys.time()
+
+load(paste0(local.pubchem.directory, "/cid.lca.Rdata"))
+load(paste0(local.pubchem.directory, "/cid.taxid.Rdata"))
+load(paste0(local.pubchem.directory, "/cid.monoisotopic.mass.Rdata"))
+load(paste0(local.pubchem.directory, "/pc.bio.Rdata"))
+load(paste0(local.pubchem.directory, "/cid.pwid.Rdata"))
+
+primary.metabolome <- build.primary.metabolome(
+  pc.directory = local.pubchem.directory, get.properties = FALSE, 
+  min.tax.ct = 2^5, keep.primary.only = TRUE)
+g <- Sys.time()
+
+pubchem.bio::export.msfinder(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.msfinder.tsv"))
+pubchem.bio::export.sirius(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.sirius.tsv"))
+pubchem.bio::export.pubchem.bio(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.full.pubchem.bio.tsv"))
+h <- Sys.time()
+
+out.dir <- "C:/Users/cbroeckl/OneDrive - Colostate/ARC/manuscripts/20250721_pubchem.bio/"
+
+ggpl <- ggplot2::ggplot(pc.bio.salsa, ggplot2::aes(taxonomy.lca.similarity.aggregate)) +
+  ggplot2::geom_histogram(color = "#000000", fill = "#1E4D2B") +
+  ggplot2::theme_classic() +
+  ggplot2::annotate("text", x=0.7, y=75000, label= paste0("n = ", length(which(!is.na(pc.bio.salsa$taxonomy.lca.similarity.aggregate)))))
+
+ggplot2::ggsave(ggpl, file = paste0(out.dir, "figure.2.eps"), scale = 0.75)
+
+length(which(pc.bio.salsa$taxonomy.lca.similarity.4081 == 1))
+length(which(pc.bio.salsa$taxonomy.lca.similarity.4072 == 1))
+length(which(pc.bio.salsa$taxonomy.lca.similarity.4047 == 1))
+length(which(pc.bio.salsa$taxonomy.lca.similarity.4679 == 1))
+length(which(pc.bio.salsa$taxonomy.lca.similarity.4682 == 1))
+
+## percentage of tomato metabolites also in pepper
+tom <- which(pc.bio.salsa$taxonomy.lca.similarity.4081 == 1)
+pep <- which(pc.bio.salsa$taxonomy.lca.similarity.4072 == 1)
+length(which(pc.bio.salsa$cid[tom] %in% pc.bio.salsa$cid[pep]))/length(pc.bio.salsa$cid[tom])
+
+## percentage of tomato metabolites also in pepper
+garlic <- which(pc.bio.salsa$taxonomy.lca.similarity.4682 == 1)
+onion <- which(pc.bio.salsa$taxonomy.lca.similarity.4679 == 1)
+length(which(pc.bio.salsa$cid[garlic] %in% pc.bio.salsa$cid[onion]))/length(pc.bio.salsa$cid[garlic])
+
+## percentage of tomato metabolites also in garlic
+length(which(pc.bio.salsa$cid[tom] %in% pc.bio.salsa$cid[garlic]))/length(pc.bio.salsa$cid[tom])
+
+
+
+
+cids <- c(174174, 1548943) #atropine, capsaicin
+cid.lca[cid.lca$cid %in% cids,]
+
+pc.bio.datura <- pubchem.bio::build.taxon.metabolome(taxid = c(4074), pc.directory = local.pubchem.directory, get.properties = FALSE)
+pc.bio.datura[pc.bio.datura$cid %in% cids,]
+
+
+n.tax <- 2^(seq(0, 10, 0.2))
+n.mets <- rep(NA, length(n.tax))
+for(i in 1:length(n.tax)) {
+  tmp <- build.primary.metabolome(
+    pc.directory = local.pubchem.directory, get.properties = FALSE, 
+    min.tax.ct = n.tax[i], keep.primary.only = TRUE)
+  n.mets[i] <- nrow(tmp)
+  rm(tmp); gc()
+}
+
+pc.mw <- ggplot2::ggplot(cid.monoisotopic.mass, ggplot2::aes(monoisotopic.mass)) +
+  ggplot2::geom_density(color = "#000000", fill = "#1E4D2B", bw = 50) +
+  ggplot2::theme_classic() +
+  ggplot2::scale_x_continuous(limits = c(0, 2000)) +
+  ggplot2::annotate("text", x=1600, y=0.0025, label= paste0("n = ", nrow(cid.monoisotopic.mass)))
+
+pc.mw.bio <- ggplot2::ggplot(pc.bio, ggplot2::aes(monoisotopic.mass)) +
+  ggplot2::geom_density(color = "#000000", fill = "#1E4D2B", bw = 50) +
+  ggplot2::theme_classic() +
+  ggplot2::scale_x_continuous(limits = c(0, 2000)) +
+  ggplot2::annotate("text", x=1600, y=0.0011, label= paste0("n = ", nrow(pc.bio)))
+
+pc.mw.prim <- ggplot2::ggplot(primary.metabolome, ggplot2::aes(monoisotopic.mass)) +
+  ggplot2::geom_density(color = "#000000", fill = "#1E4D2B", bw = 50) +
+  ggplot2::theme_classic() +
+  ggplot2::scale_x_continuous(limits = c(0, 2000)) +
+  ggplot2::xlab("monoisotopic mass") +
+  ggplot2::annotate("text", x=1600, y=0.002, label= paste0("n = ", nrow(primary.metabolome)))
+
+
+rarefaction <- data.frame(
+  taxa.count = n.tax,
+  primary.metabolites = n.mets
+)
+
+pc.prim.curve <- ggplot2::ggplot(rarefaction, ggplot2::aes(x=taxa.count, y=primary.metabolites)) +
+  ggplot2::geom_line() +
+  ggplot2::scale_x_continuous(
+    trans = "log2",
+    labels = scales::math_format(2^.x, format = log2)
+  ) + 
+  ggplot2::theme_classic()
+
+
+p1 <- pc.mw
+p2 <- pc.mw.bio
+p3 <- pc.prim.curve
+p4 <- pc.mw.prim
+
+
+fig.1 <- gridExtra::grid.arrange(
+  gridExtra::arrangeGrob(p1, left = grid::textGrob("a)", x = grid::unit(1, "npc"), 
+                                       y = grid::unit(.95, "npc"))),
+  gridExtra::arrangeGrob(p2, left = grid::textGrob("b)", x = grid::unit(1, "npc"), 
+                                  y = grid::unit(.95, "npc"))),
+  gridExtra::arrangeGrob(p3, left = grid::textGrob("c)", x = grid::unit(1, "npc"), 
+                                  y = grid::unit(.95, "npc"))),
+  gridExtra::arrangeGrob(p4, left = grid::textGrob("d)", x = grid::unit(1, "npc"), 
+                                  y = grid::unit(.95, "npc"))))
+ggplot2::ggsave(fig.1, file = paste0(out.dir, "figure.1.eps"), scale = 1.25)
+
+pubchem.bio::export.pubchem.bio(pc.bio.object = primary.metabolome, export.file.name = "primary.metabolome.tsv")
+write.csv(primary.metabolome, file = "C:/Users/cbroeckl/OneDrive - Colostate/ARC/manuscripts/20250721_pubchem.bio/primary.metabolome.csv", row.names = FALSE)
+
 ```
 
 

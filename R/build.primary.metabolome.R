@@ -42,6 +42,8 @@ build.primary.metabolome <- function(
   
   loadNamespace("data.table")
   .datatable.aware = TRUE
+  ..cols <- NULL
+  
   
   out.dir <- pc.directory
   if(is.null(out.dir)) out.dir <- output.directory

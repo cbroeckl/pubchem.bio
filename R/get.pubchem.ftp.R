@@ -40,6 +40,7 @@ get.pubchem.ftp <- function(
   
   loadNamespace('data.table')
   .datatable.aware = TRUE
+  ..cols <- NULL
   
   message(" -- writing data to ", pc.directory, '\n')
   

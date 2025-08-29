@@ -241,6 +241,8 @@ build.cid.lca <- function(
     
     requireNamespace('data.table')
     .datatable.aware = TRUE
+    ..cols <- NULL
+    
     taxids <- unique(cid.taxid$taxid[cid.taxid$cid == cid.list[[i]]])
     if(any(is.na(taxids))) {taxids <- taxids[!is.na(taxids)]}
     if(length(taxids) == 0) {

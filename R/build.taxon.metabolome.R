@@ -162,6 +162,8 @@ build.taxon.metabolome <- function(
         tryCatch({
           loadNamespace("data.table")
           .datatable.aware = TRUE
+          ..cols <- NULL
+          
           tmp.j <- tmp[j,]
           tmp.j <- tmp.j[!is.na(tmp.j)]
           mtchs <- sapply(1:length(tmp.j), FUN = function(k) {

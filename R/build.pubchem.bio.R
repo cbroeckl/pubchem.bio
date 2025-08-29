@@ -108,6 +108,8 @@ build.pubchem.bio <- function(
   
   loadNamespace("data.table")
   .datatable.aware = TRUE
+  ..cols <- NULL
+  
   
   cid <- vector(length = 0, mode = 'integer')
   
