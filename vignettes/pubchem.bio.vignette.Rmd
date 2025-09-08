@@ -27,7 +27,7 @@ The pubchem.bio package enables researchers to
 * Define a core biological 'primary' metabolome, comprising metabolites plausibly found in any species
 * Develop custom metabolomic structure databases using selected or all available taxonomic data in PubChem, and scoring metabolites based on taxonomic proximity.
 
-As such, this package will help to streamline metabolomic database creation, increase the accuracy of annotation efforts by 
+As such, this package will help to streamline metabolomic database creation, increase the accuracy of annotation efforts by reducing the chemical search space to the most likely encounted metabolites, in a manner informed by a wealth of biological knowledge. 
 
 ##  Installation
 ```{r installation, eval=FALSE}
