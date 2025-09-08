@@ -434,7 +434,7 @@ build.pubchem.bio <- function(
     }
   }
   
-  ## remove salts
+  ## remove inorganics
   if(remove.inorganics) {
     
     is.organic <- sapply(1:nrow(out), FUN = function(x) {
@@ -497,7 +497,6 @@ build.pubchem.bio <- function(
     save(pc.bio, file = paste0(out.dir, "/pc.bio.Rdata"))
   }
 
-  
   return(pc.bio)
 }
 ## pc.bio <- build.pubchem.bio(pc.directory = "R:/RSTOR-PMF/Software/db/met.db/20241216")
