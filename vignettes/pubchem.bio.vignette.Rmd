@@ -141,6 +141,22 @@ Alternatively, you can use the assigned scores to rank/rescore search results fr
 
 One final note on taxonomy scoring:  all CIDs from the pc.bio object are included by default in the taxonomy scoring output.  However, not all CIDs have associated taxonomy information.  Any CID which has no taxonomy information (using your chosen CID - LCA parameters) will have a score of NA.  It will be up to you to determine how you want to handle these. 
 
+### Filtering your database. 
+The databases you are building are stored in 'data.table' format.  It seemed overkill to build filtering functions around data.table's already  filtering functions, so instead, i will just include a few examples of how this filtering can be done.  
+
+```{r filter.data.table, eval=FALSE}
+## filter by monoisotopic molecular mass
+pc.bio.sub <- pc.bio[pc.bio$monoisotopic.mass > 50 & pc.bio$monoisotopic.mass < 1200,]
+range(pc.bio.sub$monoisotopic.mass)
+
+## remove all rows that have a formula with a charge
+charged <- grepl("+", pc.bio$formula, fixed = TRUE) | grepl("-", pc.bio$formula, fixed = TRUE)
+pc.bio.sub <- pc.bio[!charged,]
+
+```
+
+pc.bio
+
 ### Exporting your custom database
 We provide three export options.  In each case, we take as input the pc.bio object or the related taxonomy-scored pc.bio object.  At this point, taxonomy scoring isn't feasible in these programs - we are exporting the minimal data asked for by the programs, and taxonomy score is not one of them. We use the CID as the database ID in each case - no point in creating another database ID when we have a perfectly good one from PubChem.  There is also a convenience wrapper to export the full pubchem.bio table to .tsv format - export.pubchem.bio().   
 
