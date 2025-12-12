@@ -12,7 +12,7 @@
 #' @param cid.pwid.object R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory
 #' @param min.taxid.table.length integer.  when there are few taxa reported to synthesize a particular compound, and those few taxa are spread widely across biology, the LCA concept breaks down.  This value controls the decision as to whether to determine LCA within taxonomic ranks, rather within the full taxonomy hierarchy.  see details. 
 #' @param output.directory directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided). If both directories are NULL, not saved, only returned as in memory 
-#' @return a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
+#' @return nothing.  will save to pc.directory as .Rdata file.
 #' @author Corey Broeckling
 #' 
 #' @examples
@@ -411,7 +411,7 @@ build.cid.lca <- function(
   if(!is.null(out.dir)) {
     save(cid.lca, file = paste0(out.dir, "/cid.lca.Rdata"))
   }
-  return(cid.lca)
+  # return(cid.lca)
 }
 
 

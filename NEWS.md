@@ -1,3 +1,7 @@
+# pubchem.bio 1.0.3
+* added export.CompoundDb function to enable 'conversion to a CompoundDb' sqlite database and compatibility with the RForMassSpectrometry metapackage
+* added export.CompoundDb demonstration to vignette
+
 # pubchem.bio 1.0.2
 * added build.element.count function
 * added filtering demonstration to vignette

@@ -5,10 +5,16 @@
 \title{cid.inchi.rda}
 \format{
 data.table, stored in .rda format
+
+data.table, stored in .rda format
 }
 \source{
 subset of cid.inchi file from get.pubchem.ftp
+
+subset of cid.inchi file from get.pubchem.ftp
 }
 \description{
+A subset of the full cid.inchi, for example code
+
 A subset of the full cid.inchi, for example code
 }

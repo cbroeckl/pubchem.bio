@@ -22,6 +22,7 @@ build.element.count <- function(
   
   loadNamespace("data.table")
   .datatable.aware = TRUE
+  utils::globalVariables(c("..keep.cols", ":="))
   
   if(is.null(pubchem.bio.object)) {
     load(paste0(pc.directory, "/pc.bio.Rdata"))

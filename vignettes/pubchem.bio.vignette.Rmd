@@ -164,6 +164,7 @@ We provide three export options.  In each case, we take as input the pc.bio obje
 export.msfinder(pc.bio.object = pc.bio.sub, export.file.name = "C:/Temp/20250703/pc.bio.msfinder.tsv")
 export.sirius(pc.bio.object = pc.bio.sub, export.file.name = "C:/Temp/20250703/pc.bio.sirius.tsv")
 export.pubchem.bio(pc.bio.object = pc.bio.sub, export.file.name = "C:/Temp/20250703/pc.bio.full.pubchem.bio.tsv")
+export.CompoundDb(pc.bio.object = pc.bio.sub, path = "C:/Temp/20250703/")
 ```
 
 ### The future
@@ -177,17 +178,14 @@ Just make sure to set the local.pubchem.directory to something that makes sense 
 ```{r all.steps, eval=FALSE}
 
 library(pubchem.bio)
-local.pubchem.directory <- "C:/Temp/20250828"  ## i suggest this naming scheme, but feel free to chose your own.
+local.pubchem.directory <- "C:/Temp/20251212"  ## i suggest this naming scheme, but feel free to chose your own.
 
 ## run code, with timings recorded, b-a will give you the time to run the 'get.pubchem.ftp' function, etc.  
 a <- Sys.time()
 pubchem.bio::get.pubchem.ftp(pc.directory = local.pubchem.directory, threads = 8)
 b <- Sys.time()
 
-cid.lca <- pubchem.bio::build.cid.lca(pc.directory = local.pubchem.directory, tax.sources =  "LOTUS - the natural products occurrence database", threads = 8, min.taxid.table.length = 3)
-cid.lca[cid.lca$cid == 5793,]
-cid.lca[cid.lca$cid == 1548943,]
-cid.lca[cid.lca$cid == 44254980,]
+pubchem.bio::build.cid.lca(pc.directory = local.pubchem.directory, tax.sources =  "LOTUS - the natural products occurrence database", threads = 8, min.taxid.table.length = 3)
 c <- Sys.time()
 
 pc.bio <- pubchem.bio::build.pubchem.bio(pc.directory = local.pubchem.directory, get.properties = TRUE, threads = 8)

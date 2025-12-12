@@ -68,6 +68,13 @@ NULL
 #' @source subset of cid.inchikey file from get.pubchem.ftp
 NULL
 
+#' cid.inchi.rda
+#' @name cid.inchi
+#' @description A subset of the full cid.inchi, for example code
+#' @format data.table, stored in .rda format
+#' @source subset of cid.inchi file from get.pubchem.ftp
+NULL
+
 #' cid.lca.rda
 #' @name cid.lca
 #' @description A subset of the full cid.lca, for example code

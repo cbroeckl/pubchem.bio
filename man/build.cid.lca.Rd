@@ -39,7 +39,7 @@ build.cid.lca(
 \item{output.directory}{directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided). If both directories are NULL, not saved, only returned as in memory}
 }
 \value{
-a data frame containing pubchem CID ('cid'), and lowest common ancestor ('lca') NCBI taxonomy ID integer. will also save to pc.directory as .Rdata file.
+nothing.  will save to pc.directory as .Rdata file.
 }
 \description{
 utilizes downloaded and properly formatted local pubchem data created by 'get.pubchem.ftp' as input to generate a relationship between pubchem CID and the lowest common ancestor NCBI taxid

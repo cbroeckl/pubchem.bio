@@ -40,7 +40,7 @@ get.pubchem.ftp <- function(
   
   loadNamespace('data.table')
   .datatable.aware = TRUE
-  ..cols <- NULL
+  ..pc.bio.keep.cols <- NULL
   
   message(" -- writing data to ", pc.directory, '\n')
   
@@ -143,13 +143,13 @@ get.pubchem.ftp <- function(
     if(length(use)>0) {
       d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
     }
-    cols <- c("cid", "inchikey")
-    cid.inchikey <- d[, ..cols]
+    pc.bio.keep.cols <- c("cid", "inchikey")
+    cid.inchikey <- d[, ..pc.bio.keep.cols]
     data.table::setkey(cid.inchikey, "cid")
     save(cid.inchikey, file = paste0(pc.directory, "/cid.inchikey.Rdata"))
     rm(cid.inchikey);   gc()
-    cols <- c("cid", "inchi")
-    cid.inchi <- d[, ..cols]
+    pc.bio.keep.cols <- c("cid", "inchi")
+    cid.inchi <- d[, ..pc.bio.keep.cols]
     data.table::setkey(cid.inchi, "cid")
     save(cid.inchi, file = paste0(pc.directory, "/cid.inchi.Rdata"))
     rm(cid.inchi); gc()
@@ -242,8 +242,8 @@ get.pubchem.ftp <- function(
     } else {
       names(d) <- c("cid", "pmid")
     }
-    cols <- c("cid", "pmid")
-    d <- d[, ..cols]
+    pc.bio.keep.cols <- c("cid", "pmid")
+    d <- d[, ..pc.bio.keep.cols]
     
     data.table::setkey(d, "cid")
     tmp <- match(d$cid, cid.preferred$cid)
@@ -302,13 +302,13 @@ get.pubchem.ftp <- function(
     if(length(use)>0) {
       d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
     }
-    cols <- c("cid", "formula")
-    cid.formula <- d[, ..cols]
+    pc.bio.keep.cols <- c("cid", "formula")
+    cid.formula <- d[, ..pc.bio.keep.cols]
     data.table::setkey(cid.formula, "cid")
     save(cid.formula, file = paste0(pc.directory, "/cid.formula.Rdata"))
     rm(cid.formula); gc()
-    cols <- c("cid", "monoisotopic.mass")
-    cid.monoisotopic.mass <- d[, ..cols]
+    pc.bio.keep.cols <- c("cid", "monoisotopic.mass")
+    cid.monoisotopic.mass <- d[, ..pc.bio.keep.cols]
     is.750 <- which(cid.monoisotopic.mass$cid == 750)
     check.750 <- round(cid.monoisotopic.mass$monoisotopic.mass[is.750], 2) == 75.03
     if(!check.750) {
@@ -320,8 +320,8 @@ get.pubchem.ftp <- function(
     data.table::setkey(cid.monoisotopic.mass, "cid")
     save(cid.monoisotopic.mass, file = paste0(pc.directory, "/cid.monoisotopic.mass.Rdata"))
     rm(cid.monoisotopic.mass); gc()
-    cols <- c("cid", "accurate.mass")
-    cid.accurate.mass <- d[, ..cols]
+    pc.bio.keep.cols <- c("cid", "accurate.mass")
+    cid.accurate.mass <- d[, ..pc.bio.keep.cols]
     data.table::setkey(cid.accurate.mass, "cid")
     save(cid.accurate.mass, file = paste0(pc.directory, "/cid.accurate.mass.Rdata"))
     rm(cid.accurate.mass); gc()
@@ -624,8 +624,8 @@ get.pubchem.ftp <- function(
   # tax.sources <- c("LOTUS - the natural products occurrence database", "The Natural Products Atlas", 
   #                  "KNApSAcK Species-Metabolite Database", "Natural Product Activity and Species Source (NPASS)")
   # d <- d[d$data.source %in% tax.sources,]
-  cols <- c("taxid", "cid", "data.source")
-  d <- d[, ..cols]
+  pc.bio.keep.cols <- c("taxid", "cid", "data.source")
+  d <- d[, ..pc.bio.keep.cols]
   tmp <- match(d$cid, cid.preferred$cid)
   use <- which(!is.na(tmp))
   if(length(use)>0) {
@@ -707,9 +707,9 @@ get.pubchem.ftp <- function(
   d <- d.2
   rm(d.2)
   gc()
-  cols <- c("pwacc", "name", "pwtype", "source", 
+  pc.bio.keep.cols <- c("pwacc", "name", "pwtype", "source", 
             "taxid", "taxname", "cids")
-  d <- d[, ..cols]
+  d <- d[, ..pc.bio.keep.cols]
   names(d) <- c("pwid", "name", "pwtype", "source", 
                 "taxid", "taxname", "cid")
   d <- d[-which(is.na(d$cid)),]
@@ -827,10 +827,17 @@ get.pubchem.ftp <- function(
   rm(d)
   data.table::setkey(cid.synonym, "cid")
   save(cid.synonym, file = paste0(pc.directory, "/cid.synonym.Rdata"))
+  cid.synonyms <- cid.synonym[, list(synonym = list(synonym)),
+                              by = list(cid)]
+  rm(cid.synonym); gc()
+  data.table::setkey(cid.synonyms, "cid")
+  save(cid.synonyms, file =  paste0(pc.directory, "/cid.synonyms.Rdata"))
+  rm(cid.synonyms); gc()
   readme <- c(
     readme,
     " - cid.cas.Rdata, is a data.table of two columns, 'cid' (integer), 'cas' (character).  Note that CAS is extracted from 'synonymns' using string pattern matching.  It is possible there are errors. data.table is indexed by 'cid'. ", '\n', '\n',
-    " - cid.synonym.Rdata, is a data.table of two columns, 'cid' (integer), 'synonym' (character). data.table is indexed by 'cid'. ", '\n', '\n'
+    " - cid.synonym.Rdata, is a data.table of two columns, 'cid' (integer), 'synonym' (character). data.table is indexed by 'cid'. ", '\n', '\n',
+    " - cid.synonyms.Rdata, is a data.table of two columns, 'cid' (integer), 'synonym' (character), where synonym is a list of synonyms for each cid. data.table is indexed by 'cid'. ", '\n', '\n'
   )
   
   fileConn<-file(paste0(pc.directory, '/readme.txt'))

@@ -25,6 +25,7 @@
 #' @param cid.formula.object R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory
 #' @param cid.smiles.object R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory
 #' @param cid.inchikey.object R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory
+#' @param cid.inchi.object R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory
 #' @param cid.monoisotopic.mass.object R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory
 #' @param cid.title.object R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory
 #' @param cid.cas.object R data.table, generally produced by get.pubchem.ftp; preferably, define pc.directory
@@ -40,6 +41,7 @@
 #' data('cid.formula', package = "pubchem.bio")
 #' data('cid.smiles', package = "pubchem.bio")
 #' data('cid.inchikey', package = "pubchem.bio")
+#' data('cid.inchi', package = "pubchem.bio")
 #' data('cid.monoisotopic.mass', package = "pubchem.bio")
 #' data('cid.title', package = "pubchem.bio")
 #' data('cid.cas', package = "pubchem.bio")
@@ -50,7 +52,7 @@
 #' cid.sid.object = cid.sid, cid.pwid.object = cid.pwid,
 #' cid.parent.object = cid.parent, cid.taxid.object = cid.taxid,
 #' cid.formula.object = cid.formula, cid.smiles.object = cid.smiles,
-#' cid.inchikey.object = cid.inchikey,
+#' cid.inchikey.object = cid.inchikey, cid.inchi.object = cid.inchi,
 #' cid.monoisotopic.mass.object = cid.monoisotopic.mass,
 #' cid.title.object = cid.title, cid.cas.object = cid.cas,
 #' cid.pmid.ct.object = cid.pmid.ct, cid.lca.object = cid.lca)
@@ -92,6 +94,7 @@ build.pubchem.bio <- function(
     cid.formula.object = NULL,
     cid.smiles.object = NULL,
     cid.inchikey.object = NULL,
+    cid.inchi.object = NULL,
     cid.monoisotopic.mass.object = NULL,
     cid.title.object = NULL,
     cid.cas.object = NULL,
@@ -305,6 +308,19 @@ build.pubchem.bio <- function(
   m <- match(cid, cid.inchikey$cid)
   inchikey <- cid.inchikey$inchikey[m]
   rm(cid.inchikey); rm(m); gc()
+  
+  ## inchi
+  if(is.null(cid.inchi.object)) {
+    load(paste0(pc.directory, "/cid.inchi.Rdata"))
+    cid.inchi <- cid.inchi
+  } else {
+    cid.inchi <- cid.inchi.object
+  }
+  
+  data.table::setkey(cid.inchi, "cid")
+  m <- match(cid, cid.inchi$cid)
+  inchi <- cid.inchi$inchi[m]
+  rm(cid.inchi); rm(m); gc()
 
   ## title
   if(is.null(cid.title.object)) {
@@ -347,7 +363,7 @@ build.pubchem.bio <- function(
     pmid.ct[is.na(pmid.ct)] <- 0
   }
   rm(cid.pmid.ct); rm(m); gc()
-
+  
   ## first block of inchikey - same bonding
   inchikey.first.block <- sapply(1:length(inchikey), FUN = function(x){unlist(strsplit(inchikey[x], "-"))[1]})
   
@@ -359,11 +375,13 @@ build.pubchem.bio <- function(
     inchikey,
     inchikey.first.block,
     smiles,
+    inchi,
     cas,
     pmid.ct, 
     lca, 
     lca.level
   )
+  
   
   if(any(ls() == 'source.cid.table')) {
     source.cid.table <- data.table::data.table(
