@@ -107,6 +107,7 @@ build.taxon.metabolome <- function(
     tax.match <- which(taxid.hierarchy == taxid[i], arr.ind = TRUE)
     taxid.v <- as.vector(t(data.frame(taxid.hierarchy[tax.match[1,1],])))
     metabolome <- unique(cid.lca$cid[cid.lca$lca %in% taxid.v])
+    
     keep <- which(metabolome %in% pc.bio$cid)
     metabolome <- metabolome[keep]
     ## metabolome <- metabolome[keep]

@@ -14,6 +14,7 @@
 #' @param remove.inorganics logical. should inorganic molecules (those with no carbon) be removed? default = FALSE.
 #' @param mw.range vector. numerical vector of length = 2.  default = c(50, 2000).
 #' @param use.parent.cid logical. should CIDs be replaced with parent CIDs?  default = TRUE.
+#' @param use.parent.when.charged logical.  default = FALSE. If TRUE, and use.parent.cid is TRUE, the parent will always be chosen. if use.parent.when.charged = FALSE, and use.parent.cid = TRUE, the neutral molecule will be used, even if that is the child molecule.  See CID 1 and CID 2, for an example.
 #' @param get.properties logical. if TRUE, will return rcdk calculated properties:  XLogP, TPSA, HBondDonorCount and HBondAcceptorCount.
 #' @param threads integer. how many threads to use when calculating rcdk properties.  parallel processing via DoParallel and foreach packages.  
 #' @param rcdk.desc vector. character vector of valid rcdk descriptors.  default = rcdk.desc <- c("org.openscience.cdk.qsar.descriptors.molecular.XLogPDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.AcidicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.BasicGroupCountDescriptor", "org.openscience.cdk.qsar.descriptors.molecular.TPSADescriptor"). To see descriptor categories: 'dc <- rcdk::get.desc.categories(); dc' .  To see the descriptors within one category: 'dn <- rcdk::get.desc.names(dc\[4\]); dn'. Note that the four default parameters are relatively fast to calculate - some descriptors take a very long time to calculate.  you can calculate as many as you wish, but processing time will increase the more descriptors are added.   
@@ -75,6 +76,7 @@ build.pubchem.bio <- function(
     use.taxid = TRUE,
     taxonomy.sources = NULL,
     use.parent.cid = TRUE,
+    use.parent.when.charged = FALSE,
     remove.salts = TRUE,
     remove.inorganics = FALSE,
     mw.range = c(50, 2000),
@@ -122,6 +124,32 @@ build.pubchem.bio <- function(
       cid.parent <- cid.parent
     } else {
       cid.parent <- cid.parent.object
+    }
+    
+    ## sometimes, we want to use the child molecule. 
+    ## the parent rule is useful for salts, for example. 
+    ## sodium acetate is the child of acetic acid.  Any biology mapped to sodium acetate
+    ## should be transferred to acetate, which is what we measure by MS
+    ## sometimes, this rule falls apart.  See CID 1 and 2.  Acetyl Carnitine is the child of its +1 charged form.  
+    ## acetyl carnitine has extensive biological mapping, the +1 charged form essentially none.  We want the neutral version here, which is actually the child. 
+    
+    if(!use.parent.when.charged) {
+      load(paste0(pc.directory, "/cid.formula.Rdata"))
+
+      m <- match(cid.parent$cid, cid.formula$cid)
+      child.formula <- cid.formula$formula[m]
+      m <- match(cid.parent$parent.cid, cid.formula$cid)
+      parent.formula <- cid.formula$formula[m]
+
+      charged.child <- grepl("+", child.formula, fixed = TRUE) | grepl("-", child.formula, fixed = TRUE)
+      charged.parent <- grepl("+", parent.formula, fixed = TRUE) | grepl("-", parent.formula, fixed = TRUE)
+      
+      ## only change those where parent and child are different CID and child is neutral
+      check <- which(!(cid.parent$cid == cid.parent$parent.cid))
+      use.parent <- rep(TRUE, length(check))
+      flip <- charged.parent[check] & !charged.child[check]  ## find all cases where parent is charged and child is neutral
+      use.parent[flip] <- FALSE
+      cid.parent$parent.cid[check[!use.parent]] <- cid.parent$cid[check[!use.parent]]
     }
     
   }
@@ -173,6 +201,7 @@ build.pubchem.bio <- function(
       keep <- cid.pwid$source %in% pathway.sources
     } else {
       keep <- 1:nrow(cid.pwid)
+      pathway.sources <- unique(cid.pwid$source)
     }
     path.cid <- cid.pwid$cid[keep]
     if(any(is.na(path.cid))) {
@@ -207,6 +236,7 @@ build.pubchem.bio <- function(
       keep <- cid.taxid$data.source %in% taxonomy.sources
     } else {
       keep <- 1:nrow(cid.taxid)
+      taxonomy.sources <- unique(cid.taxid$data.source)
     }
     tax.cid <- cid.taxid$cid[keep]
     if(any(is.na(tax.cid))) {
@@ -262,9 +292,35 @@ build.pubchem.bio <- function(
   }
 
   # data.table::setkey(cid.lca, "cid")
+  
+  ## need to make this such that more than one LCA and LCA level can be returned. 
+  ## i.e.  cid.synonyms <- cid.synonym[, list(synonym = list(synonym)), by = list(cid)]
+  ## then paste0(cid.synonyms, collapse = "; "). ish
+  # load(paste0(pc.directory, "/cid.lca.Rdata"))
+  cid.lca <- data.table::data.table(cid.lca)
+  data.table::setkey(cid.lca, cid)
+  
+  # cid.lca <- data.frame(cid.lca)
+  # cid.lcas <- list(cid.lca$lca, by = list(cid.lca$cid))
+  # cid.lcas <- list(cid.lca$lca, by = cid.lca$cid)
+  
+
+  cid.lcas <- cid.lca[, .(lcas =   .(lca)), by = cid.lca$cid]
+  cid.lcas$lcas <- sapply(1:nrow(cid.lcas), FUN = function(x) {paste0(cid.lcas$lcas[[x]], collapse = "; ")})
+  names(cid.lcas)[1] <- 'cid'
+  
+  cid.levels <- cid.lca[, .(lca.levels =   .(cid.lca$lca.level)), by = cid.lca$cid]
+  cid.levels$lca.levels <- sapply(1:nrow(cid.levels), FUN = function(x) {paste0(cid.levels$lca.levels[[x]], collapse = "; ")})
+  names(cid.levels)[1] <- 'cid'
+
   m <- match(cid, cid.lca$cid)
   lca <- cid.lca$lca[m]
   lca.level <- cid.lca$lca.level[m]
+  m <- match(cid, cid.lcas$cid)
+  lcas <- cid.lcas$lcas[m]
+  m <- match(cid, cid.levels$cid)
+  lca.levels <- cid.levels$lca.levels[m]
+
   rm(m); gc()
 
   ## smiles
@@ -378,8 +434,8 @@ build.pubchem.bio <- function(
     inchi,
     cas,
     pmid.ct, 
-    lca, 
-    lca.level
+    'lca' = lcas, 
+    'lca.level' = lca.levels
   )
   
   
@@ -513,6 +569,13 @@ build.pubchem.bio <- function(
   
   if(!is.null(out.dir)) {
     save(pc.bio, file = paste0(out.dir, "/pc.bio.Rdata"))
+    load(paste0(pc.directory, "/all.sources.Rdata"))
+    all.sources <- all.sources
+    use.sources <- unique(c(bio.sources, pathway.sources, taxonomy.sources))
+    sources.used <- all.sources[all.sources$Source.Name %in% use.sources, ]
+    utils::write.csv(sources.used, file = paste0(out.dir, "/sources.used.Rdata.csv"), row.names = FALSE)
+    message(" - pubchem.bio file saved: ",  paste0(out.dir, "/pc.bio.Rdata"),  '\n')
+    message(" - record of sources used saved: ", paste0(out.dir, '/sources.used.Rdata.csv'),  '\n')
   }
 
   return(pc.bio)

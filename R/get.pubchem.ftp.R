@@ -445,6 +445,20 @@ get.pubchem.ftp <- function(
   }
   
   #### taxid.to.rank.relationship
+  ## get taxid taxname first
+  suppressWarnings(d <- readLines(
+    paste0(tmp.dir, "names.dmp"))
+  )
+  d <- lapply(1:length(d), FUN = function(x) {unlist(strsplit(d[x], "\t|\t", fixed = TRUE))})
+  d <- as.data.frame(do.call(rbind, d))
+  d <- d[grepl("scientific name", d$V4),]
+  d <- d[,c(1, 2),]
+  names(d) <- c("taxid", "taxname")
+  d <- data.table::as.data.table(d)
+  taxid.taxname <- d
+  row.names(taxid.taxname) <- NULL
+  rm(d); gc()
+  
   suppressWarnings(d <- readLines(
     paste0(tmp.dir, "nodes.dmp"))
   )
@@ -460,6 +474,12 @@ get.pubchem.ftp <- function(
   
   d <- data.table::as.data.table(d)
   data.table::setkey(d, "taxid")
+  d <- merge(d, taxid.taxname, by = 'taxid', all.x = TRUE, all.y = FALSE)
+  d <- data.table::as.data.table(d)
+  data.table::setkey(d, "taxid")
+  taxid.taxname <- d
+  save(taxid.taxname, file = paste0(pc.directory, "/taxid.taxname"))
+  rm(taxid.taxname); gc()
   
   ## determine the rank of the parent taxid
   d$rank.parent.taxid <- d$rank[match(d$parent.taxid, d$taxid)]
@@ -592,7 +612,8 @@ get.pubchem.ftp <- function(
   
   readme <- c(
     readme,
-    " - taxid.hierarchy.Rdata, is a data.table of several columns, each representing a taxonomic level, ordered from lowest to highest.  Each cell contains an integer taxid value from the NCBI taxonomy database. If hierarchy isn't defined, cell will contain NA. ",
+    " - taxid.taxname.Rdata, is a data.table of five columns, including taxid, the parent.taxid, the taxid rank, division.id, and the taxid's taxname", '\n', '\n',
+    " - taxid.hierarchy.Rdata, is a data.table of several columns, each representing a taxonomic level, ordered from lowest to highest.  Each cell contains an integer taxid value from the NCBI taxonomy database. If hierarchy isn't defined, cell will contain NA. ", '\n',
     paste0(ranks, collapse = '\n', sep = ""),
     '\n', '\n'
   )
@@ -840,6 +861,16 @@ get.pubchem.ftp <- function(
     " - cid.synonyms.Rdata, is a data.table of two columns, 'cid' (integer), 'synonym' (character), where synonym is a list of synonyms for each cid. data.table is indexed by 'cid'. ", '\n', '\n'
   )
   
+  ## record data source table
+  all.sources <- utils::read.csv("https://pubchem.ncbi.nlm.nih.gov/rest/pug/sourcetable/substance/CSV")
+  all.sources$source.pubchem.url <- paste0("https://pubchem.ncbi.nlm.nih.gov/source/", all.sources$DSN)
+  save(all.sources, file =  paste0(pc.directory, "/all.sources.Rdata"))
+  readme <- c(
+    readme,
+    " - all.sources.Rdata, is a data.table several columns, reported as directly downloaded from Pubchem via https://pubchem.ncbi.nlm.nih.gov/rest/pug/sourcetable/substance/CSV. ", '\n', '\n'
+  )
+  
+  
   fileConn<-file(paste0(pc.directory, '/readme.txt'))
   writeLines(readme, fileConn)
   close(fileConn)
@@ -847,6 +878,9 @@ get.pubchem.ftp <- function(
   if(rm.tmp.files) {
     unlink(paste0(pc.directory, "/tmp/"), recursive=TRUE)
   }
+  
+
+  
   
   message(' -- finished', '\n')
   

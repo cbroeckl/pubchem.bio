@@ -14,6 +14,7 @@ build.pubchem.bio(
   use.taxid = TRUE,
   taxonomy.sources = NULL,
   use.parent.cid = TRUE,
+  use.parent.when.charged = FALSE,
   remove.salts = TRUE,
   remove.inorganics = FALSE,
   mw.range = c(50, 2000),
@@ -55,6 +56,8 @@ build.pubchem.bio(
 \item{taxonomy.sources}{character. vector of sources to be used when adding taxonomically related metabolites to database.  Default = NULL, using all sources.}
 
 \item{use.parent.cid}{logical. should CIDs be replaced with parent CIDs?  default = TRUE.}
+
+\item{use.parent.when.charged}{logical.  default = FALSE. If TRUE, and use.parent.cid is TRUE, the parent will always be chosen. if use.parent.when.charged = FALSE, and use.parent.cid = TRUE, the neutral molecule will be used, even if that is the child molecule.  See CID 1 and CID 2, for an example.}
 
 \item{remove.salts}{logical.  should salts be removed from dataset?  default = TRUE.  salts recognized as '.' in smiles string.  performed after 'use.parent.cid'.}
 

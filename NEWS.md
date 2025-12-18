@@ -1,3 +1,9 @@
+# pubchem.bio 1.0.4
+* enable reporting of multiple LCA's in pubchem.bio tables
+* add reporting of LCA name(s) in pubchem.bio tables
+* add option in build.pubchem.bio to use the neutral child rather than the parent, even if 'use.parent' option is TRUE.
+* updated cid.lca.rda data to include lca.level column, used moving forward and reported in pubchem.bio object output.
+
 # pubchem.bio 1.0.3
 * added export.CompoundDb function to enable 'conversion to a CompoundDb' sqlite database and compatibility with the RForMassSpectrometry metapackage
 * added export.CompoundDb demonstration to vignette
