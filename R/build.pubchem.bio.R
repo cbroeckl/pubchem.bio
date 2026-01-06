@@ -5,7 +5,7 @@
 #' @param pc.directory directory from which to load pubchem .Rdata files.  alternatively, provide  R data.tables for ALL cid._property_.object options defined below.  
 #' @param output.directory directory to which the pubchem.bio database is saved.  If NULL, will try to save in pc.directory (if provided), else not saved. 
 #' @param use.bio.sources logical.  If TRUE (default) use the bio.source vector of sources, incorporating all CIDs from those bio databases.
-#' @param bio.sources vector of source names from which to extract pubchem CIDs.  all can be found here: https://pubchem.ncbi.nlm.nih.gov/sources/.  deafults to c("Metabolomics Workbench", "Human Metabolome Database (HMDB)", "ChEBI", "LIPID MAPS",  "MassBank of North America (MoNA)")
+#' @param bio.sources vector of source names from which to extract pubchem CIDs.  all can be found here: https://pubchem.ncbi.nlm.nih.gov/sources/, but can additionally use "PubChemLite" as a datasource.  defaults to c("Metabolomics Workbench", "Human Metabolome Database (HMDB)", "ChEBI", "LIPID MAPS",  "MassBank of North America (MoNA)")
 #' @param use.pathways logical.  should all CIDs from any biological pathway data be incorporated into database? 
 #' @param pathway.sources character. vector of sources to be used when adding metabolites to pubchem bio database. default = NULL, using all pathway sources.
 #' @param use.taxid logical.  should all CIDs associated with a taxonomic identifier (taxid) be used? 
@@ -306,11 +306,13 @@ build.pubchem.bio <- function(
   
 
   cid.lcas <- cid.lca[, .(lcas =   .(lca)), by = cid.lca$cid]
-  cid.lcas$lcas <- sapply(1:nrow(cid.lcas), FUN = function(x) {paste0(cid.lcas$lcas[[x]], collapse = "; ")})
+  lcas <- sapply(1:nrow(cid.lcas), FUN = function(x) {paste0(cid.lcas$lcas[[x]], collapse = "; ")})
+  cid.lcas$lcas <- lcas
   names(cid.lcas)[1] <- 'cid'
   
-  cid.levels <- cid.lca[, .(lca.levels =   .(cid.lca$lca.level)), by = cid.lca$cid]
-  cid.levels$lca.levels <- sapply(1:nrow(cid.levels), FUN = function(x) {paste0(cid.levels$lca.levels[[x]], collapse = "; ")})
+  cid.levels <- cid.lca[, .(lca.levels =   .(lca.level)), by = cid.lca$cid]
+  lca.levels <- sapply(1:nrow(cid.levels), FUN = function(x) {paste0(cid.levels$lca.levels[[x]], collapse = "; ")})
+  cid.levels$lca.levels <- lca.levels
   names(cid.levels)[1] <- 'cid'
 
   m <- match(cid, cid.lca$cid)

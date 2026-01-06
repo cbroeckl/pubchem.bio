@@ -798,13 +798,23 @@ get.pubchem.ftp <- function(
   
   # bio.cid <- bio.sources %in% d[,2]
   
+  ## add PubChemLite
+  pcl <- read.csv('https://zenodo.org/records/17775114/files/PubChemLite_CCSbase_20251128.csv')
+  pcl <- data.frame(
+    sid = NA,
+    source = "PubChemLite",
+    source.id = 'https://zenodo.org/records/4183801',
+    cid = pcl$Identifier
+  )
+  d <- rbind(d, pcl)
+  
   tmp <- match(d$cid, cid.preferred$cid)
   use <- which(!is.na(tmp))
   if(length(tmp)>0) {
     d$cid[use] <- cid.preferred$preferred.cid[tmp[use]]
   }
   cid.sid <- d
-  rm(d); gc()
+  rm(d); rm(pcl); rm(tmp); gc()
   data.table::setkey(cid.sid, "cid")
   save(cid.sid, file = paste0(pc.directory, "/cid.sid.Rdata"))
   
