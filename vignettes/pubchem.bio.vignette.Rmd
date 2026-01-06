@@ -178,7 +178,7 @@ Just make sure to set the local.pubchem.directory to something that makes sense 
 ```{r all.steps, eval=FALSE}
 
 library(pubchem.bio)
-local.pubchem.directory <- "C:/Temp/20251212"  ## i suggest this naming scheme, but feel free to chose your own.
+local.pubchem.directory <- "C:/Temp/20251217"  ## i suggest this naming scheme, but feel free to chose your own.
 
 ## run code, with timings recorded, b-a will give you the time to run the 'get.pubchem.ftp' function, etc.  
 a <- Sys.time()
@@ -217,6 +217,7 @@ g <- Sys.time()
 pubchem.bio::export.msfinder(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.msfinder.tsv"))
 pubchem.bio::export.sirius(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.sirius.tsv"))
 pubchem.bio::export.pubchem.bio(pc.bio.object = pc.bio.salsa, export.file.name = paste0(local.pubchem.directory, "/pc.bio.full.pubchem.bio.tsv"))
+pubchem.bio::export.ComboundDb(pc.bio.object = pc.bio.sorghum, pc.directory = local.pubchem.directory, path = local.pubchem.directory, dbFile = 'sorghum.sql', organism = "Sorghum", get.synonyms = TRUE)
 h <- Sys.time()
 
 out.dir <- "C:/Users/cbroeckl/OneDrive - Colostate/ARC/manuscripts/20250721_pubchem.bio/"

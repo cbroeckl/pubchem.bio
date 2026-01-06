@@ -41,6 +41,8 @@ export.ComboundDb <- function(
     compound_id = pc.bio.object$cid
   )
   
+  names(pc.bio.object) <- gsub(".", "_", names(pc.bio.object), fixed = TRUE)
+  
   ## check names for completeness of required
   if(!all(c("compound_id", "name", "inchi", "inchikey", "formula", "exactmass") %in% names(pc.bio.object))) {
     stop('the column names "compound_id", "name", "inchi", "inchikey", "formula", and "exactmass" are required', '\n')
@@ -48,7 +50,7 @@ export.ComboundDb <- function(
   
   if(is.null(dbFile)) dbFile = "pubchem.bio.sqlite"
   if(is.null(source)) source = "pubchem.bio"
-  if(is.null(source_version)) source_version = utils::packageVersion('pubchem.bio')
+  if(is.null(source_version)) source_version = as.character(utils::packageVersion('pubchem.bio'))
   if(is.null(url)) url = "https://cran.r-project.org/web/packages/pubchem.bio/index.html"
   if(is.null(source_date)) source_date = format(Sys.Date(), format = "%Y-%m-%d")
   if(is.null(organism)) organism = NA_character_
@@ -63,16 +65,23 @@ export.ComboundDb <- function(
                                 by = list(cid)]
     rm(cid.synonym); gc()
     m <- match(pc.bio.object$cid, cid.synonyms$cid)
-    synonym <- cid.synonyms$synonym[m]
+    synonyms <- cid.synonyms$synonym[m]
     rm(m); rm(cid.synonyms); gc()
   } else {
-    synonym <- as.list(rep(NA_character_, nrow(pc.bio.object)))
+    synonyms <- as.list(rep(NA_character_, nrow(pc.bio.object)))
   }
   
   ## 
   pc.bio.object <- data.table::data.table(
     pc.bio.object,
-    synonym
+    synonyms
+  )
+  
+  db.con <- RSQLite::dbConnect(RSQLite::SQLite(), dbname = paste0(path, "/", dbFile))
+  on.exit(
+    if(RSQLite::dbIsValid(db.con)) {
+      RSQLite::dbDisconnect(db.con) 
+    }
   )
   
   metad <- CompoundDb::make_metadata(source = source, 
