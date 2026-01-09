@@ -1,3 +1,7 @@
+# pubchem.bio 1.0.5
+* fix export.ComboundDb functionality bugs
+* bring CIDs in from PubChemLite as an added data source to expand exogenous compound coverage.
+
 # pubchem.bio 1.0.4
 * enable reporting of multiple LCA's in pubchem.bio tables
 * add reporting of LCA name(s) in pubchem.bio tables
@@ -17,5 +21,4 @@
 * improve robustness of pathway data download
 
 # pubchem.bio 1.0.0
-
 * Initial CRAN submission.
