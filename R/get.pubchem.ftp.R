@@ -799,7 +799,7 @@ get.pubchem.ftp <- function(
   # bio.cid <- bio.sources %in% d[,2]
   
   ## add PubChemLite
-  pcl <- read.csv('https://zenodo.org/records/17775114/files/PubChemLite_CCSbase_20251128.csv')
+  pcl <- utils::read.csv('https://zenodo.org/records/17775114/files/PubChemLite_CCSbase_20251128.csv')
   pcl <- data.frame(
     sid = NA,
     source = "PubChemLite",

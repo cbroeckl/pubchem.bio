@@ -45,7 +45,7 @@ build.pubchem.bio(
 
 \item{use.bio.sources}{logical.  If TRUE (default) use the bio.source vector of sources, incorporating all CIDs from those bio databases.}
 
-\item{bio.sources}{vector of source names from which to extract pubchem CIDs.  all can be found here: https://pubchem.ncbi.nlm.nih.gov/sources/.  deafults to c("Metabolomics Workbench", "Human Metabolome Database (HMDB)", "ChEBI", "LIPID MAPS",  "MassBank of North America (MoNA)")}
+\item{bio.sources}{vector of source names from which to extract pubchem CIDs.  all can be found here: https://pubchem.ncbi.nlm.nih.gov/sources/, but can additionally use "PubChemLite" as a datasource.  defaults to c("Metabolomics Workbench", "Human Metabolome Database (HMDB)", "ChEBI", "LIPID MAPS",  "MassBank of North America (MoNA)")}
 
 \item{use.pathways}{logical.  should all CIDs from any biological pathway data be incorporated into database?}
 
