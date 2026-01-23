@@ -1,3 +1,6 @@
+# pubchem.bio 1.1.0
+* add browse.pubchem.bio Rshiny dashboard
+
 # pubchem.bio 1.0.5
 * fix export.ComboundDb functionality bugs
 * bring CIDs in from PubChemLite as an added data source to expand exogenous compound coverage.

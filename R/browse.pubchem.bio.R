@@ -1,0 +1,359 @@
+#' browse.pubchem.bio
+#'
+#' an Rshiny dashboard for browsing a pubchem.bio library. enables filtering by mass/adduct, name, viewing structures, and calculating expected isotope envelopes.  
+#' @details just a viewer, so returns nothing, but enables interactivity with the data to support manual annotation efforts.  
+#' @param file.name character filename and full path (i.e. 'C:/my.data/pc.bio.Rdata') of the pubchem.bio dataset you wish to load.  can be either a full pubchem.bio dataset or a taxonomically scored version. 
+#' @param launch.browser logical.  default = TRUE.  If TRUE, dashboard opens in default browswer, else opens in standalone window. 
+#' @return nothing
+#' @author Corey Broeckling
+#' 
+#' @export
+#'
+browse.pubchem.bio <- function(
+    file.name = NULL,
+    launch.browser = TRUE
+){
+  
+  # requireNamespace('ChemmineOB')
+  # requireNamespace('magrittr')
+  # requireNamespace('shiny')
+  # requireNamespace('DT')
+  
+  # load data
+  
+  # ask user for file name if NULL
+  if(is.null(file.name)) {
+    file.name <- file.choose()
+  }
+  
+  # load object and rename
+  objects.1 <- ls(); objects.1 <- ls()
+  load(file.name)
+  objects.2 <- ls()
+  new.object <- objects.2[!(objects.2 %in% objects.1)]
+  envir <- environment()
+  value <- get(new.object, envir=envir)
+  assign(x='pc.bio', value=value, envir=envir)
+  rm(list=new.object, envir=envir)
+  
+  ## round values for prettier interface
+  pc.bio$TopoPSA <- round(pc.bio$TopoPSA, 2)
+  pc.bio$XLogP <- round(pc.bio$XLogP, 2)
+  
+  utils::data(isotopes)
+  
+  
+  # Define UI
+  ui <- shiny::fluidPage(
+    shiny::titlePanel("Filter pubchem.bio database by monoisotopic mass"),
+    shiny::sidebarLayout(
+      shiny::sidebarPanel(
+        shiny::numericInput("monoisotopic.mass", "Enter neutral or ion mass value:", value = 194.0803),
+        shiny::numericInput("ppm.tolerance", "Enter m/z ppm tolerance:", value = 5),
+        shiny::selectInput("operation", "Select adduct type:",
+                           choices = c("Neutral mass" = "none",
+                                       "[M+H]+" = "addH",
+                                       "[M+Na]+" = "addNa",
+                                       "[M+K]+" = "addK",
+                                       "[M+NH4]+" = "addNH4",
+                                       "[M+H-H2O]+" = "addHminusH20",
+                                       "[M]+" = "mplusRadical",
+                                       "[M-H]-" = "minusH",
+                                       "[M-2H+Na]-" = "minus2HplusNa",
+                                       "[M-2H+K]-" = "minus2HplusK",
+                                       "[M+Formate]-" = "addFormate",
+                                       "[M+Acetate]-" = "addAcetate",
+                                       "[M+Cl]-" = "addCl",
+                                       "[M]-" = "mminusRadical"
+                                       
+                           )),
+        shiny::checkboxInput("show_all", "Show all columns", value = FALSE),
+        shiny::checkboxInput("show_isotopes", "Show predicted isotope envelope", value = TRUE),
+        shiny::checkboxInput("show_structure", "Show structure", value = TRUE),
+        shiny::checkboxInput("use_absolute_error", "Use absolute PPM error", value = TRUE),
+        shiny::numericInput("resolving.power", "Enter instrument resolution:", value = 80000),
+        shiny::helpText("Filters metabolites where measured mass as adduct selected is within monoisotopic.mass +/- ppm error range."),
+        width = 2
+      ),
+      shiny::mainPanel(
+        shiny::fluidRow(
+          shiny::column(12, 
+                        DT::DTOutput("filtered_table")
+          )
+        ),
+        shiny::fluidRow(
+          shiny::column(6, shiny::div(style =  "Bottomleft"),
+                        plotly::plotlyOutput("ms1spectrum", height = "60%")
+          ),
+          shiny::column(6, shiny::div(style =  "Bottomright"),
+                        plotly::plotlyOutput("structure", height = "60%")
+          )
+        ), height = "100%"
+      )
+    )
+  )
+  
+  # Define Server
+  server <- function(input, output, session) {
+    
+    # requireNamespace('ChemmineOB')
+    # requireNamespace('magrittr')
+    # requireNamespace('shiny')
+    # requireNamespace('DT')
+    
+    # Reactive expression to filter data
+    filtered_data <- shiny::reactive({
+      shiny::req(input$monoisotopic.mass, input$ppm.tolerance)
+      center <- suppressWarnings(as.numeric(input$monoisotopic.mass))
+      range <- suppressWarnings(as.numeric(input$monoisotopic.mass) * as.numeric(input$ppm.tolerance) / 1000000)
+      
+      pc.bio$adduct.mz <- switch(input$operation,
+                                 "none" = pc.bio$monoisotopic.mass + 0,
+                                 "addH" = pc.bio$monoisotopic.mass + 1.007276,
+                                 "addNa" = pc.bio$monoisotopic.mass + 22.989218,
+                                 "addK" = pc.bio$monoisotopic.mass + 38.963158,
+                                 "addNH4" = pc.bio$monoisotopic.mass + 18.033823,
+                                 "addHminusH20" = pc.bio$monoisotopic.mass + 1.007276 - 18.010564683,
+                                 "mplusRadical" = pc.bio$monoisotopic.mass - 0.00054857,
+                                 "minusH" = pc.bio$monoisotopic.mass - 1.007276,
+                                 "minus2HplusNa"  = pc.bio$monoisotopic.mass-(2*1.007276) + 22.989218,
+                                 "minus2HplusK" = pc.bio$monoisotopic.mass-(2*1.007276) + 38.963158,
+                                 "addFormate" = pc.bio$monoisotopic.mass + 44.998201,
+                                 "addAcetate" = pc.bio$monoisotopic.mass + 59.013851,
+                                 "addCl" = pc.bio$monoisotopic.mass + 34.969402,
+                                 "mminusRadical" = pc.bio$monoisotopic.mass + 0.00054857,
+                                 df$Value)  
+      
+      if (is.na(center) || is.na(range)) {
+        return(data.frame(Error = "Please enter valid numeric values"))
+      }
+      
+      lower <- center - range
+      upper <- center + range
+      pc.bio$ppm.error <- round(1000000*((center - pc.bio$adduct.mz)/center),2)
+      if(input$use_absolute_error) pc.bio$ppm.error<- abs(pc.bio$ppm.error)
+      if (!input$show_all) {
+        use.cols <- c("cid", "name", "formula", "monoisotopic.mass", "adduct.mz", "ppm.error", "smiles")
+      } else {
+        use.cols <- c("cid", "name", "formula", "monoisotopic.mass", "adduct.mz", "ppm.error", "smiles")
+        use.cols <- c(use.cols, names(pc.bio)[!(names(pc.bio) %in% use.cols)])
+      }
+      
+      display.pc.bio <- pc.bio[which(pc.bio$adduct.mz >= lower & pc.bio$adduct.mz <= upper), use.cols]
+      display.pc.bio
+      # subset(pc.bio, adduct.mz >= lower & adduct.mz <= upper)
+    })
+    
+    # Render filtered table with server-side processing
+    output$filtered_table <- DT::renderDT({
+      DT::datatable(
+        filtered_data(),
+        rownames = FALSE,
+        options = list(
+          pageLength = 10,
+          scrollX = TRUE,
+          server = TRUE
+        ),selection = c("single")
+      )
+    }, server = TRUE)
+    
+    output$ms1spectrum <- plotly::renderPlotly({
+      selected <- input$filtered_table_rows_selected
+      if (length(selected) & input$show_isotopes) {
+        row <- filtered_data()[selected, ]
+        formula <- row$formula
+        # smiles <- as.character(row$smiles)
+        # sdf <- smiles2sdf(smiles)
+        # mol <- parse.smiles(smiles)[[1]]
+        formula <- switch(input$operation,
+                          "none" = formula,
+                          "addH" = MetaboCoreUtils::addElements(formula, "H"),
+                          "addNa" = MetaboCoreUtils::addElements(formula, "Na"),
+                          "addK" = MetaboCoreUtils::addElements(formula, "K"),
+                          "addNH4" = MetaboCoreUtils::addElements(formula, "NH4"),
+                          "addHminusH20" = MetaboCoreUtils::subtractElements(formula, "OH"),
+                          "mplusRadical" = formula,
+                          "minusH" = MetaboCoreUtils::subtractElements(formula, "H"),
+                          "minus2HplusNa"  = MetaboCoreUtils::addElements(MetaboCoreUtils::subtractElements(formula, "H2"), Na),
+                          "minus2HplusK" = MetaboCoreUtils::addElements(MetaboCoreUtils::subtractElements(formula, "H2"), K),
+                          "addFormate" = MetaboCoreUtils::addElements(formula, "CHO2"),
+                          "addAcetate" = MetaboCoreUtils::addElements(formula, "C2H3O2"),
+                          "addCl" = MetaboCoreUtils::addElements(formula, "Cl"),
+                          "mminusRadical" = formula,
+                          df$Value)
+        
+        z <- switch(input$operation,
+                    "none" = 0,
+                    "addH" = 1,
+                    "addNa" = 1,
+                    "addK" = 1,
+                    "addNH4" = 1,
+                    "addHminusH20" = 1,
+                    "mplusRadical" = 1,
+                    "minusH" = -1,
+                    "minus2HplusNa"  = -1,
+                    "minus2HplusK" = -1,
+                    "addFormate" = -1,
+                    "addAcetate" = -1,
+                    "addCl" = -1,
+                    "mminusRadical" = -1,
+                    df$Value)
+        # z <- -1
+        utils::data('isotopes', package = 'enviPat')
+        iso.pattern <- enviPat::isopattern(isotopes, chemforms = formula, charge = z)
+        # head(iso.pattern)[[1]]
+        iso.profile <- data.frame(enviPat::envelope(iso.pattern, resolution = input$resolving.power)[[1]], check.names = TRUE)
+        iso.profile$abundance <- 100*(iso.profile$abundance/max(iso.profile$abundance))
+        # head(iso.profile)
+        ## add ion formula adjustment based on adduct type selected
+        ## use envipat to get isotope envelope and centroids
+        ## then plot that.  need to set resolving power option. 
+        
+        plotly::plot_ly(iso.profile, x = ~m.z, y = ~abundance,  type = 'scatter', mode = 'lines', name = formula) %>%
+          plotly::layout(title = formula)  
+      } else {
+        plotly::plot_ly() %>% plotly::layout(title = "Select a row to plot the isotopic envelope")
+      }
+    })
+    
+    
+    output$structure <- plotly::renderPlotly({
+      selected <- input$filtered_table_rows_selected
+      if (length(selected) & input$show_structure) {
+        
+        row <- filtered_data()[selected, ]
+        formula <- row$formula
+        smiles <- as.character(row$smiles)[1]
+        str <- ChemmineR::smiles2sdf(smiles)[[1]]
+        
+        elems <- c(
+          "C" = "black",
+          "N" = "blue",
+          "O" = 'red',
+          "F" = 'palegreen',
+          "Cl" = "green", 
+          "Br" = "darkred",
+          "I" = "darkviolet",
+          "P" = "orange",
+          "S" = "gold",
+          "B" = "beige",
+          "He" = "cyan",
+          "Ne" = "cyan",
+          "Ar" = "cyan",
+          "Kr" = "cyan",
+          "Xe" = "cyan",
+          "Rn" = "cyan",
+          "Li" = "violet",
+          "Na" = "violet",
+          "K" = "violet",
+          "Rb" = "violet",
+          "Cs" = "violet",
+          "Fr" = "violet",
+          "Be" = "darkgreen",
+          "Mg" = "darkgreen",
+          "Ca" = "darkgreen",
+          "Sr" = "darkgreen",
+          "Ba" = "darkgreen",
+          "Ra" = "darkgreen",
+          "Ti" = "gray",
+          "Fe" = 'darkorange'
+        )
+        
+        # str@atomblock
+        # str@bondblock
+        
+        df <- data.frame(
+          atomId = sapply(1:nrow(str@atomblock), FUN = function(x) unlist(strsplit(rownames(str@atomblock)[x], "_"))[2]),
+          element = sapply(1:nrow(str@atomblock), FUN = function(x) unlist(strsplit(rownames(str@atomblock)[x], "_"))[1]),
+          xCord = str@atomblock[,1],
+          yCord = str@atomblock[,2]
+        )
+        df$color <- elems[match(df$element, names(elems))]
+        
+        conn <- data.frame(
+          atom1 = str@bondblock[,1], 
+          atom2 = str@bondblock[,2],
+          order = str@bondblock[,3]
+        )
+        
+        tmp <- plotly::plot_ly(x = df$xCord, y = df$yCord, type="scatter", showlegend = FALSE,
+                               mode="none", color = df$element, hoverinfo = "text", size = 100,
+                               text = paste('AtomId: ', df$atomId, "\nElement: ", df$element)) %>%
+          plotly::layout(xaxis = list(zeroline = F,
+                                      showgrid = F,
+                                      showticklabels = F),
+                         yaxis = list(zeroline = F,
+                                      showgrid = F,
+                                      showticklabels = F)
+          )
+        
+        x.range <- max(df[,3]) - min(df[,3])
+        y.range <- max(df[,4]) - min (df[,4])
+        
+        for(i in 1:nrow(conn)) {
+          
+          for(j in 1:conn[i,'order']) {
+            offset <- c(0, 0.04, -0.04)
+            x.st <- df[which(df[,1] == as.character(conn[i,1])),3]
+            x.end <- df[which(df[,1] == as.character(conn[i,2])),3]
+            y.st <- df[which(df[,1] == as.character(conn[i,1])),4]
+            y.end <- df[which(df[,1] == as.character(conn[i,2])),4]
+            
+            slope <- (max(y.st, y.end) - min(y.st, y.end))/(max(x.st, x.end) - min(x.st, x.end))
+            y.diff <- y.end - y.st
+            x.diff <- x.end - x.st
+            
+            x.st <-  x.st  - y.diff*offset[j] + 0.02*y.range*offset[j]
+            x.end <- x.end - y.diff*offset[j] + 0.02*y.range*offset[j]
+            y.st <-  y.st  + x.diff*offset[j] + 0.02*x.range*offset[j]
+            y.end <- y.end + x.diff*offset[j] + 0.02*x.range*offset[j]
+            
+            tmp <- tmp %>%
+              plotly::add_segments(x = x.st, xend = x.end,
+                                   y = y.st, yend = y.end,
+                                   showlegend = FALSE, line = list(width = 1, color = "gray"))
+          }
+          
+        }
+        
+        
+        tmp <- suppressWarnings(tmp %>% plotly::add_trace(x = df$xCord, y = df$yCord, type="scatter",  showlegend = TRUE, 
+                                                          text = df[,2], textfont = list(size = max(10, 70/x.range)), 
+                                                          marker = list(
+                                                            color = 'white', # Set marker color to white for the background
+                                                            size = max(11, 90/x.range),       # Adjust marker size to encompass the text
+                                                            symbol = 'square' # Use a square symbol for a clear background
+                                                          ),
+                                                          mode="text", color = I(df$color), fill = 'white', hoverinfo = "text",
+                                                          text = paste("\nElement: ", df$element)))
+        tmp
+        
+      } else {
+        str <- ChemmineR::smiles2sdf("CCC")[[1]]
+        out <- plot(str, verbose = FALSE)
+        out
+      }
+    })
+    
+    # output$structure <- renderPlot({
+    #   height = "100%" 
+    #   selected <- input$filtered_table_rows_selected
+    #   if (length(selected)) {
+    #     row <- filtered_data()[selected, ]
+    #     formula <- row$formula
+    #     smiles <- as.character(row$smiles)
+    #     str <- ChemmineR::smiles2sdf(smiles)[[1]]
+    #     ChemmineR::plotStruc(str)
+    # 
+    #   } else {
+    #     plot(0,0)
+    #   }
+    # })
+    
+  }
+  
+  # Run the app
+  shiny::shinyApp(ui, server, options = list(launch.browser = launch.browser))
+}
+
+# browse.pubchem.bio(file.name = "R:/RSTOR-PMF/Software/pubchem.bio/pc.bio.Rdata")
