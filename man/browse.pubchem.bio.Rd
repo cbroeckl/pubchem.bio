@@ -4,12 +4,10 @@
 \alias{browse.pubchem.bio}
 \title{browse.pubchem.bio}
 \usage{
-browse.pubchem.bio(file.name = NULL, launch.browser = TRUE)
+browse.pubchem.bio(file.name = NULL)
 }
 \arguments{
 \item{file.name}{character filename and full path (i.e. 'C:/my.data/pc.bio.Rdata') of the pubchem.bio dataset you wish to load.  can be either a full pubchem.bio dataset or a taxonomically scored version.}
-
-\item{launch.browser}{logical.  default = TRUE.  If TRUE, dashboard opens in default browswer, else opens in standalone window.}
 }
 \value{
 nothing
